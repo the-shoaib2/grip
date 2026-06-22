@@ -21,12 +21,23 @@ import (
 )
 
 type RefEntry struct {
-	Ref            string `json:"ref"`
-	BackendNodeID  int64  `json:"backendNodeId"`
-	Role           string `json:"role,omitempty"`
-	Name           string `json:"name,omitempty"`
-	FrameID        string `json:"frameId,omitempty"`
-	InShadowDom    bool   `json:"inShadowDom,omitempty"`
+	Ref           string `json:"ref"`
+	BackendNodeID int64  `json:"backendNodeId"`
+	Role          string `json:"role,omitempty"`
+	Name          string `json:"name,omitempty"`
+	FrameID       string `json:"frameId,omitempty"`
+	InShadowDom   bool   `json:"inShadowDom,omitempty"`
+}
+
+func axString(v *accessibility.Value) string {
+	if v == nil || len(v.Value) == 0 {
+		return ""
+	}
+	var s string
+	if err := json.Unmarshal(v.Value, &s); err != nil {
+		return string(v.Value)
+	}
+	return s
 }
 
 type LogEntry struct {
@@ -97,6 +108,7 @@ func (s *Session) Connect(ctx context.Context) error {
 		runtime.Enable(),
 		page.Enable(),
 		dom.Enable(),
+		accessibility.Enable(),
 	)
 }
 
@@ -176,7 +188,7 @@ func (s *Session) Snapshot(frameID string) (yaml string, title string, url strin
 	s.refsValid = true
 	s.mu.Unlock()
 
-	var nodes []*accessibility.AXNode
+	var nodes []*accessibility.Node
 	var lines []string
 
 	err = chromedp.Run(s.ctx,
@@ -195,8 +207,8 @@ func (s *Session) Snapshot(frameID string) (yaml string, title string, url strin
 		return "", "", "", err
 	}
 
-	byID := make(map[accessibility.AXNodeID]*accessibility.AXNode)
-	childSet := make(map[accessibility.AXNodeID]bool)
+	byID := make(map[accessibility.NodeID]*accessibility.Node)
+	childSet := make(map[accessibility.NodeID]bool)
 	for _, n := range nodes {
 		byID[n.NodeID] = n
 		for _, c := range n.ChildIDs {
@@ -204,34 +216,32 @@ func (s *Session) Snapshot(frameID string) (yaml string, title string, url strin
 		}
 	}
 
-	var roots []*accessibility.AXNode
+	var roots []*accessibility.Node
 	for _, n := range nodes {
 		if !childSet[n.NodeID] {
 			roots = append(roots, n)
 		}
 	}
 
-	var walk func(*accessibility.AXNode, int)
-	walk = func(node *accessibility.AXNode, depth int) {
-		if node == nil || node.Ignored {
-			if node != nil {
-				for _, c := range node.ChildIDs {
-					walk(byID[c], depth)
-				}
+	var walk func(*accessibility.Node, int)
+	walk = func(node *accessibility.Node, depth int) {
+		if node == nil {
+			return
+		}
+		if node.Ignored {
+			for _, c := range node.ChildIDs {
+				walk(byID[c], depth)
 			}
 			return
 		}
-		role := "generic"
-		if node.Role != nil {
-			role = string(*node.Role)
+		role := axString(node.Role)
+		if role == "" {
+			role = "generic"
 		}
-		name := ""
-		if node.Name != nil {
-			name = node.Name.Value
-		}
+		name := axString(node.Name)
 		ref := ""
 		if node.BackendDOMNodeID != 0 {
-			ref = " ref=" + s.assignRef(node.BackendDOMNodeID, role, name, frameID)
+			ref = " ref=" + s.assignRef(int64(node.BackendDOMNodeID), role, name, frameID)
 		}
 		indent := ""
 		for i := 0; i < depth; i++ {
@@ -268,7 +278,7 @@ func (s *Session) Highlight(ref string) error {
 	var box dom.BoxModel
 	err = chromedp.Run(s.ctx,
 		chromedp.ActionFunc(func(ctx context.Context) error {
-			b, err := dom.GetBoxModel().WithBackendNodeID(entry.BackendNodeID).Do(ctx)
+			b, err := dom.GetBoxModel().WithBackendNodeID(cdp.BackendNodeID(entry.BackendNodeID)).Do(ctx)
 			if err != nil {
 				return err
 			}
@@ -319,7 +329,7 @@ func (s *Session) Click(ref string) error {
 	var box dom.BoxModel
 	err = chromedp.Run(s.ctx,
 		chromedp.ActionFunc(func(ctx context.Context) error {
-			b, err := dom.GetBoxModel().WithBackendNodeID(entry.BackendNodeID).Do(ctx)
+			b, err := dom.GetBoxModel().WithBackendNodeID(cdp.BackendNodeID(entry.BackendNodeID)).Do(ctx)
 			if err != nil {
 				return err
 			}
@@ -346,7 +356,7 @@ func (s *Session) Fill(ref, value string) error {
 	}
 	return chromedp.Run(s.ctx,
 		chromedp.ActionFunc(func(ctx context.Context) error {
-			return dom.Focus().WithBackendNodeID(entry.BackendNodeID).Do(ctx)
+			return dom.Focus().WithBackendNodeID(cdp.BackendNodeID(entry.BackendNodeID)).Do(ctx)
 		}),
 		chromedp.ActionFunc(func(ctx context.Context) error {
 			return input.InsertText(value).Do(ctx)
@@ -362,7 +372,7 @@ func (s *Session) Screenshot(selector string) ([]byte, error) {
 			var box dom.BoxModel
 			err = chromedp.Run(s.ctx,
 				chromedp.ActionFunc(func(ctx context.Context) error {
-					b, e := dom.GetBoxModel().WithBackendNodeID(entry.BackendNodeID).Do(ctx)
+					b, e := dom.GetBoxModel().WithBackendNodeID(cdp.BackendNodeID(entry.BackendNodeID)).Do(ctx)
 					if e != nil {
 						return e
 					}

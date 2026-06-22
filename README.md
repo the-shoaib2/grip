@@ -17,7 +17,7 @@ Docs site: [`apps/docs`](apps/docs)
 ```bash
 pnpm install
 pnpm turbo build
-pnpm run build:mcp   # Go binary → bin/grip-mcp
+pnpm run build:mcp          # bootstraps Go to .tools/go if needed → bin/grip-mcp
 ```
 
 ### Chrome + MCP

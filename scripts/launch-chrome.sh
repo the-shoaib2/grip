@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PORT="${1:-9229}"
+PORT="${1:-9222}"
 shift || true
 USER_DATA_DIR="${TMPDIR:-/tmp}/grip-chrome-${PORT}"
 

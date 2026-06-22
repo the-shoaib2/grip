@@ -1,4 +1,4 @@
-import finder from "@medv/finder";
+import { finder } from "@medv/finder";
 import type { SelectorResult } from "./types.js";
 
 export function generateXPath(el: Element): string {

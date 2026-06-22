@@ -9,7 +9,7 @@
     "lint": "turbo lint",
     "test": "turbo test",
     "typecheck": "turbo typecheck",
-    "build:mcp": "cd packages/mcp-server && go build -o ../../bin/grip-mcp ./cmd/grip-mcp",
+    "build:mcp": "bash scripts/build-mcp.sh",
     "smoke": "pnpm --filter @grip/core test"
   },
   "devDependencies": {
