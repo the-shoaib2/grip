@@ -23,7 +23,9 @@ export function PickHistoryList({
 }: PickHistoryListProps) {
   if (!history.length) {
     return (
-      <p className="py-2 text-center text-[11px] text-zinc-600">No picks yet</p>
+      <p className="py-2 text-center text-[11px]" style={{ color: "var(--grip-muted)" }}>
+        No picks yet
+      </p>
     );
   }
 
@@ -67,17 +69,17 @@ export function PickHistoryList({
           return (
             <li key={pick.id} className={`grip-pick-row ${selected ? "grip-pick-row-active" : ""}`}>
               <Tooltip
-                text={`Go to · ${pick.css}`}
-                wide
+                text={`Go to ${pick.label}`}
+                position="bottom"
                 className="min-w-0 flex-1"
               >
                 <button
                   type="button"
-                  className="grip-pick-item w-full"
-                  aria-label={`Go to ${pick.label}`}
+                  className="grip-pick-item"
+                  aria-label={`Go to ${pick.label} — ${pick.css}`}
                   onClick={() => onSelect(pick)}
                 >
-                  <span className="truncate">{pick.label}</span>
+                  {pick.label}
                 </button>
               </Tooltip>
               <CopyButton

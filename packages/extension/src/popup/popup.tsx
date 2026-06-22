@@ -65,7 +65,7 @@ function Popup() {
         : "Copy MCP prompt for selected element";
 
   return (
-    <div className="w-80 bg-zinc-950 p-3 text-zinc-100">
+    <div className="grip-popup">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <GripIcon size={22} />
@@ -91,7 +91,7 @@ function Popup() {
         </Tooltip>
       </div>
 
-      <div className="mt-3">
+      <div className="mt-3 min-w-0">
         <PickHistoryList
           history={history}
           activeId={active?.id}
@@ -101,7 +101,7 @@ function Popup() {
       </div>
 
       {active && (
-        <div className="mt-3 flex items-end gap-2">
+        <div className="mt-3 flex min-w-0 items-end gap-2">
           <SelectDropdown
             label="Copy as"
             className="flex-1"
