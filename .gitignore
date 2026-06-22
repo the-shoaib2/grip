@@ -57,6 +57,11 @@ apps/docs/out/
 
 # Chrome extension (Vite + CRXJS)
 packages/extension/dist/
+# Accidental tsc output in extension source (use vite build, not tsc emit)
+packages/extension/src/**/*.js
+packages/extension/src/**/*.d.ts
+packages/extension/src/**/*.js.map
+packages/extension/src/**/*.d.ts.map
 
 # Go MCP server
 bin/grip-mcp

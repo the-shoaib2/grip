@@ -15,10 +15,10 @@ export function SelectDropdown({
 }: SelectDropdownProps) {
   return (
     <label className={`block ${className}`}>
-      {label && <span className="grip-label mb-1 block">{label}</span>}
-      <div className="relative">
+      {label && <span className="grip-label mb-1.5 block">{label}</span>}
+      <div className="grip-select-wrap">
         <select
-          className="grip-select w-full appearance-none pr-8"
+          className="grip-select w-full"
           value={value}
           onChange={(e) => onChange((e.target as HTMLSelectElement).value)}
         >
@@ -28,7 +28,7 @@ export function SelectDropdown({
             </option>
           ))}
         </select>
-        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500">
+        <span className="grip-select-chevron" aria-hidden>
           ▾
         </span>
       </div>

@@ -18,6 +18,7 @@ export { buildSnapshot, buildSnapshotForLLM } from "./snapshot.js";
 export { serializeForLLM, serializeSnapshotJson } from "./serializer.js";
 export {
   checkChromeDebugPort,
+  formatAllMcpPrompts,
   formatMcpPrompt,
   GRIP_MCP_DEFAULT_PORT,
 } from "./mcp-prompt.js";

@@ -10,9 +10,12 @@ import {
 import { CommentField } from "../../components/CommentField";
 import { CopyButton } from "../../components/CopyButton";
 import { GripIcon } from "../../components/GripIcon";
+import { PickHistoryList } from "../../components/PickHistoryList";
 import { SelectDropdown } from "../../components/SelectDropdown";
 import { LogPanel } from "./LogPanel";
 import "../../styles/globals.css";
+
+type CopyAs = "mcp" | "css" | "xpath";
 
 export function App() {
   const lastPick = useGripStore((s) => s.lastPick);
@@ -22,7 +25,12 @@ export function App() {
   const clearLogs = useGripStore((s) => s.clearLogs);
   const [mcpOk, setMcpOk] = useState(false);
   const [history, setHistory] = useState<StoredPick[]>([]);
-  const [copyAs, setCopyAs] = useState("mcp");
+  const [copyAs, setCopyAs] = useState<CopyAs>("mcp");
+
+  const activeId = useMemo(() => {
+    if (!lastPick) return undefined;
+    return history.find((h) => h.css === lastPick.css)?.id;
+  }, [history, lastPick]);
 
   useEffect(() => {
     void checkChromeDebugPort().then((r: { ok: boolean }) => setMcpOk(r.ok));
@@ -77,17 +85,19 @@ export function App() {
     return () => chrome.storage.onChanged.removeListener(onStorage);
   }, [setLastPick, addLog, clearLogs]);
 
-  const mcpPrompt = useMemo(
-    () => (lastPick ? formatMcpPrompt(lastPick) : ""),
-    [lastPick],
-  );
-
   const copyText = useMemo(() => {
     if (!lastPick) return "";
     if (copyAs === "css") return lastPick.css;
     if (copyAs === "xpath") return lastPick.xpath;
-    return mcpPrompt;
-  }, [copyAs, lastPick, mcpPrompt]);
+    return formatMcpPrompt(lastPick);
+  }, [copyAs, lastPick]);
+
+  const copyTooltip =
+    copyAs === "css"
+      ? "Copy CSS for selected element"
+      : copyAs === "xpath"
+        ? "Copy XPath for selected element"
+        : "Copy MCP prompt for selected element";
 
   const persistComment = (comment: string) => {
     setPickComment(comment);
@@ -98,7 +108,7 @@ export function App() {
     }
   };
 
-  const goTo = (pick: StoredPick) => {
+  const selectPick = (pick: StoredPick) => {
     setLastPick(pick);
     chrome.runtime.sendMessage({ type: "NAVIGATE_TO_PICK", payload: pick });
   };
@@ -123,27 +133,19 @@ export function App() {
         Pick
       </button>
 
-      {history.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {history.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              className={`grip-badge ${lastPick?.css === p.css ? "grip-badge-active" : ""}`}
-              onClick={() => goTo(p)}
-              title={p.css}
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
-      )}
+      <PickHistoryList
+        history={history}
+        activeId={activeId}
+        copyAs={copyAs}
+        onSelect={selectPick}
+      />
 
       {lastPick && (
         <>
           <CommentField value={lastPick.comment ?? ""} onChange={persistComment} />
-          <div className="flex gap-2">
+          <div className="flex items-end gap-2">
             <SelectDropdown
+              label="Copy as"
               className="flex-1"
               value={copyAs}
               options={[
@@ -151,13 +153,10 @@ export function App() {
                 { value: "css", label: "CSS" },
                 { value: "xpath", label: "XPath" },
               ]}
-              onChange={setCopyAs}
+              onChange={(v) => setCopyAs(v as CopyAs)}
             />
-            <CopyButton label="Copy" text={copyText} />
+            <CopyButton label="Copy" text={copyText} tooltip={copyTooltip} />
           </div>
-          <p className="grip-mono truncate text-[10px] text-zinc-500" title={lastPick.css}>
-            {lastPick.tagName} · {lastPick.css}
-          </p>
         </>
       )}
 

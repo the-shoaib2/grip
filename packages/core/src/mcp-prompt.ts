@@ -34,6 +34,19 @@ export function formatMcpPrompt(pick: PickerElementDetails): string {
   return lines.join("\n");
 }
 
+/** Join MCP prompts for every saved pick on the page. */
+export function formatAllMcpPrompts(
+  picks: (PickerElementDetails & { label?: string })[],
+): string {
+  if (!picks.length) return "";
+  return picks
+    .map((pick, i) => {
+      const name = pick.label ?? pick.tagName;
+      return `### ${i + 1}. ${name}\n\n${formatMcpPrompt(pick)}`;
+    })
+    .join("\n\n---\n\n");
+}
+
 export const GRIP_MCP_DEFAULT_PORT = 9222;
 
 export async function checkChromeDebugPort(

@@ -1,7 +1,5 @@
 import type { PickerElementPayload, StoredPick } from "./types/messages.js";
 
-export type { StoredPick };
-
 const MAX_HISTORY = 80;
 
 export function pickLabel(pick: PickerElementPayload): string {

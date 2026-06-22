@@ -3,14 +3,17 @@ import { useEffect, useState } from "preact/hooks";
 import { checkChromeDebugPort, formatMcpPrompt, type StoredPick } from "@grip/core";
 import { CopyButton } from "../components/CopyButton";
 import { GripIcon } from "../components/GripIcon";
+import { PickHistoryList } from "../components/PickHistoryList";
 import { SelectDropdown } from "../components/SelectDropdown";
 import "../styles/globals.css";
+
+type CopyAs = "mcp" | "css" | "xpath";
 
 function Popup() {
   const [mcpOk, setMcpOk] = useState(false);
   const [history, setHistory] = useState<StoredPick[]>([]);
   const [active, setActive] = useState<StoredPick | null>(null);
-  const [copyAs, setCopyAs] = useState("mcp");
+  const [copyAs, setCopyAs] = useState<CopyAs>("mcp");
 
   useEffect(() => {
     void checkChromeDebugPort().then((r: { ok: boolean }) => setMcpOk(r.ok));
@@ -18,8 +21,9 @@ function Popup() {
       history?: StoredPick[];
     }) => {
       if (chrome.runtime.lastError) return;
-      setHistory(data?.history ?? []);
-      if (data?.history?.[0]) setActive(data.history[0]);
+      const items = data?.history ?? [];
+      setHistory(items);
+      if (items[0]) setActive(items[0]);
     });
   }, []);
 
@@ -37,24 +41,30 @@ function Popup() {
     });
   };
 
-  const goTo = (pick: StoredPick) => {
+  const selectPick = (pick: StoredPick) => {
     setActive(pick);
     chrome.runtime.sendMessage({ type: "NAVIGATE_TO_PICK", payload: pick }, () => {
       void chrome.runtime.lastError;
     });
   };
 
-  const copyText =
-    !active
-      ? ""
-      : copyAs === "css"
-        ? active.css
-        : copyAs === "xpath"
-          ? active.xpath
-          : formatMcpPrompt(active);
+  const activeCopyText = !active
+    ? ""
+    : copyAs === "css"
+      ? active.css
+      : copyAs === "xpath"
+        ? active.xpath
+        : formatMcpPrompt(active);
+
+  const activeCopyTooltip =
+    copyAs === "css"
+      ? "Copy CSS for selected element"
+      : copyAs === "xpath"
+        ? "Copy XPath for selected element"
+        : "Copy MCP prompt for selected element";
 
   return (
-    <div className="w-72 bg-zinc-950 p-3 text-zinc-100">
+    <div className="w-80 bg-zinc-950 p-3 text-zinc-100">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <GripIcon size={22} />
@@ -69,44 +79,29 @@ function Popup() {
         <button type="button" className="grip-btn-primary flex-1" onClick={startPicker}>
           Pick
         </button>
-        <button type="button" className="grip-btn-secondary" onClick={openTray} title="Page dropdown">
+        <button
+          type="button"
+          className="grip-btn-secondary"
+          onClick={openTray}
+          title="Open list on page"
+        >
           List
         </button>
       </div>
 
-      <SelectDropdown
-        label="Saved on page"
-        className="mt-3"
-        value={active?.id ?? ""}
-        options={[
-          { value: "", label: history.length ? "Select element…" : "No picks yet" },
-          ...history.map((p) => ({ value: p.id, label: p.label })),
-        ]}
-        onChange={(id) => {
-          const pick = history.find((p) => p.id === id);
-          if (pick) goTo(pick);
-        }}
-      />
-
-      {history.length > 0 && (
-        <div className="mt-2 flex max-h-24 flex-wrap gap-1.5 overflow-y-auto">
-          {history.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              className={`grip-badge ${active?.id === p.id ? "grip-badge-active" : ""}`}
-              onClick={() => goTo(p)}
-              title={p.css}
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
-      )}
+      <div className="mt-3">
+        <PickHistoryList
+          history={history}
+          activeId={active?.id}
+          copyAs={copyAs}
+          onSelect={selectPick}
+        />
+      </div>
 
       {active && (
         <div className="mt-3 flex items-end gap-2">
           <SelectDropdown
+            label="Copy as"
             className="flex-1"
             value={copyAs}
             options={[
@@ -114,9 +109,13 @@ function Popup() {
               { value: "css", label: "CSS" },
               { value: "xpath", label: "XPath" },
             ]}
-            onChange={setCopyAs}
+            onChange={(v) => setCopyAs(v as CopyAs)}
           />
-          <CopyButton label="Copy" text={copyText} />
+          <CopyButton
+            label="Copy"
+            text={activeCopyText}
+            tooltip={activeCopyTooltip}
+          />
         </div>
       )}
     </div>

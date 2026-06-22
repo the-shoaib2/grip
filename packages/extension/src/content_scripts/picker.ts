@@ -51,7 +51,20 @@ function ensureStyle(): void {
   if (document.getElementById(STYLE_ID)) return;
   const s = document.createElement("style");
   s.id = STYLE_ID;
-  s.textContent = `*{cursor:crosshair!important}#${HOVER_ID},#${HINT_ID}{pointer-events:none!important}`;
+  s.textContent = `
+    *{cursor:crosshair!important}
+    #${HOVER_ID},#${HINT_ID}{pointer-events:none!important}
+    #${HOVER_ID}{
+      position:fixed;
+      z-index:2147483646;
+      box-sizing:border-box;
+      border:2px dashed #3b82f6;
+      border-radius:0;
+      background:rgba(59,130,246,0.06);
+      box-shadow:none;
+      transition:top 40ms,left 40ms,width 40ms,height 40ms;
+    }
+  `;
   document.documentElement.appendChild(s);
 }
 
@@ -68,19 +81,19 @@ function ensureHint(): HTMLElement {
 }
 
 function highlight(el: Element): void {
+  ensureStyle();
   let hover = document.getElementById(HOVER_ID);
   if (!hover) {
     hover = document.createElement("div");
     hover.id = HOVER_ID;
-    hover.style.cssText =
-      "position:fixed;z-index:2147483646;border:1px dashedrgb(8, 73, 177);border-radius:0;background:rgba(59,130,246,0.08);box-shadow:none;transition:top 40ms,left 40ms,width 40ms,height 40ms;";
     document.documentElement.appendChild(hover);
   }
   const r = el.getBoundingClientRect();
+  const min = 3;
   hover.style.top = `${r.top}px`;
   hover.style.left = `${r.left}px`;
-  hover.style.width = `${Math.max(r.width, 1)}px`;
-  hover.style.height = `${Math.max(r.height, 1)}px`;
+  hover.style.width = `${Math.max(r.width, min)}px`;
+  hover.style.height = `${Math.max(r.height, min)}px`;
 
   const hint = ensureHint();
   const tag = el.tagName.toLowerCase();
