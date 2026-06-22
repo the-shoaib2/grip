@@ -170,6 +170,24 @@ body {
   color: var(--grip-danger);
 }
 
+.grip-pick-error-banner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.375rem 0;
+}
+
+.grip-pick-error-banner .grip-popup-error {
+  flex: 1;
+  min-width: 0;
+}
+
+.grip-pick-error-banner .grip-btn-toolbar {
+  flex-shrink: 0;
+  padding-inline: 0.5rem;
+}
+
 .grip-popup-history {
   min-width: 0;
 }

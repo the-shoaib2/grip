@@ -15,14 +15,18 @@ import {
 import { gripUserError } from "@/lib/errors";
 import {
   ensureTabReady,
+  registerGripContentScripts,
   sendToTab,
   sendToTabWhenReady,
+  waitForBootstrap,
+  warmTab,
 } from "@/lib/tab-bridge";
 
 const MAX_LOGS = 500;
 const HISTORY_KEY = "pickHistory";
 const SESSION_KEY = "pickSessionId";
 const logs: LogMessagePayload[] = [];
+const bootstrapErrors = new Map<number, string>();
 
 async function getOrCreateSessionId(): Promise<string> {
   const data = await chrome.storage.session.get(SESSION_KEY);
@@ -76,6 +80,7 @@ async function startPickerOnTab(tabId: number, url?: string): Promise<void> {
   const sessionPicks = await sessionPicksForUrl(url ?? "");
 
   await ensureTabReady(tabId);
+  await waitForBootstrap(tabId, "picker");
   await sendToTab(tabId, {
     type: "START_PICKER",
     payload: {
@@ -119,11 +124,19 @@ async function savePick(
 function respondError(
   sendResponse: (response: { ok: false; error: string }) => void,
   err: unknown,
+  tabId?: number,
 ): void {
   try {
+    let message = err instanceof Error ? err.message : undefined;
+    const bootstrapErr = tabId != null ? bootstrapErrors.get(tabId) : undefined;
+    if (bootstrapErr) {
+      message = message
+        ? `${message}: ${bootstrapErr}`
+        : `GRIP_BOOTSTRAP_FAILED: ${bootstrapErr}`;
+    }
     sendResponse({
       ok: false,
-      error: gripUserError(err instanceof Error ? err.message : undefined),
+      error: message ?? "GRIP_SHELL_UNAVAILABLE",
     });
   } catch {
     // Receiver closed before error was sent.
@@ -134,8 +147,9 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
   switch (msg.type) {
     case "START_PICKER":
       void (async () => {
+        let tab: chrome.tabs.Tab | undefined;
         try {
-          const tab = await resolveTargetTab(sender, msg);
+          tab = await resolveTargetTab(sender, msg);
           if (!tab?.id) {
             sendResponse({ ok: false, error: "No active tab" });
             return;
@@ -143,7 +157,7 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
           await startPickerOnTab(tab.id, tab.url);
           sendResponse({ ok: true });
         } catch (err) {
-          respondError(sendResponse, err);
+          respondError(sendResponse, err, tab?.id);
         }
       })();
       return true;
@@ -177,7 +191,10 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
         const tab = await resolveTargetTab(sender, msg);
         if (!tab?.id) return;
         try {
-          await sendToTabWhenReady(tab.id, { type: "NAVIGATE_TO_PICK", payload: pick });
+          await sendToTabWhenReady(tab.id, {
+            type: "NAVIGATE_TO_PICK",
+            payload: pick,
+          });
         } catch {
           /* ignore navigation errors */
         }
@@ -320,18 +337,49 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
     case "GRIP_PING":
       sendResponse({ ok: true });
       return true;
+
+    case "GRIP_BOOTSTRAP_ERROR": {
+      const tabId = sender.tab?.id;
+      const payload = msg.payload as { message?: string } | undefined;
+      if (tabId && payload?.message) {
+        bootstrapErrors.set(tabId, payload.message);
+      }
+      sendResponse({ ok: true });
+      return true;
+    }
   }
 });
 
+async function bootstrapExistingTabs(): Promise<void> {
+  try {
+    await registerGripContentScripts();
+  } catch {
+    /* registration may fail in restricted contexts */
+  }
+
+  const tabs = await chrome.tabs.query({ url: ["http://*/*", "https://*/*"] });
+  for (const tab of tabs) {
+    if (!tab.id) continue;
+    void warmTab(tab.id, tab.url);
+  }
+}
+
 chrome.runtime.onInstalled.addListener(() => {
-  void chrome.tabs.query({ url: ["http://*/*", "https://*/*"] }, async (tabs) => {
-    for (const tab of tabs) {
-      if (!tab.id) continue;
-      try {
-        await ensureTabReady(tab.id);
-      } catch {
-        /* tab may be restricted */
-      }
-    }
+  void bootstrapExistingTabs();
+});
+
+chrome.runtime.onStartup.addListener(() => {
+  void bootstrapExistingTabs();
+});
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.status === "complete") {
+    void warmTab(tabId, tab.url);
+  }
+});
+
+chrome.tabs.onActivated.addListener(({ tabId }) => {
+  void chrome.tabs.get(tabId).then((tab) => warmTab(tabId, tab.url)).catch(() => {
+    /* tab may have closed */
   });
 });

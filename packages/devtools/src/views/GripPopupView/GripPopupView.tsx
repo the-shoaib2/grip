@@ -2,37 +2,26 @@ import { useEffect, useState } from "preact/hooks";
 import {
   GripIcon,
   GripSessionToolbar,
+  PickErrorBanner,
   PickHistoryList,
   Tooltip,
 } from "../../components";
 import { usePickHistory } from "../../hooks/usePickHistory";
-import { gripUserError } from "../../lib/errors";
+import { useStartPicker } from "../../hooks/useStartPicker";
 import { useGripRuntime } from "../../runtime/context";
 
 export function GripPopupView() {
   const runtime = useGripRuntime();
   const [mcpOk, setMcpOk] = useState(false);
-  const [pickError, setPickError] = useState<string | null>(null);
   const { history, activePick, newSession, selectPick } = usePickHistory(runtime);
+  const { pickError, startPicker } = useStartPicker(runtime);
 
   useEffect(() => {
     void runtime.checkMcp().then((r) => setMcpOk(r.ok));
   }, [runtime]);
 
-  const startPicker = () => {
-    setPickError(null);
-    void runtime
-      .sendMessage<{ ok?: boolean; error?: string }>({ type: "START_PICKER" })
-      .then((res) => {
-        if (res?.ok === false) {
-          setPickError(gripUserError(res.error));
-          return;
-        }
-        runtime.closeWindow?.();
-      })
-      .catch((err: Error) => {
-        setPickError(gripUserError(err.message));
-      });
+  const handlePick = () => {
+    void startPicker({ closeOnSuccess: true });
   };
 
   const openPanel = () => {
@@ -60,12 +49,12 @@ export function GripPopupView() {
 
       <GripSessionToolbar
         variant="popup"
-        onPick={startPicker}
+        onPick={handlePick}
         onOpenPanel={openPanel}
         onNewSession={() => void newSession()}
       />
 
-      {pickError && <p className="grip-popup-error">{pickError}</p>}
+      {pickError ? <PickErrorBanner message={pickError} onRetry={handlePick} /> : null}
 
       <div className="grip-popup-history">
         <PickHistoryList

@@ -4,6 +4,7 @@ export { ElementTagBadge } from "./ElementTagBadge";
 export { FieldRow } from "./FieldRow";
 export { GripIcon } from "./GripIcon";
 export { GripSessionToolbar } from "./GripSessionToolbar";
+export { PickErrorBanner } from "./PickErrorBanner";
 export { HistoryIcon, MousePointerClickIcon, PlusIcon } from "./icons";
 export { PickHistoryList } from "./PickHistoryList";
 export { SelectDropdown } from "./SelectDropdown";

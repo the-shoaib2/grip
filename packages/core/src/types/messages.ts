@@ -11,7 +11,9 @@ export type GripMessageType =
   | "NEW_SESSION"
   | "SHOW_TRAY"
   | "UPDATE_PICK_COMMENT"
-  | "GRIP_PING";
+  | "GRIP_PING"
+  | "GRIP_BOOTSTRAP_PING"
+  | "GRIP_BOOTSTRAP_ERROR";
 
 export interface PickerElementPayload {
   tagName: string;

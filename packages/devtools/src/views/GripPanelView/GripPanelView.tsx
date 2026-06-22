@@ -10,11 +10,13 @@ import {
   CopyButton,
   GripIcon,
   GripSessionToolbar,
+  PickErrorBanner,
   PickHistoryList,
   SelectDropdown,
   Tooltip,
 } from "../../components";
 import { usePickHistory } from "../../hooks/usePickHistory";
+import { useStartPicker } from "../../hooks/useStartPicker";
 import { useGripStore } from "../../store/gripStore";
 import { useGripRuntime } from "../../runtime/context";
 import { LogPanel } from "../LogPanel";
@@ -35,6 +37,7 @@ export function GripPanelView({ layout = "panel" }: GripPanelViewProps) {
   const [mcpOk, setMcpOk] = useState(false);
   const [copyAs, setCopyAs] = useState<CopyAs>("mcp");
   const { history, activePick, newSession, selectPick } = usePickHistory(runtime);
+  const { pickError, startPicker } = useStartPicker(runtime);
 
   const activeId = useMemo(() => {
     if (lastPick) {
@@ -117,6 +120,10 @@ export function GripPanelView({ layout = "panel" }: GripPanelViewProps) {
     selectPick(pick);
   };
 
+  const handlePick = () => {
+    void startPicker();
+  };
+
   const panelClass =
     layout === "floating" ? "grip-panel grip-panel-floating" : "grip-panel";
 
@@ -130,7 +137,7 @@ export function GripPanelView({ layout = "panel" }: GripPanelViewProps) {
         <div className="grip-popup-toolbar-actions">
           <GripSessionToolbar
             variant="compact"
-            onPick={() => void runtime.sendMessage({ type: "START_PICKER" })}
+            onPick={handlePick}
             onNewSession={() => void newSession()}
           />
           <Tooltip text={mcpOk ? "MCP connected on :9222" : "Chrome debug port not found"}>
@@ -142,14 +149,12 @@ export function GripPanelView({ layout = "panel" }: GripPanelViewProps) {
       </header>
 
       <Tooltip text="Pick any element on the page">
-        <button
-          type="button"
-          className="grip-btn-primary"
-          onClick={() => void runtime.sendMessage({ type: "START_PICKER" })}
-        >
+        <button type="button" className="grip-btn-primary" onClick={handlePick}>
           Pick
         </button>
       </Tooltip>
+
+      {pickError ? <PickErrorBanner message={pickError} onRetry={handlePick} /> : null}
 
       <PickHistoryList
         history={history}

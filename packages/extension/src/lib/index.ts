@@ -1,12 +1,18 @@
-export { gripUserError } from "./errors";
+export { gripUserError, GRIP_ERROR } from "./errors";
 export {
+  bootstrapFeatureForMessage,
   ensureTabReady,
   injectGripScripts,
   pingTab,
+  registerGripContentScripts,
   REFRESH_HINT,
   sendToTab,
   sendToTabWhenReady,
+  sendToTabWithResponse,
+  waitForBootstrap,
   waitForGrip,
+  warmTab,
+  type BootstrapFeature,
 } from "./tab-bridge";
 export { isExtensionContextValid, safeSendMessage } from "./runtime";
 export {

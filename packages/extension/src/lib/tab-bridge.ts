@@ -1,4 +1,4 @@
-const REFRESH_HINT = "Refresh this page, then try again.";
+import { GRIP_ERROR } from "./errors";
 
 function isMissingResponseError(message: string): boolean {
   return message.toLowerCase().includes("message port closed");
@@ -9,6 +9,16 @@ function isNoReceiverError(message: string): boolean {
   return (
     lower.includes("receiving end does not exist") ||
     lower.includes("could not establish connection")
+  );
+}
+
+function isRestrictedPageError(message: string): boolean {
+  const lower = message.toLowerCase();
+  return (
+    lower.includes("cannot access a chrome://") ||
+    lower.includes("cannot access contents of url") ||
+    lower.includes("extensions gallery") ||
+    lower.includes("chrome web store")
   );
 }
 
@@ -48,6 +58,25 @@ export async function waitForGrip(
   return false;
 }
 
+export type BootstrapFeature = "picker" | "floating";
+
+export function sendToTabWithResponse<T>(
+  tabId: number,
+  message: unknown,
+  frameId = 0,
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    chrome.tabs.sendMessage(tabId, message, { frameId }, (response: T) => {
+      const err = chrome.runtime.lastError;
+      if (err) {
+        reject(new Error(err.message ?? "Tab message failed"));
+        return;
+      }
+      resolve(response);
+    });
+  });
+}
+
 export function sendToTab(tabId: number, message: unknown, frameId = 0): Promise<void> {
   return new Promise((resolve, reject) => {
     chrome.tabs.sendMessage(tabId, message, { frameId }, () => {
@@ -85,6 +114,17 @@ async function injectLoader(tabId: number, loaderFile: string): Promise<void> {
   });
 }
 
+function classifyInjectionError(err: unknown): Error {
+  const message = err instanceof Error ? err.message : String(err);
+  if (isRestrictedPageError(message)) {
+    return new Error(GRIP_ERROR.PAGE_RESTRICTED);
+  }
+  if (isNoReceiverError(message)) {
+    return new Error(GRIP_ERROR.EXTENSION_RELOADED);
+  }
+  return err instanceof Error ? err : new Error(message);
+}
+
 export async function injectGripScripts(tabId: number): Promise<void> {
   const modulePath = getInjectModulePath();
   const loaderFile = getInjectLoaderFile();
@@ -94,24 +134,29 @@ export async function injectGripScripts(tabId: number): Promise<void> {
       await injectModule(tabId, modulePath);
       if (await pingTab(tabId)) return;
       if (await waitForGrip(tabId, 25, 100)) return;
-    } catch {
+    } catch (err) {
+      const classified = classifyInjectionError(err);
+      if (classified.message === GRIP_ERROR.PAGE_RESTRICTED) throw classified;
       /* fall through to loader */
     }
   }
 
-  if (!loaderFile) throw new Error(REFRESH_HINT);
+  if (!loaderFile) throw new Error(GRIP_ERROR.SHELL_UNAVAILABLE);
 
   try {
     await injectLoader(tabId, loaderFile);
   } catch (err) {
     const message = err instanceof Error ? err.message : "";
+    if (isRestrictedPageError(message)) {
+      throw new Error(GRIP_ERROR.PAGE_RESTRICTED);
+    }
     if (!isNoReceiverError(message) && !message.toLowerCase().includes("already")) {
-      throw err;
+      throw classifyInjectionError(err);
     }
   }
 
   if (!(await waitForGrip(tabId))) {
-    throw new Error(REFRESH_HINT);
+    throw new Error(GRIP_ERROR.SHELL_UNAVAILABLE);
   }
 }
 
@@ -119,18 +164,112 @@ export async function ensureTabReady(tabId: number): Promise<void> {
   if (await pingTab(tabId)) return;
   await injectGripScripts(tabId);
   if (!(await pingTab(tabId))) {
-    throw new Error(REFRESH_HINT);
+    throw new Error(GRIP_ERROR.SHELL_UNAVAILABLE);
   }
 }
 
-export async function sendToTabWhenReady(tabId: number, message: unknown): Promise<void> {
+export async function waitForBootstrap(
+  tabId: number,
+  feature: BootstrapFeature = "picker",
+  maxAttempts = 150,
+  intervalMs = 100,
+): Promise<void> {
+  let lastError = "";
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      const response = await sendToTabWithResponse<{ ok?: boolean; error?: string }>(tabId, {
+        type: "GRIP_BOOTSTRAP_PING",
+        payload: { feature },
+      });
+      if (response?.ok) return;
+      lastError = response?.error ?? GRIP_ERROR.BOOTSTRAP_FAILED;
+      throw new Error(`${GRIP_ERROR.BOOTSTRAP_FAILED}: ${lastError}`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      lastError = message;
+      if (isRestrictedPageError(message)) {
+        throw new Error(GRIP_ERROR.PAGE_RESTRICTED);
+      }
+      if (isNoReceiverError(message) || message.includes(GRIP_ERROR.SHELL_UNAVAILABLE)) {
+        await injectGripScripts(tabId);
+      } else if (message.includes(GRIP_ERROR.BOOTSTRAP_FAILED)) {
+        throw err instanceof Error ? err : new Error(message);
+      }
+    }
+    await new Promise((resolve) => setTimeout(resolve, intervalMs));
+  }
+
+  if (lastError.includes(GRIP_ERROR.BOOTSTRAP_FAILED)) {
+    throw new Error(lastError);
+  }
+  throw new Error(GRIP_ERROR.BOOTSTRAP_TIMEOUT);
+}
+
+const FLOATING_MESSAGE_TYPES = new Set([
+  "TOGGLE_GRIP_TRAY",
+  "SHOW_TRAY",
+  "NAVIGATE_TO_PICK",
+]);
+
+export function bootstrapFeatureForMessage(message: unknown): BootstrapFeature {
+  const type = (message as { type?: string })?.type;
+  return type && FLOATING_MESSAGE_TYPES.has(type) ? "floating" : "picker";
+}
+
+export async function sendToTabWhenReady(
+  tabId: number,
+  message: unknown,
+  options?: { feature?: BootstrapFeature },
+): Promise<void> {
+  const feature = options?.feature ?? bootstrapFeatureForMessage(message);
+
   try {
+    await ensureTabReady(tabId);
+    await waitForBootstrap(tabId, feature);
     await sendToTab(tabId, message);
   } catch (err) {
     if (!(err instanceof Error) || !isNoReceiverError(err.message)) throw err;
     await ensureTabReady(tabId);
+    await waitForBootstrap(tabId, feature);
     await sendToTab(tabId, message);
   }
 }
 
-export { REFRESH_HINT };
+export async function registerGripContentScripts(): Promise<void> {
+  const loaderFile = getInjectLoaderFile();
+  if (!loaderFile) return;
+
+  try {
+    await chrome.scripting.unregisterContentScripts({ ids: ["grip-inject"] });
+  } catch {
+    /* first registration */
+  }
+
+  await chrome.scripting.registerContentScripts([
+    {
+      id: "grip-inject",
+      js: [loaderFile],
+      matches: ["http://*/*", "https://*/*"],
+      runAt: "document_start",
+      allFrames: false,
+    },
+  ]);
+}
+
+export async function warmTab(tabId: number, url?: string): Promise<void> {
+  if (!url || !/^https?:/i.test(url)) return;
+  try {
+    await ensureTabReady(tabId);
+    void waitForBootstrap(tabId, "picker").catch(() => {
+      /* best-effort warm */
+    });
+    void waitForBootstrap(tabId, "floating").catch(() => {
+      /* best-effort warm */
+    });
+  } catch {
+    /* tab may be restricted */
+  }
+}
+
+export { GRIP_ERROR as REFRESH_HINT };

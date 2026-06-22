@@ -1,7 +1,9 @@
 import {
   expect,
+  gripShadowText,
   gripTrayToggle,
   openFloatingPanel,
+  openPopup,
   TEST_PAGE_URL,
   TRAY_ID,
   test,
@@ -112,6 +114,24 @@ test.describe("Grip picker", () => {
     await page.locator("#__grip_picker_comment__ button", { hasText: "Save" }).click();
 
     await expect(gripTrayToggle(page)).toHaveAttribute("aria-expanded", "true", { timeout: 10_000 });
+    await page.close();
+  });
+});
+
+test.describe("Grip popup pick", () => {
+  test("starts picker from popup without waiting for FAB or page reload", async ({
+    extensionContext,
+    extensionId,
+  }) => {
+    const page = await extensionContext.newPage();
+    await page.goto(TEST_PAGE_URL, { waitUntil: "domcontentloaded" });
+
+    const popup = await openPopup(extensionContext, extensionId);
+    await popup.getByRole("button", { name: "Pick" }).click();
+    await popup.close();
+
+    await expect(page.locator("#__grip_picker_hover__")).toBeVisible({ timeout: 15_000 });
+    await page.keyboard.press("Escape");
     await page.close();
   });
 });
