@@ -1,0 +1,144 @@
+.lab-shell {
+  min-height: 100vh;
+  background: #f1f3f4;
+  color: #202124;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.lab-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  background: #fff;
+  border-bottom: 1px solid #dadce0;
+}
+
+.lab-header-brand h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+
+.lab-header-brand p {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  color: #5f6368;
+}
+
+.lab-nav {
+  display: flex;
+  gap: 0.25rem;
+  background: #f1f3f4;
+  padding: 0.25rem;
+  border-radius: 8px;
+}
+
+.lab-nav-btn {
+  border: none;
+  background: transparent;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  color: #5f6368;
+}
+
+.lab-nav-active {
+  background: #fff;
+  color: #1a73e8;
+  box-shadow: 0 1px 2px rgba(60, 64, 67, 0.15);
+}
+
+.lab-back {
+  font-size: 0.875rem;
+  color: #1a73e8;
+  text-decoration: none;
+}
+
+.lab-back:hover {
+  text-decoration: underline;
+}
+
+.lab-main {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1.5rem 3rem;
+}
+
+.lab-preview {
+  background: var(--grip-bg, #fff);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(60, 64, 67, 0.2);
+  overflow: hidden;
+}
+
+.lab-preview-popup {
+  width: 20rem;
+}
+
+.lab-preview-panel {
+  width: min(28rem, 100vw - 2rem);
+  min-height: 32rem;
+}
+
+.lab-preview-floating {
+  width: 22rem;
+}
+
+.lab-gallery {
+  display: grid;
+  gap: 1.5rem;
+  width: min(36rem, 100vw - 2rem);
+}
+
+.lab-block {
+  background: var(--grip-bg, #fff);
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(60, 64, 67, 0.15);
+}
+
+.lab-block-title {
+  margin: 0 0 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #5f6368;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.lab-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.lab-row-tight {
+  align-items: center;
+  margin-top: 1rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .lab-shell {
+    background: #202124;
+    color: #e8eaed;
+  }
+
+  .lab-header {
+    background: #292a2d;
+    border-bottom-color: #3c4043;
+  }
+
+  .lab-nav {
+    background: #3c4043;
+  }
+
+  .lab-nav-active {
+    background: #292a2d;
+    color: #8ab4f8;
+  }
+}

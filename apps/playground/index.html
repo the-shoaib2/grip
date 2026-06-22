@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Grip Playground — UI Fixture</title>
+    <link rel="stylesheet" href="/src/styles/playground.css" />
+  </head>
+  <body class="pg-body">
+  <header class="pg-topbar" role="banner">
+    <nav class="pg-topnav" aria-label="Top">
+      <a class="pg-toplink" href="#">Gmail</a>
+      <a class="pg-toplink" href="#">Images</a>
+      <button type="button" class="pg-icon-btn" aria-label="Google apps" id="pg-apps-btn">
+        <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor" d="M6 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6-8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6-8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+        </svg>
+      </button>
+      <button type="button" class="pg-signin" id="pg-signin-btn">Sign in</button>
+    </nav>
+  </header>
+
+  <main class="pg-hero" id="pg-hero">
+    <h1 class="pg-logo" aria-label="Grip Playground">Grip</h1>
+    <form class="pg-search" role="search" aria-label="Search" onsubmit="return false;">
+      <div class="pg-search-box">
+        <svg class="pg-search-icon" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="#9aa0a6" d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+        </svg>
+        <input
+          type="search"
+          id="pg-search-input"
+          class="pg-search-input"
+          placeholder="Search elements to pick…"
+          aria-label="Search"
+          autocomplete="off"
+        />
+        <button type="button" class="pg-search-tool" aria-label="Voice search" id="pg-voice-btn">
+          <svg width="24" height="24" viewBox="0 0 24 24"><path fill="#4285f4" d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path fill="#34a853" d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+        </button>
+      </div>
+      <div class="pg-search-actions">
+        <button type="submit" class="pg-btn-secondary" id="grip-target">Grip Search</button>
+        <button type="button" class="pg-btn-secondary">I'm Feeling Lucky</button>
+      </div>
+    </form>
+    <p class="pg-hint">
+      Load the Grip extension and use the picker on any element below.
+      <a href="/devtools.html">Open DevTools UI lab →</a>
+    </p>
+  </main>
+
+  <div class="pg-playground" id="pg-playground">
+    <aside class="pg-sidebar" aria-label="Sidebar navigation">
+      <h2 class="pg-section-title">Navigation</h2>
+      <ul class="pg-nav-list" role="list">
+        <li><a href="#forms" class="pg-nav-item pg-nav-active">Forms</a></li>
+        <li><a href="#data" class="pg-nav-item">Data table</a></li>
+        <li><a href="#cards" class="pg-nav-item">Cards</a></li>
+        <li><a href="#feedback" class="pg-nav-item">Feedback</a></li>
+      </ul>
+    </aside>
+
+    <div class="pg-content">
+      <nav class="pg-breadcrumb" aria-label="Breadcrumb">
+        <a href="#">Home</a>
+        <span aria-hidden="true">›</span>
+        <a href="#">Playground</a>
+        <span aria-hidden="true">›</span>
+        <span aria-current="page">All components</span>
+      </nav>
+
+      <section class="pg-tabs" aria-label="Content tabs">
+        <div role="tablist" class="pg-tablist">
+          <button type="button" role="tab" aria-selected="true" class="pg-tab" id="tab-overview">Overview</button>
+          <button type="button" role="tab" aria-selected="false" class="pg-tab" id="tab-details">Details</button>
+          <button type="button" role="tab" aria-selected="false" class="pg-tab" id="tab-settings">Settings</button>
+        </div>
+        <div role="tabpanel" class="pg-tabpanel" id="panel-overview">
+          <p class="pg-lead">Complex UI patterns for picker, accessibility, and MCP prompt testing.</p>
+          <div class="pg-chips" role="list">
+            <span class="pg-chip" role="listitem">button</span>
+            <span class="pg-chip" role="listitem">input</span>
+            <span class="pg-chip pg-chip-accent" role="listitem">nav</span>
+            <span class="pg-chip" role="listitem">table</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="forms" class="pg-section">
+        <h2 class="pg-section-title">Forms &amp; inputs</h2>
+        <form class="pg-form" onsubmit="return false;">
+          <label class="pg-field">
+            <span class="pg-label">Email</span>
+            <input type="email" class="pg-input" placeholder="you@example.com" id="pg-email" />
+          </label>
+          <label class="pg-field">
+            <span class="pg-label">Role</span>
+            <select class="pg-select" id="pg-role-select">
+              <option>Developer</option>
+              <option>Designer</option>
+              <option>Product</option>
+            </select>
+          </label>
+          <fieldset class="pg-fieldset">
+            <legend class="pg-label">Notifications</legend>
+            <label class="pg-check"><input type="checkbox" checked /> Email</label>
+            <label class="pg-check"><input type="checkbox" /> Push</label>
+            <label class="pg-radio"><input type="radio" name="plan" checked /> Pro</label>
+            <label class="pg-radio"><input type="radio" name="plan" /> Free</label>
+          </fieldset>
+          <label class="pg-field">
+            <span class="pg-label">Notes</span>
+            <textarea class="pg-textarea" rows="3" placeholder="Multi-line input…"></textarea>
+          </label>
+          <div class="pg-form-actions">
+            <button type="submit" class="pg-btn-primary" id="pg-submit-btn">Save changes</button>
+            <button type="button" class="pg-btn-text">Cancel</button>
+          </div>
+        </form>
+      </section>
+
+      <section id="data" class="pg-section">
+        <h2 class="pg-section-title">Data table</h2>
+        <table class="pg-table" id="pg-users-table">
+          <thead>
+            <tr>
+              <th scope="col">Name</th>
+              <th scope="col">Role</th>
+              <th scope="col">Status</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Ada Lovelace</td>
+              <td><span class="pg-badge">Engineer</span></td>
+              <td><span class="pg-status pg-status-ok">Active</span></td>
+              <td><button type="button" class="pg-btn-text pg-row-action">Edit</button></td>
+            </tr>
+            <tr>
+              <td>Grace Hopper</td>
+              <td><span class="pg-badge">Lead</span></td>
+              <td><span class="pg-status pg-status-warn">Away</span></td>
+              <td><button type="button" class="pg-btn-text pg-row-action">Edit</button></td>
+            </tr>
+            <tr>
+              <td>Alan Turing</td>
+              <td><span class="pg-badge">Research</span></td>
+              <td><span class="pg-status">Offline</span></td>
+              <td><button type="button" class="pg-btn-text pg-row-action">Edit</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="cards" class="pg-section">
+        <h2 class="pg-section-title">Card grid</h2>
+        <div class="pg-card-grid">
+          <article class="pg-card" id="pg-card-picker">
+            <h3 class="pg-card-title">Element picker</h3>
+            <p class="pg-card-body">Hover and click to capture selectors, roles, and MCP prompts.</p>
+            <button type="button" class="pg-btn-primary pg-card-cta">Try picker</button>
+          </article>
+          <article class="pg-card">
+            <h3 class="pg-card-title">Session history</h3>
+            <p class="pg-card-body">Picks grouped per page and chat session in the floating panel.</p>
+            <a href="#" class="pg-card-link">View docs</a>
+          </article>
+          <article class="pg-card">
+            <h3 class="pg-card-title">Console logs</h3>
+            <p class="pg-card-body">Captured console output appears in the Grip DevTools panel.</p>
+            <progress class="pg-progress" value="72" max="100">72%</progress>
+          </article>
+        </div>
+      </section>
+
+      <section id="feedback" class="pg-section">
+        <h2 class="pg-section-title">Feedback &amp; overlays</h2>
+        <div class="pg-alert pg-alert-info" role="status">
+          Tip: use the Grip FAB in the top-right of this page after loading the extension.
+        </div>
+        <div class="pg-alert pg-alert-warn" role="alert">
+          Warning state — pick this banner to test role announcements.
+        </div>
+        <div class="pg-avatar-row">
+          <img class="pg-avatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Ccircle cx='20' cy='20' r='20' fill='%234285f4'/%3E%3C/svg%3E" alt="User avatar" width="40" height="40" />
+          <div>
+            <p class="pg-avatar-name">Grip Developer</p>
+            <p class="pg-avatar-meta">Last pick 2m ago</p>
+          </div>
+          <button type="button" class="pg-btn-secondary" id="pg-open-modal">Open dialog</button>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <dialog class="pg-dialog" id="pg-dialog" aria-labelledby="pg-dialog-title">
+    <h2 id="pg-dialog-title" class="pg-dialog-title">Confirm action</h2>
+    <p>Modal dialogs, nested focus traps, and shadow-heavy UIs are common pick targets.</p>
+    <form method="dialog" class="pg-dialog-actions">
+      <button type="submit" class="pg-btn-primary" value="confirm">Confirm</button>
+      <button type="button" class="pg-btn-text" id="pg-dialog-close">Dismiss</button>
+    </form>
+  </dialog>
+
+  <footer class="pg-footer" role="contentinfo">
+    <span>United States</span>
+    <nav class="pg-footer-nav" aria-label="Footer">
+      <a href="#">About</a>
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+    </nav>
+  </footer>
+
+  <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

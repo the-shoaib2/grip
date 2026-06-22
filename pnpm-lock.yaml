@@ -73,6 +73,40 @@ importers:
         specifier: ^5.4.5
         version: 5.9.3
 
+  apps/playground:
+    dependencies:
+      '@grip/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@grip/devtools':
+        specifier: workspace:*
+        version: link:../../packages/devtools
+      preact:
+        specifier: ^10.22.0
+        version: 10.29.2
+    devDependencies:
+      '@types/chrome':
+        specifier: ^0.0.268
+        version: 0.0.268
+      '@types/node':
+        specifier: ^20.14.0
+        version: 20.19.43
+      autoprefixer:
+        specifier: ^10.4.20
+        version: 10.5.0(postcss@8.5.15)
+      postcss:
+        specifier: ^8.4.47
+        version: 8.5.15
+      tailwindcss:
+        specifier: ^3.4.14
+        version: 3.4.19
+      typescript:
+        specifier: ^5.4.5
+        version: 5.9.3
+      vite:
+        specifier: ^5.4.10
+        version: 5.4.21(@types/node@20.19.43)
+
   packages/core:
     dependencies:
       '@medv/finder':
