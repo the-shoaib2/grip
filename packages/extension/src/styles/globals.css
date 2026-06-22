@@ -467,15 +467,44 @@ body {
 .grip-context-field {
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
+}
+
+.grip-context-composer {
+  min-height: 3.25rem;
+  max-height: 10rem;
+  overflow-y: auto;
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--grip-surface) 80%, transparent);
+  padding: 0.5rem 0.625rem;
+  cursor: text;
+}
+
+.grip-context-composer:focus-within {
+  outline: 1px solid color-mix(in srgb, var(--grip-accent) 45%, transparent);
+  outline-offset: 0;
+}
+
+.grip-context-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  align-content: flex-start;
+  gap: 0.25rem;
+  min-height: 1.75rem;
 }
 
 .grip-context-badges,
 .grip-el-badges {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.25rem;
+  display: contents;
+}
+
+.grip-context-badges:empty {
+  display: none;
+}
+
+.grip-el-badge,
+.grip-pending-chip {
+  flex-shrink: 0;
 }
 
 .grip-el-badge {
@@ -495,14 +524,17 @@ body {
 }
 
 .grip-context-input {
-  min-height: 2.75rem;
-  max-height: 7.5rem;
-  overflow-y: auto;
+  flex: 1 1 8rem;
+  min-width: 8rem;
+  width: auto;
+  min-height: 1.375rem;
+  max-height: none;
+  overflow: hidden;
   line-height: 1.45;
   border: none;
-  border-radius: 0.75rem;
-  padding: 0.5rem 0.75rem;
-  background: color-mix(in srgb, var(--grip-surface) 80%, transparent);
+  border-radius: 0;
+  padding: 0.125rem 0;
+  background: transparent;
   box-shadow: none;
 }
 

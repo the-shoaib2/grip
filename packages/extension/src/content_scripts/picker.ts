@@ -83,6 +83,7 @@ function cycleSelection(dir: 1 | -1): void {
   if (!el) return;
   if (phase === "comment") {
     highlight(el);
+    updatePendingUI();
     return;
   }
   highlight(el);
@@ -149,6 +150,7 @@ function ensureStyle(): void {
     .grip-picker-session{
       font-size:11px;
       font-weight:600;
+      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
       color:#e4e4e7;
     }
     .grip-picker-hint{
@@ -157,23 +159,40 @@ function ensureStyle(): void {
       white-space:nowrap;
     }
     .grip-context-field{
-      display:flex;
-      flex-direction:column;
-      gap:6px;
       margin-bottom:8px;
     }
-    .grip-context-badges{
+    .grip-context-composer{
+      min-height:52px;
+      max-height:160px;
+      overflow-y:auto;
+      border-radius:12px;
+      background:#09090b;
+      padding:8px 10px;
+      cursor:text;
+    }
+    .grip-context-composer:focus-within{
+      outline:1px solid rgba(37,99,235,0.45);
+      outline-offset:0;
+    }
+    .grip-context-inline{
       display:flex;
       flex-wrap:wrap;
-      gap:4px;
       align-items:center;
-      max-height:72px;
-      overflow-y:auto;
+      align-content:flex-start;
+      gap:4px;
+      min-height:28px;
+    }
+    .grip-context-badges{
+      display:contents;
+    }
+    .grip-context-badges:empty{
+      display:none;
     }
     .grip-pending-chip{
       display:inline-flex;
       align-items:center;
       gap:4px;
+      flex-shrink:0;
       border:none;
       border-radius:9999px;
       padding:2px 4px 2px 8px;
@@ -212,19 +231,22 @@ function ensureStyle(): void {
       color:#a1a1aa;
     }
     .grip-context-input{
-      width:100%;
+      flex:1 1 8rem;
+      min-width:8rem;
+      width:auto;
       box-sizing:border-box;
-      min-height:44px;
-      max-height:120px;
-      overflow-y:auto;
+      min-height:22px;
+      max-height:none;
+      overflow:hidden;
       resize:none;
       border:none;
-      border-radius:12px;
-      background:#09090b;
+      border-radius:0;
+      background:transparent;
       color:#fafafa;
-      padding:8px 12px;
+      padding:2px 0;
       font:12px/1.45 system-ui,sans-serif;
       outline:none;
+      vertical-align:middle;
     }
     .grip-context-input:focus{outline:none}
     .grip-context-input::placeholder{color:#71717a}
@@ -241,7 +263,7 @@ function ensureStyle(): void {
       font-size:11px;
       cursor:pointer;
     }
-    #__grip_comment_done__,#__grip_comment_skip__{background:#27272a;color:#d4d4d8}
+    #__grip_comment_cancel__{background:#27272a;color:#d4d4d8}
     #__grip_comment_save__{background:#2563eb;color:#fff}
     #${SELECTED_ID}{pointer-events:none!important}
     #${SELECTED_ID} .grip-selected{
@@ -306,7 +328,7 @@ function highlight(el: Element): void {
   if (phase === "hover") {
     const hint = ensureHint();
     const tag = el.tagName.toLowerCase();
-    const cycle = stackSize > 1 ? ` · ${cycleIndex + 1}/${stackSize}` : "";
+    const cycle = stackSize > 1 ? ` [${cycleIndex + 1}:${stackSize}]` : "";
     hint.textContent = `${tag}${cycle} · [ ] parent/child`;
     hint.style.top = `${Math.max(4, r.top - 24)}px`;
     hint.style.left = `${clamp(r.left, 4, window.innerWidth - 160)}px`;
@@ -474,7 +496,6 @@ function updatePendingUI(): void {
   const sessionLabel = document.getElementById("__grip_session_label__");
   if (!badges) return;
 
-  const cycle = stackSize > 1 ? ` · ${cycleIndex + 1}/${stackSize}` : "";
   badges.innerHTML = pendingElements
     .map((item, index) => {
       const active = index === activePendingIndex ? " grip-pending-chip-active" : "";
@@ -486,23 +507,28 @@ function updatePendingUI(): void {
     .join("");
 
   if (sessionLabel) {
-    const count = pendingElements.length;
-    const label =
-      count === 1
-        ? `1 selected${cycle}`
-        : `${count} selected${cycle}`;
-    sessionLabel.textContent = label;
+    sessionLabel.textContent = formatPickerIndexLabel();
   }
 
+  updateComposerPlaceholder();
   updatePendingHighlights();
 }
 
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+function formatPickerIndexLabel(): string {
+  if (stackSize > 1) {
+    return `[${cycleIndex + 1}:${stackSize}]`;
+  }
+  const count = Math.max(pendingElements.length, 1);
+  return `[${activePendingIndex + 1}:${count}]`;
+}
+
+function updateComposerPlaceholder(): void {
+  const input = document.getElementById("__grip_comment_input__") as HTMLTextAreaElement | null;
+  if (!input) return;
+  input.placeholder =
+    pendingElements.length > 0
+      ? ""
+      : "Select elements on the page, then describe what you need…";
 }
 
 function removePendingAt(index: number): void {
@@ -515,6 +541,31 @@ function removePendingAt(index: number): void {
   activePendingIndex = Math.min(activePendingIndex, pendingElements.length - 1);
   highlight(pendingElements[activePendingIndex]?.el);
   updatePendingUI();
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function handleComposerBackspace(input: HTMLTextAreaElement): boolean {
+  if (!pendingElements.length) return false;
+
+  const atStart = input.selectionStart === 0 && input.selectionEnd === 0;
+  if (input.value.length > 0 && !atStart) return false;
+
+  const index =
+    activePendingIndex >= 0 && activePendingIndex < pendingElements.length
+      ? activePendingIndex
+      : pendingElements.length - 1;
+  removePendingAt(index);
+  if (phase === "comment" && pendingElements.length > 0) {
+    focusComposerInput();
+  }
+  return true;
 }
 
 function addToPending(el: Element): void {
@@ -546,17 +597,20 @@ function ensureCommentPanel(): HTMLElement {
   panel.style.cssText = "position:fixed;z-index:2147483647;display:none;";
   panel.innerHTML = `
     <div class="grip-picker-header" title="Drag to move">
-      <span id="__grip_session_label__" class="grip-picker-session">Pick 1 in session</span>
-      <span class="grip-picker-hint">click add · drag · [ ]</span>
+      <span id="__grip_session_label__" class="grip-picker-session">[1:1]</span>
+      <span class="grip-picker-hint">type · click add · drag</span>
     </div>
     <div class="grip-context-field">
-      <div id="__grip_comment_badges__" class="grip-context-badges"></div>
-      <textarea id="__grip_comment_input__" class="grip-context-input" placeholder="Add context for selected elements…" rows="2"></textarea>
+      <div id="__grip_comment_composer__" class="grip-context-composer">
+        <div class="grip-context-inline">
+          <div id="__grip_comment_badges__" class="grip-context-badges"></div>
+          <textarea id="__grip_comment_input__" class="grip-context-input" placeholder="Select elements on the page, then describe what you need…" rows="1"></textarea>
+        </div>
+      </div>
     </div>
     <div class="grip-picker-actions">
-      <button type="button" id="__grip_comment_done__">Done</button>
-      <button type="button" id="__grip_comment_skip__">Skip</button>
-      <button type="button" id="__grip_comment_save__">Save all</button>
+      <button type="button" id="__grip_comment_cancel__">Cancel</button>
+      <button type="button" id="__grip_comment_save__">Save</button>
     </div>
   `;
   document.documentElement.appendChild(panel);
@@ -566,8 +620,21 @@ function ensureCommentPanel(): HTMLElement {
 
 function bindBadgeEvents(panel: HTMLElement): void {
   const badges = panel.querySelector("#__grip_comment_badges__");
+  const composer = panel.querySelector("#__grip_comment_composer__");
   if (!badges || badges.getAttribute("data-bound") === "1") return;
   badges.setAttribute("data-bound", "1");
+
+    composer?.addEventListener("mousedown", (e) => {
+      const target = e.target as HTMLElement;
+      if (target.closest("[data-index], [data-remove]")) {
+        e.preventDefault();
+        return;
+      }
+      if (!target.closest("#__grip_comment_input__")) {
+        focusComposerInput();
+      }
+    });
+
   badges.addEventListener("click", (e) => {
     const target = e.target as HTMLElement;
     const removeBtn = target.closest<HTMLElement>("[data-remove]");
@@ -585,6 +652,11 @@ function bindBadgeEvents(panel: HTMLElement): void {
     highlight(pendingElements[index].el);
     updatePendingUI();
   });
+}
+
+function focusComposerInput(): void {
+  const input = document.getElementById("__grip_comment_input__") as HTMLTextAreaElement | null;
+  input?.focus();
 }
 
 function resumeHover(): void {
@@ -629,9 +701,9 @@ function showCommentPrompt(el: Element): void {
   }
 
   const input = panel.querySelector("#__grip_comment_input__") as HTMLTextAreaElement;
+  const composer = panel.querySelector("#__grip_comment_composer__") as HTMLElement | null;
   const save = panel.querySelector("#__grip_comment_save__") as HTMLButtonElement;
-  const skip = panel.querySelector("#__grip_comment_skip__") as HTMLButtonElement;
-  const done = panel.querySelector("#__grip_comment_done__") as HTMLButtonElement;
+  const cancel = panel.querySelector("#__grip_comment_cancel__") as HTMLButtonElement;
 
   if (isNewPanel) {
     pendingElements = [];
@@ -649,16 +721,16 @@ function showCommentPrompt(el: Element): void {
       e.stopPropagation();
       finishPick(input.value, true);
     };
-    skip.onclick = (e) => {
-      e.stopPropagation();
-      finishPick("", true);
-    };
-    done.onclick = (e) => {
+    cancel.onclick = (e) => {
       e.stopPropagation();
       cleanup();
     };
     input.onkeydown = (e) => {
       e.stopPropagation();
+      if (e.key === "Backspace" && handleComposerBackspace(e.target as HTMLTextAreaElement)) {
+        e.preventDefault();
+        return;
+      }
       if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         finishPick(input.value, true);
@@ -668,6 +740,13 @@ function showCommentPrompt(el: Element): void {
 
     panel.addEventListener("mousedown", (e) => e.stopPropagation());
     panel.addEventListener("click", (e) => e.stopPropagation());
+
+    composer?.addEventListener("mousedown", (e) => {
+      const target = e.target as HTMLElement;
+      if (target === composer || target.classList.contains("grip-context-composer")) {
+        focusComposerInput();
+      }
+    });
   }
 
   if (!panelManuallyPlaced) {
@@ -687,7 +766,9 @@ function showCommentPrompt(el: Element): void {
     window.addEventListener("scroll", reposition, { once: true, capture: true });
   }
 
-  input.focus();
+  if (isNewPanel) {
+    focusComposerInput();
+  }
 }
 
 function onClick(e: MouseEvent): void {
@@ -715,9 +796,10 @@ function onClick(e: MouseEvent): void {
   }
 
   if (phase === "comment") {
+    const input = document.getElementById("__grip_comment_input__") as HTMLTextAreaElement | null;
+    const hadFocus = document.activeElement === input;
     addToPending(el);
-    const input = document.querySelector("#__grip_comment_input__") as HTMLTextAreaElement | null;
-    input?.focus();
+    if (hadFocus) input?.focus();
     return;
   }
 
