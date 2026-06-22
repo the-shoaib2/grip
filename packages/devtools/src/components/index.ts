@@ -6,7 +6,7 @@ export { GripIcon } from "./GripIcon";
 export { GripMcpChip } from "./GripMcpChip";
 export { GripSessionToolbar } from "./GripSessionToolbar";
 export { PickErrorBanner } from "./PickErrorBanner";
-export { HistoryIcon, MinusIcon, MousePointerClickIcon, PlusIcon } from "./icons";
+export { HistoryIcon, McpIcon, MinusIcon, MousePointerClickIcon, PlusIcon } from "./icons";
 export { PickHistoryList } from "./PickHistoryList";
 export { SelectDropdown } from "./SelectDropdown";
 export { Tooltip } from "./Tooltip";

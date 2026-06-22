@@ -472,11 +472,25 @@ body {
 }
 
 .grip-mcp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1875rem;
   height: 1.125rem;
   min-height: 1.125rem;
-  padding: 0 0.375rem;
-  font-size: 9px;
-  letter-spacing: 0.02em;
+  padding: 0 0.3125rem;
+  font-size: 7px;
+  letter-spacing: 0.03em;
+}
+
+.grip-mcp-chip-icon {
+  flex-shrink: 0;
+  display: block;
+}
+
+.grip-mcp-chip-label {
+  font-size: 7px;
+  font-weight: 600;
+  line-height: 1;
 }
 
 button.grip-mcp-chip {
@@ -504,6 +518,17 @@ button.grip-mcp-chip {
 
 .grip-chip-warn {
   background: var(--grip-warning-soft);
+  color: var(--grip-warning);
+}
+
+button.grip-chip-warn {
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+button.grip-chip-warn:hover {
+  background: color-mix(in srgb, var(--grip-warning) 18%, transparent);
   color: var(--grip-warning);
 }
 
