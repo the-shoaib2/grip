@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   chipDisplayLabel,
+  formatChipForClipboard,
   formatInlineCommentForMcp,
   gripChipToken,
   parseInlineComment,
@@ -29,5 +30,24 @@ describe("inline-composer", () => {
   it("renders display labels with angle brackets", () => {
     expect(chipDisplayLabel("button")).toBe("<button>");
     expect(chipDisplayLabel("<p>")).toBe("<p>");
+  });
+
+  it("formats chip element metadata for clipboard", () => {
+    const out = formatChipForClipboard({
+      tag: "button",
+      role: "button",
+      css: "#submit",
+      text: "Save",
+      name: "Save changes",
+      xpath: "//button[@id='submit']",
+      rect: { top: 10, left: 20, width: 80, height: 32 },
+      shadowDOM: false,
+      iframe: "none",
+    });
+    expect(out).toContain("Element: <button> · role: button");
+    expect(out).toContain('Text: "Save"');
+    expect(out).toContain("CSS selector: #submit");
+    expect(out).toContain("XPath: //button[@id='submit']");
+    expect(out).toContain("A11y name: \"Save changes\"");
   });
 });

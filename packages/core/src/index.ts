@@ -29,6 +29,7 @@ export {
 } from "./mcp-prompt.js";
 export {
   chipDisplayLabel,
+  formatChipForClipboard,
   formatInlineCommentForMcp,
   gripChipToken,
   GRIP_CHIP_TOKEN_RE,
@@ -36,6 +37,7 @@ export {
   parseInlineComment,
   serializeInlineComment,
 } from "./inline-composer.js";
+export type { ChipClipboardMeta } from "./inline-composer.js";
 export type { PickerElementDetails } from "./mcp-prompt.js";
 export type {
   A11ySnapshot,

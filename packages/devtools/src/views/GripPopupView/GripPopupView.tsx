@@ -1,35 +1,22 @@
 import { useEffect, useState } from "preact/hooks";
-import type { StoredPick } from "@grip/core";
 import {
   GripIcon,
-  HistoryIcon,
-  MousePointerClickIcon,
+  GripSessionToolbar,
   PickHistoryList,
-  PlusIcon,
   Tooltip,
 } from "../../components";
+import { usePickHistory } from "../../hooks/usePickHistory";
 import { gripUserError } from "../../lib/errors";
 import { useGripRuntime } from "../../runtime/context";
 
 export function GripPopupView() {
   const runtime = useGripRuntime();
   const [mcpOk, setMcpOk] = useState(false);
-  const [history, setHistory] = useState<StoredPick[]>([]);
-  const [active, setActive] = useState<StoredPick | null>(null);
   const [pickError, setPickError] = useState<string | null>(null);
+  const { history, activePick, newSession, selectPick } = usePickHistory(runtime);
 
   useEffect(() => {
     void runtime.checkMcp().then((r) => setMcpOk(r.ok));
-    void runtime
-      .sendMessage<{ history?: StoredPick[] }>({ type: "GET_PICK_HISTORY" })
-      .then((data) => {
-        const items = data?.history ?? [];
-        setHistory(items);
-        if (items[0]) setActive(items[0]);
-      })
-      .catch(() => {
-        /* ignore */
-      });
   }, [runtime]);
 
   const startPicker = () => {
@@ -48,30 +35,13 @@ export function GripPopupView() {
       });
   };
 
-  const openTray = () => {
+  const openPanel = () => {
     void runtime
       .sendMessage({ type: "TOGGLE_GRIP_TRAY" })
       .catch(() => {
         /* ignore */
       })
       .finally(() => runtime.closeWindow?.());
-  };
-
-  const newSession = () => {
-    void runtime
-      .sendMessage<{ history?: StoredPick[] }>({ type: "NEW_SESSION" })
-      .then((data) => {
-        setHistory(data?.history ?? []);
-        setActive(null);
-      })
-      .catch(() => {
-        /* ignore */
-      });
-  };
-
-  const selectPick = (pick: StoredPick) => {
-    setActive(pick);
-    void runtime.sendMessage({ type: "NAVIGATE_TO_PICK", payload: pick });
   };
 
   return (
@@ -88,47 +58,19 @@ export function GripPopupView() {
         </Tooltip>
       </header>
 
-      <div className="grip-popup-toolbar">
-        <Tooltip text="Pick any element on the page">
-          <button
-            type="button"
-            className="grip-btn-ghost grip-btn-toolbar"
-            onClick={startPicker}
-          >
-            <MousePointerClickIcon size={16} />
-            <span>Pick</span>
-          </button>
-        </Tooltip>
-        <div className="grip-popup-toolbar-actions">
-          <Tooltip text="Open saved picks on the page">
-            <button
-              type="button"
-              className="grip-btn-ghost grip-btn-toolbar"
-              onClick={openTray}
-            >
-              <HistoryIcon size={16} />
-              <span>History</span>
-            </button>
-          </Tooltip>
-          <Tooltip text="New session — clear picks for this page">
-            <button
-              type="button"
-              className="grip-btn-ghost grip-btn-toolbar"
-              onClick={newSession}
-            >
-              <PlusIcon size={16} />
-              <span>New</span>
-            </button>
-          </Tooltip>
-        </div>
-      </div>
+      <GripSessionToolbar
+        variant="popup"
+        onPick={startPicker}
+        onOpenPanel={openPanel}
+        onNewSession={() => void newSession()}
+      />
 
       {pickError && <p className="grip-popup-error">{pickError}</p>}
 
       <div className="grip-popup-history">
         <PickHistoryList
           history={history}
-          activeId={active?.id}
+          activeId={activePick?.id}
           onSelect={selectPick}
         />
       </div>

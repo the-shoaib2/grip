@@ -1,6 +1,7 @@
 import "./styles/globals.css";
 
 export { chromeRuntime } from "./runtime/chrome-runtime";
+export { devtoolsRuntime } from "./runtime/devtools-runtime";
 export { GripRuntimeProvider, useGripRuntime } from "./runtime/context";
 export type { GripRuntime, RuntimeMessage, StorageChangeHandler } from "./runtime/types";
 

@@ -10,6 +10,42 @@ export function chipDisplayLabel(tag: string): string {
   return `<${normalized}>`;
 }
 
+/** Element metadata stored on inline chips and copied to the clipboard. */
+export interface ChipClipboardMeta {
+  tag: string;
+  role?: string;
+  css?: string;
+  text?: string;
+  name?: string;
+  xpath?: string;
+  rect?: { top: number; left: number; width: number; height: number };
+  shadowDOM?: boolean;
+  iframe?: string;
+}
+
+/** Format chip element metadata for clipboard (matches MCP prompt element block). */
+export function formatChipForClipboard(meta: ChipClipboardMeta): string {
+  const tag = chipDisplayLabel(meta.tag);
+  const role = meta.role ?? meta.tag;
+  const lines: string[] = [`Element: ${tag} · role: ${role}`];
+
+  if (meta.text) lines.push(`Text: "${meta.text}"`);
+  if (meta.css) lines.push(`CSS selector: ${meta.css}`);
+  if (meta.xpath) lines.push(`XPath: ${meta.xpath}`);
+  if (meta.rect) {
+    lines.push(
+      `Rect: { top: ${meta.rect.top}, left: ${meta.rect.left}, width: ${meta.rect.width}, height: ${meta.rect.height} }`,
+    );
+  }
+  if (meta.name) lines.push(`A11y name: "${meta.name}"`);
+  if (meta.shadowDOM !== undefined) {
+    lines.push(`Shadow DOM: ${meta.shadowDOM ? "yes" : "no"}`);
+  }
+  if (meta.iframe) lines.push(`iframe: ${meta.iframe}`);
+
+  return lines.join("\n");
+}
+
 /** Serialize interleaved text + chip tokens. */
 export function serializeInlineComment(
   parts: Array<{ type: "text"; value: string } | { type: "chip"; id: string }>,

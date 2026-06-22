@@ -15,6 +15,7 @@ export interface GripRuntime {
   sendMessage<T = unknown>(msg: RuntimeMessage): Promise<T>;
   onStorageChanged(handler: StorageChangeHandler): () => void;
   getPageUrl(): Promise<string>;
+  getTargetTabId?(): number | undefined;
   checkMcp(): Promise<{ ok: boolean }>;
   sessionGet(keys: string | string[]): Promise<Record<string, unknown>>;
   sessionSet(items: Record<string, unknown>): Promise<void>;

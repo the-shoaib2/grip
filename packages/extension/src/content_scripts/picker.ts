@@ -9,6 +9,7 @@ import {
 import type { PickerStartPayload } from "@grip/core";
 import {
   bindChipTooltipRoot,
+  bindEditorClipboard,
   chipMetaFromElement,
   findChipElement,
   focusEditor,
@@ -19,6 +20,7 @@ import {
   placeCaretAtEnd,
   removeChipElement,
   safeSendMessage,
+  selectChipElement,
   serializeEditor,
   setEditorFromComment,
   updateChipActiveStates,
@@ -44,6 +46,10 @@ interface PendingPick {
   role: string;
   text: string;
   name: string;
+  xpath: string;
+  rect: { top: number; left: number; width: number; height: number };
+  shadowDOM: boolean;
+  iframe: string;
 }
 
 let phase: PickerPhase = "idle";
@@ -507,6 +513,10 @@ function toPending(el: Element): PendingPick {
     role: desc.role?.toLowerCase() ?? "",
     text: desc.innerText,
     name: desc.name,
+    xpath: desc.xpath,
+    rect: desc.rect,
+    shadowDOM: desc.shadowDOM,
+    iframe: desc.iframe,
   };
 }
 
@@ -654,6 +664,10 @@ function addToPending(el: Element, options?: { keepTyping?: boolean }): void {
           css: next.css,
           text: next.text,
           name: next.name,
+          xpath: next.xpath,
+          rect: next.rect,
+          shadowDOM: next.shadowDOM,
+          iframe: next.iframe,
         },
         true,
       );
@@ -718,8 +732,10 @@ function bindComposerEvents(panel: HTMLElement): void {
 
   composer.addEventListener("mousedown", (e) => {
     const target = e.target as HTMLElement;
-    if (target.closest(".grip-inline-chip")) {
+    const chip = target.closest<HTMLElement>(".grip-inline-chip");
+    if (chip) {
       e.preventDefault();
+      selectChipElement(chip);
       return;
     }
     if (!target.closest("#__grip_comment_editor__")) {
@@ -742,6 +758,8 @@ function bindComposerEvents(panel: HTMLElement): void {
   editor.addEventListener("input", () => {
     syncComposerEditor(editor);
   });
+
+  bindEditorClipboard(editor);
 
   editor.addEventListener("keydown", (e) => {
     e.stopPropagation();

@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef } from "preact/hooks";
 import {
   bindChipTooltipRoot,
+  bindEditorClipboard,
   chipMetaFromElement,
   focusEditor,
   handleEditorKeydown,
   INLINE_EDITOR_CLASS,
   isEditorEmpty,
+  selectChipElement,
   serializeEditor,
   setEditorFromComment,
   type InlineChipRef,
@@ -18,8 +20,12 @@ interface CommentFieldProps {
   tagName?: string;
   role?: string;
   css?: string;
+  xpath?: string;
   innerText?: string;
   name?: string;
+  rect?: { top: number; left: number; width: number; height: number };
+  shadowDOM?: boolean;
+  iframe?: string;
   tags?: string[];
   maxHeight?: number;
 }
@@ -31,8 +37,12 @@ export function CommentField({
   tagName,
   role,
   css,
+  xpath,
   innerText,
   name,
+  rect,
+  shadowDOM,
+  iframe,
   tags,
   maxHeight = 160,
 }: CommentFieldProps) {
@@ -51,8 +61,12 @@ export function CommentField({
           tag: primary,
           role: role?.toLowerCase(),
           css,
+          xpath,
           text: innerText,
           name,
+          rect,
+          shadowDOM,
+          iframe,
         },
       ];
       if (role && role.toLowerCase() !== primary) {
@@ -61,7 +75,7 @@ export function CommentField({
       return refs;
     }
     return [];
-  }, [tagName, role, css, innerText, name, tags]);
+  }, [tagName, role, css, xpath, innerText, name, rect, shadowDOM, iframe, tags]);
 
   useEffect(() => {
     const editor = editorRef.current;
@@ -80,11 +94,13 @@ export function CommentField({
     editor.addEventListener("input", onInput);
     editor.addEventListener("keydown", onKeyDown);
     const unbindTooltip = bindChipTooltipRoot(editor, (chip) => chipMetaFromElement(chip));
+    const unbindClipboard = bindEditorClipboard(editor);
 
     return () => {
       editor.removeEventListener("input", onInput);
       editor.removeEventListener("keydown", onKeyDown);
       unbindTooltip();
+      unbindClipboard();
     };
   }, [onChange]);
 
@@ -103,8 +119,10 @@ export function CommentField({
         style={{ maxHeight: `${maxHeight}px` }}
         onMouseDown={(e) => {
           const target = e.target as HTMLElement;
-          if (target.closest(".grip-inline-chip")) {
+          const chip = target.closest<HTMLElement>(".grip-inline-chip");
+          if (chip) {
             e.preventDefault();
+            selectChipElement(chip);
             return;
           }
           focusEditor(editorRef.current!);

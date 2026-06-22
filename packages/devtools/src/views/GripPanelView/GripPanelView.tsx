@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
 import {
   formatMcpPrompt,
-  picksForSession,
   type LogMessagePayload,
   type PickerElementPayload,
   type StoredPick,
@@ -10,10 +9,12 @@ import {
   CommentField,
   CopyButton,
   GripIcon,
+  GripSessionToolbar,
   PickHistoryList,
   SelectDropdown,
   Tooltip,
 } from "../../components";
+import { usePickHistory } from "../../hooks/usePickHistory";
 import { useGripStore } from "../../store/gripStore";
 import { useGripRuntime } from "../../runtime/context";
 import { LogPanel } from "../LogPanel";
@@ -32,13 +33,15 @@ export function GripPanelView({ layout = "panel" }: GripPanelViewProps) {
   const addLog = useGripStore((s) => s.addLog);
   const clearLogs = useGripStore((s) => s.clearLogs);
   const [mcpOk, setMcpOk] = useState(false);
-  const [history, setHistory] = useState<StoredPick[]>([]);
   const [copyAs, setCopyAs] = useState<CopyAs>("mcp");
+  const { history, activePick, newSession, selectPick } = usePickHistory(runtime);
 
   const activeId = useMemo(() => {
-    if (!lastPick) return undefined;
-    return history.find((h) => h.css === lastPick.css)?.id;
-  }, [history, lastPick]);
+    if (lastPick) {
+      return history.find((h) => h.css === lastPick.css)?.id ?? activePick?.id;
+    }
+    return activePick?.id;
+  }, [history, lastPick, activePick]);
 
   useEffect(() => {
     void runtime.checkMcp().then((r) => setMcpOk(r.ok));
@@ -59,13 +62,6 @@ export function GripPanelView({ layout = "panel" }: GripPanelViewProps) {
         /* panel may not be ready */
       });
 
-    void runtime
-      .sendMessage<{ history?: StoredPick[] }>({ type: "GET_PICK_HISTORY" })
-      .then((data) => setHistory(data?.history ?? []))
-      .catch(() => {
-        /* ignore */
-      });
-
     const onStorage = (
       changes: Record<string, chrome.storage.StorageChange>,
       area: string,
@@ -75,15 +71,6 @@ export function GripPanelView({ layout = "panel" }: GripPanelViewProps) {
       }
       if (area === "session" && changes.logs?.newValue) {
         useGripStore.setState({ logs: changes.logs.newValue as LogMessagePayload[] });
-      }
-      if (area === "local" && changes.pickHistory?.newValue) {
-        void runtime.sessionGet("pickSessionId").then((sessionData) => {
-          void runtime.getPageUrl().then((url) => {
-            const sessionId = sessionData.pickSessionId as string | undefined;
-            const all = changes.pickHistory!.newValue as StoredPick[];
-            setHistory(sessionId ? picksForSession(all, url, sessionId) : []);
-          });
-        });
       }
     };
 
@@ -107,16 +94,27 @@ export function GripPanelView({ layout = "panel" }: GripPanelViewProps) {
 
   const persistComment = (comment: string) => {
     setPickComment(comment);
-    if (lastPick) {
-      void runtime.sessionSet({
-        lastPick: { ...lastPick, comment: comment.trim() || undefined },
+    if (!lastPick) return;
+
+    const trimmed = comment.trim() || undefined;
+    const nextPick = { ...lastPick, comment: trimmed };
+    setLastPick(nextPick);
+    void runtime.sessionSet({ lastPick: nextPick });
+
+    const stored =
+      (activeId ? history.find((h) => h.id === activeId) : undefined) ??
+      history.find((h) => h.css === lastPick.css);
+    if (stored?.id) {
+      void runtime.sendMessage({
+        type: "UPDATE_PICK_COMMENT",
+        payload: { pickId: stored.id, comment: trimmed },
       });
     }
   };
 
-  const selectPick = (pick: StoredPick) => {
+  const handleSelectPick = (pick: StoredPick) => {
     setLastPick(pick);
-    void runtime.sendMessage({ type: "NAVIGATE_TO_PICK", payload: pick });
+    selectPick(pick);
   };
 
   const panelClass =
@@ -129,11 +127,18 @@ export function GripPanelView({ layout = "panel" }: GripPanelViewProps) {
           <GripIcon size={24} />
           <h1 className="grip-panel-title">Grip</h1>
         </div>
-        <Tooltip text={mcpOk ? "MCP connected on :9222" : "Chrome debug port not found"}>
-          <span className={`grip-chip ${mcpOk ? "grip-chip-ok" : "grip-chip-warn"}`}>
-            {mcpOk ? "MCP" : "—"}
-          </span>
-        </Tooltip>
+        <div className="grip-popup-toolbar-actions">
+          <GripSessionToolbar
+            variant="compact"
+            onPick={() => void runtime.sendMessage({ type: "START_PICKER" })}
+            onNewSession={() => void newSession()}
+          />
+          <Tooltip text={mcpOk ? "MCP connected on :9222" : "Chrome debug port not found"}>
+            <span className={`grip-chip ${mcpOk ? "grip-chip-ok" : "grip-chip-warn"}`}>
+              {mcpOk ? "MCP" : "—"}
+            </span>
+          </Tooltip>
+        </div>
       </header>
 
       <Tooltip text="Pick any element on the page">
@@ -149,7 +154,7 @@ export function GripPanelView({ layout = "panel" }: GripPanelViewProps) {
       <PickHistoryList
         history={history}
         activeId={activeId}
-        onSelect={selectPick}
+        onSelect={handleSelectPick}
       />
 
       {lastPick && (
@@ -160,8 +165,12 @@ export function GripPanelView({ layout = "panel" }: GripPanelViewProps) {
             tagName={lastPick.tagName}
             role={lastPick.role}
             css={lastPick.css}
+            xpath={lastPick.xpath}
             innerText={lastPick.innerText}
             name={lastPick.name}
+            rect={lastPick.rect}
+            shadowDOM={lastPick.shadowDOM}
+            iframe={lastPick.iframe}
           />
           <div className="grip-panel-copy-row">
             <SelectDropdown

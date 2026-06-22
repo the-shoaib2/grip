@@ -87,12 +87,65 @@ test.describe("Grip picker", () => {
     await page.locator("#__grip_picker_comment__ button", { hasText: "Save" }).click();
     await expect(page.locator("#__grip_picker_comment__")).toBeHidden({ timeout: 10_000 });
 
-    await openFloatingPanel(page);
+    await expect(gripTrayToggle(page)).toHaveAttribute("aria-expanded", "true", { timeout: 10_000 });
     const panelText = await page.locator(`#${TRAY_ID}`).evaluate(
       (host) => host.shadowRoot?.textContent ?? "",
     );
     expect(panelText).toContain("button");
     expect(panelText).toContain("E2E pick target");
+    await page.close();
+  });
+
+  test("auto-opens floating panel after pick save", async ({ extensionContext }) => {
+    const page = await extensionContext.newPage();
+    await page.goto(TEST_PAGE_URL);
+    await expect(gripTrayToggle(page)).toBeVisible({ timeout: 20_000 });
+    await expect(gripTrayToggle(page)).toHaveAttribute("aria-expanded", "false");
+
+    await page.locator(`#${TRAY_ID}`).evaluate((host) => {
+      host.shadowRoot?.querySelector<HTMLButtonElement>(".grip-tray-toggle")?.click();
+      host.shadowRoot?.querySelector<HTMLButtonElement>(".grip-btn-primary")?.click();
+    });
+
+    await expect(page.locator("#__grip_picker_hover__")).toBeVisible({ timeout: 10_000 });
+    await page.locator("#grip-target").click();
+    await page.locator("#__grip_picker_comment__ button", { hasText: "Save" }).click();
+
+    await expect(gripTrayToggle(page)).toHaveAttribute("aria-expanded", "true", { timeout: 10_000 });
+    await page.close();
+  });
+});
+
+test.describe("Grip session", () => {
+  test("new session clears current session picks in panel", async ({ extensionContext }) => {
+    const page = await extensionContext.newPage();
+    await page.goto(TEST_PAGE_URL);
+    await openFloatingPanel(page);
+
+    await page.locator(`#${TRAY_ID}`).evaluate((host) => {
+      host.shadowRoot?.querySelector<HTMLButtonElement>(".grip-btn-primary")?.click();
+    });
+    await expect(page.locator("#__grip_picker_hover__")).toBeVisible({ timeout: 10_000 });
+    await page.locator("#grip-target").click();
+    await page.locator("#__grip_picker_comment__ button", { hasText: "Save" }).click();
+
+    await expect
+      .poll(async () => gripShadowText(page))
+      .toContain("Pick me");
+
+    await page.locator(`#${TRAY_ID}`).evaluate((host) => {
+      const buttons = host.shadowRoot?.querySelectorAll<HTMLButtonElement>(".grip-btn-toolbar");
+      for (const btn of buttons ?? []) {
+        if (btn.textContent?.includes("New")) {
+          btn.click();
+          return;
+        }
+      }
+    });
+
+    await expect
+      .poll(async () => gripShadowText(page))
+      .toContain("No picks yet");
     await page.close();
   });
 });

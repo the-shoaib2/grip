@@ -1,8 +1,10 @@
 import {
   chipDisplayLabel,
+  formatChipForClipboard,
   gripChipToken,
   newChipId,
   parseInlineComment,
+  type ChipClipboardMeta,
 } from "@grip/core";
 
 export const INLINE_CHIP_CLASS = "grip-inline-chip";
@@ -10,13 +12,8 @@ export const INLINE_EDITOR_CLASS = "grip-inline-editor";
 
 const ZWSP = "\u200B";
 
-export interface InlineChipRef {
+export interface InlineChipRef extends ChipClipboardMeta {
   id: string;
-  tag: string;
-  role?: string;
-  css?: string;
-  text?: string;
-  name?: string;
 }
 
 function applyChipMeta(chip: HTMLSpanElement, meta: InlineChipRef): void {
@@ -26,12 +23,28 @@ function applyChipMeta(chip: HTMLSpanElement, meta: InlineChipRef): void {
   if (meta.css) chip.dataset.css = meta.css;
   if (meta.text) chip.dataset.text = meta.text;
   if (meta.name) chip.dataset.name = meta.name;
+  if (meta.xpath) chip.dataset.xpath = meta.xpath;
+  if (meta.rect) chip.dataset.rect = JSON.stringify(meta.rect);
+  if (meta.shadowDOM !== undefined) {
+    chip.dataset.shadowDom = meta.shadowDOM ? "1" : "0";
+  }
+  if (meta.iframe) chip.dataset.iframe = meta.iframe;
 }
 
 export function chipMetaFromElement(chip: HTMLElement): InlineChipRef | null {
   const id = chip.dataset.gripChip;
   const tag = chip.dataset.tag;
   if (!id || !tag) return null;
+
+  let rect: InlineChipRef["rect"];
+  if (chip.dataset.rect) {
+    try {
+      rect = JSON.parse(chip.dataset.rect) as InlineChipRef["rect"];
+    } catch {
+      rect = undefined;
+    }
+  }
+
   return {
     id,
     tag,
@@ -39,6 +52,12 @@ export function chipMetaFromElement(chip: HTMLElement): InlineChipRef | null {
     css: chip.dataset.css,
     text: chip.dataset.text,
     name: chip.dataset.name,
+    xpath: chip.dataset.xpath,
+    rect,
+    shadowDOM: chip.dataset.shadowDom
+      ? chip.dataset.shadowDom === "1"
+      : undefined,
+    iframe: chip.dataset.iframe,
   };
 }
 
@@ -274,6 +293,15 @@ export function selectAllInEditor(editor: HTMLElement): void {
   sel.addRange(range);
 }
 
+export function selectChipElement(chip: HTMLElement): void {
+  const sel = window.getSelection();
+  if (!sel) return;
+  const range = document.createRange();
+  range.selectNodeContents(chip);
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
 function selectionRangeInEditor(
   editor: HTMLElement,
 ): { sel: Selection; range: Range } | null {
@@ -294,6 +322,67 @@ export function serializeEditorSelection(editor: HTMLElement): string | null {
   const container = document.createElement("div");
   container.appendChild(fragment);
   return serializeEditor(container);
+}
+
+function serializeFragmentForClipboard(root: ParentNode): string {
+  let out = "";
+
+  const appendChip = (meta: InlineChipRef) => {
+    const block = formatChipForClipboard(meta);
+    if (out.length > 0 && !out.endsWith("\n\n")) {
+      if (!out.endsWith("\n")) out += "\n";
+      out += "\n";
+    }
+    out += block;
+  };
+
+  const walk = (node: Node) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      out += (node.textContent ?? "").replaceAll(ZWSP, "");
+      return;
+    }
+    if (!(node instanceof HTMLElement)) return;
+
+    if (node.classList.contains(INLINE_CHIP_CLASS)) {
+      const meta = chipMetaFromElement(node);
+      if (meta) appendChip(meta);
+      return;
+    }
+
+    if (node.tagName === "BR") {
+      out += "\n";
+      return;
+    }
+
+    node.childNodes.forEach(walk);
+  };
+
+  root.childNodes.forEach(walk);
+  return out;
+}
+
+/** Clipboard text: plain text stays text, badges copy full element metadata. */
+export function serializeSelectionForClipboard(editor: HTMLElement): string | null {
+  const ctx = selectionRangeInEditor(editor);
+  if (!ctx) return null;
+  if (ctx.sel.isCollapsed) return "";
+
+  const fragment = ctx.range.cloneContents();
+  const container = document.createElement("div");
+  container.appendChild(fragment);
+  return serializeFragmentForClipboard(container);
+}
+
+export function bindEditorClipboard(editor: HTMLElement): () => void {
+  const onCopy = (e: ClipboardEvent) => {
+    const text = serializeSelectionForClipboard(editor);
+    if (!text) return;
+    e.preventDefault();
+    e.clipboardData?.setData("text/plain", text);
+  };
+
+  editor.addEventListener("copy", onCopy);
+  return () => editor.removeEventListener("copy", onCopy);
 }
 
 function syncEditorInput(editor: HTMLElement): void {
@@ -352,7 +441,7 @@ function handleEditorShortcuts(
   }
 
   if (key === "c") {
-    const text = serializeEditorSelection(editor);
+    const text = serializeSelectionForClipboard(editor);
     if (text === null || text === "") return false;
     e.preventDefault();
     writeClipboardText(text);
@@ -360,7 +449,7 @@ function handleEditorShortcuts(
   }
 
   if (key === "x") {
-    const text = serializeEditorSelection(editor);
+    const text = serializeSelectionForClipboard(editor);
     if (text === null || text === "") return false;
     e.preventDefault();
     writeClipboardText(text);
