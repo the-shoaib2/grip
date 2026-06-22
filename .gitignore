@@ -1,13 +1,81 @@
+# Dependencies
 node_modules/
-dist/
-.next/
+.pnpm-store/
+
+# Turbo
 .turbo/
+
+# Local toolchains (bootstrapped Go, etc.)
 .tools/
-coverage/
-bin/grip-mcp
-*.log
-.DS_Store
+
+# Environment & secrets
 .env
 .env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors / IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json.example
+*.swp
+*.swo
+*~
+
+# TypeScript
+*.tsbuildinfo
+
+# Test / coverage
+coverage/
+.nyc_output/
+
+# Playwright
+playwright-report/
+test-results/
+blob-report/
+playwright/.cache/
+
+# --- Build outputs ---
+
+# Shared package dist (tsup)
+packages/*/dist/
+
+# Next.js docs
+apps/docs/.next/
+apps/docs/out/
+
+# Chrome extension (Vite + CRXJS)
 packages/extension/dist/
+
+# Go MCP server
+bin/grip-mcp
 packages/mcp-server/grip-mcp
+packages/mcp-server/bin/
+
+# Vite cache / temp artifacts
+**/.vite/
+**/vite.config.ts.timestamp-*.mjs
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Misc
+*.local
+.cache/
