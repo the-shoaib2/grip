@@ -5,9 +5,11 @@ import type {
   StoredPick,
 } from "@grip/core";
 import { appendPickHistory, clearPicksForUrl, picksForUrl, toStoredPick } from "@grip/core";
+import { gripUserError } from "@/lib/errors";
 
 const MAX_LOGS = 500;
 const HISTORY_KEY = "pickHistory";
+const REFRESH_HINT = "Refresh this page, then try again.";
 const logs: LogMessagePayload[] = [];
 
 function isInspectableUrl(url?: string): boolean {
@@ -25,16 +27,39 @@ function sendToTab(tabId: number, message: unknown): Promise<void> {
   });
 }
 
-async function ensureContentScripts(tabId: number): Promise<void> {
-  const entry = chrome.runtime.getManifest().content_scripts?.[0];
-  const files = entry?.js;
-  if (!files?.length) {
-    throw new Error("Grip content scripts are not configured");
+function injectScriptFile(): string | undefined {
+  return chrome.runtime.getManifest().content_scripts?.[0]?.js?.[0];
+}
+
+async function tabHasGrip(tabId: number): Promise<boolean> {
+  try {
+    await sendToTab(tabId, { type: "GRIP_PING" });
+    return true;
+  } catch {
+    return false;
   }
-  await chrome.scripting.executeScript({
-    target: { tabId, allFrames: true },
-    files: [...files],
-  });
+}
+
+async function injectGripScripts(tabId: number): Promise<void> {
+  const file = injectScriptFile();
+  if (!file) throw new Error(REFRESH_HINT);
+
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId, allFrames: false },
+      files: [file],
+    });
+  } catch (err) {
+    throw new Error(gripUserError(err instanceof Error ? err.message : REFRESH_HINT));
+  }
+}
+
+async function ensureTabReady(tabId: number): Promise<void> {
+  if (await tabHasGrip(tabId)) return;
+  await injectGripScripts(tabId);
+  if (!(await tabHasGrip(tabId))) {
+    throw new Error(REFRESH_HINT);
+  }
 }
 
 async function pushTrayToTab(tabId: number, picks: StoredPick[]): Promise<void> {
@@ -50,16 +75,17 @@ async function startPickerOnTab(tabId: number, url?: string): Promise<void> {
     throw new Error("Open an http(s) page first");
   }
 
-  const message = { type: "START_PICKER" };
+  await ensureTabReady(tabId);
+  await sendToTab(tabId, { type: "START_PICKER" });
+}
 
+async function sendToTabWhenReady(tabId: number, message: unknown): Promise<void> {
   try {
     await sendToTab(tabId, message);
-    return;
   } catch {
-    await ensureContentScripts(tabId);
+    await ensureTabReady(tabId);
+    await sendToTab(tabId, message);
   }
-
-  await sendToTab(tabId, message);
 }
 
 async function savePick(
@@ -88,6 +114,20 @@ async function savePick(
   return stored;
 }
 
+function respondError(
+  sendResponse: (response: { ok: false; error: string }) => void,
+  err: unknown,
+): void {
+  try {
+    sendResponse({
+      ok: false,
+      error: gripUserError(err instanceof Error ? err.message : undefined),
+    });
+  } catch {
+    // Receiver closed before error was sent.
+  }
+}
+
 chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) => {
   switch (msg.type) {
     case "START_PICKER":
@@ -102,14 +142,7 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
           await startPickerOnTab(tab.id, tab.url);
           sendResponse({ ok: true });
         } catch (err) {
-          try {
-            sendResponse({
-              ok: false,
-              error: err instanceof Error ? err.message : "Could not start picker",
-            });
-          } catch {
-            // Receiver closed before picker could start.
-          }
+          respondError(sendResponse, err);
         }
       })();
       return true;
@@ -143,10 +176,9 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
         const tab = tabs[0];
         if (!tab?.id) return;
         try {
-          await sendToTab(tab.id, { type: "NAVIGATE_TO_PICK", payload: pick });
+          await sendToTabWhenReady(tab.id, { type: "NAVIGATE_TO_PICK", payload: pick });
         } catch {
-          await ensureContentScripts(tab.id);
-          await sendToTab(tab.id, { type: "NAVIGATE_TO_PICK", payload: pick });
+          /* ignore navigation errors */
         }
         await chrome.storage.session.set({ lastPick: pick });
       });
@@ -173,10 +205,9 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
         const tab = tabs[0];
         if (!tab?.id) return;
         try {
-          await sendToTab(tab.id, { type: "TOGGLE_GRIP_TRAY" });
+          await sendToTabWhenReady(tab.id, { type: "TOGGLE_GRIP_TRAY" });
         } catch {
-          await ensureContentScripts(tab.id);
-          await sendToTab(tab.id, { type: "TOGGLE_GRIP_TRAY" });
+          /* ignore tray toggle errors */
         }
       });
       sendResponse({ ok: true });

@@ -10,6 +10,7 @@ import {
   Tooltip,
 } from "@/components";
 import "@/styles/globals.css";
+import { gripUserError } from "@/lib/errors";
 
 function Popup() {
   const [mcpOk, setMcpOk] = useState(false);
@@ -36,11 +37,11 @@ function Popup() {
       error?: string;
     }) => {
       if (chrome.runtime.lastError) {
-        setPickError(chrome.runtime.lastError.message ?? "Could not start picker");
+        setPickError(gripUserError(chrome.runtime.lastError.message));
         return;
       }
       if (res?.ok === false) {
-        setPickError(res.error ?? "Could not start picker");
+        setPickError(gripUserError(res.error));
         return;
       }
       window.close();
