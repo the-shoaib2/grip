@@ -3,7 +3,7 @@ export { CopyButton } from "./CopyButton";
 export { ElementTagBadge } from "./ElementTagBadge";
 export { FieldRow } from "./FieldRow";
 export { GripIcon } from "./GripIcon";
-export { HistoryIcon, MousePointerClickIcon, PlusIcon } from "./Icons";
+export { HistoryIcon, MousePointerClickIcon, PlusIcon } from "./icons";
 export { PickHistoryList } from "./PickHistoryList";
 export { SelectDropdown } from "./SelectDropdown";
 export { Tooltip } from "./Tooltip";

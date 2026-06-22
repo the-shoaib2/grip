@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
-import { useGripStore } from "@/stores";
 import {
-  checkChromeDebugPort,
   formatMcpPrompt,
   picksForSession,
   type LogMessagePayload,
@@ -15,13 +13,19 @@ import {
   PickHistoryList,
   SelectDropdown,
   Tooltip,
-} from "@/components";
-import { LogPanel } from "@/devtools/panel/LogPanel";
-import "@/styles/globals.css";
+} from "../../components";
+import { useGripStore } from "../../store/gripStore";
+import { useGripRuntime } from "../../runtime/context";
+import { LogPanel } from "../LogPanel";
 
 type CopyAs = "mcp" | "css" | "xpath";
 
-export function App() {
+export interface GripPanelViewProps {
+  layout?: "panel" | "floating";
+}
+
+export function GripPanelView({ layout = "panel" }: GripPanelViewProps) {
+  const runtime = useGripRuntime();
   const lastPick = useGripStore((s) => s.lastPick);
   const setLastPick = useGripStore((s) => s.setLastPick);
   const setPickComment = useGripStore((s) => s.setPickComment);
@@ -37,25 +41,30 @@ export function App() {
   }, [history, lastPick]);
 
   useEffect(() => {
-    void checkChromeDebugPort().then((r: { ok: boolean }) => setMcpOk(r.ok));
+    void runtime.checkMcp().then((r) => setMcpOk(r.ok));
 
-    chrome.runtime.sendMessage({ type: "PANEL_READY" }, (data: {
-      lastPick?: PickerElementPayload;
-      logs?: LogMessagePayload[];
-    }) => {
-      if (chrome.runtime.lastError) return;
-      if (data?.lastPick) setLastPick(data.lastPick);
-      if (data?.logs?.length) {
-        clearLogs();
-        for (const entry of data.logs) addLog(entry);
-      }
-    });
+    void runtime
+      .sendMessage<{
+        lastPick?: PickerElementPayload;
+        logs?: LogMessagePayload[];
+      }>({ type: "PANEL_READY" })
+      .then((data) => {
+        if (data?.lastPick) setLastPick(data.lastPick);
+        if (data?.logs?.length) {
+          clearLogs();
+          for (const entry of data.logs) addLog(entry);
+        }
+      })
+      .catch(() => {
+        /* panel may not be ready */
+      });
 
-    chrome.runtime.sendMessage({ type: "GET_PICK_HISTORY" }, (data: {
-      history?: StoredPick[];
-    }) => {
-      if (!chrome.runtime.lastError) setHistory(data?.history ?? []);
-    });
+    void runtime
+      .sendMessage<{ history?: StoredPick[] }>({ type: "GET_PICK_HISTORY" })
+      .then((data) => setHistory(data?.history ?? []))
+      .catch(() => {
+        /* ignore */
+      });
 
     const onStorage = (
       changes: Record<string, chrome.storage.StorageChange>,
@@ -68,9 +77,8 @@ export function App() {
         useGripStore.setState({ logs: changes.logs.newValue as LogMessagePayload[] });
       }
       if (area === "local" && changes.pickHistory?.newValue) {
-        void chrome.storage.session.get("pickSessionId").then((sessionData) => {
-          chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-            const url = tabs[0]?.url ?? "";
+        void runtime.sessionGet("pickSessionId").then((sessionData) => {
+          void runtime.getPageUrl().then((url) => {
             const sessionId = sessionData.pickSessionId as string | undefined;
             const all = changes.pickHistory!.newValue as StoredPick[];
             setHistory(sessionId ? picksForSession(all, url, sessionId) : []);
@@ -78,9 +86,10 @@ export function App() {
         });
       }
     };
-    chrome.storage.onChanged.addListener(onStorage);
-    return () => chrome.storage.onChanged.removeListener(onStorage);
-  }, [setLastPick, addLog, clearLogs]);
+
+    const unsub = runtime.onStorageChanged(onStorage);
+    return unsub;
+  }, [runtime, setLastPick, addLog, clearLogs]);
 
   const copyText = useMemo(() => {
     if (!lastPick) return "";
@@ -99,7 +108,7 @@ export function App() {
   const persistComment = (comment: string) => {
     setPickComment(comment);
     if (lastPick) {
-      chrome.storage.session.set({
+      void runtime.sessionSet({
         lastPick: { ...lastPick, comment: comment.trim() || undefined },
       });
     }
@@ -107,11 +116,16 @@ export function App() {
 
   const selectPick = (pick: StoredPick) => {
     setLastPick(pick);
-    chrome.runtime.sendMessage({ type: "NAVIGATE_TO_PICK", payload: pick });
+    void runtime.sendMessage({ type: "NAVIGATE_TO_PICK", payload: pick });
   };
 
+  const panelClass =
+    layout === "floating"
+      ? "grip-panel grip-panel-floating flex flex-col gap-3 p-4"
+      : "grip-panel flex flex-col gap-3 p-4";
+
   return (
-    <div className="grip-panel flex flex-col gap-3 p-4">
+    <div className={panelClass}>
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <GripIcon size={24} />
@@ -128,7 +142,7 @@ export function App() {
         <button
           type="button"
           className="grip-btn-primary w-full"
-          onClick={() => chrome.runtime.sendMessage({ type: "START_PICKER" })}
+          onClick={() => void runtime.sendMessage({ type: "START_PICKER" })}
         >
           Pick
         </button>

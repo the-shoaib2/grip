@@ -14,7 +14,8 @@
     "sourceMap": true,
     "isolatedModules": true,
     "paths": {
-      "@grip/core": ["./packages/core/src/index.ts"]
+      "@grip/core": ["./packages/core/src/index.ts"],
+      "@grip/devtools": ["./packages/devtools/src/index.ts"]
     }
   }
 }

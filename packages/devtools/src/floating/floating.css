@@ -1,0 +1,59 @@
+#__grip_tray__ {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 2147483645;
+  pointer-events: none;
+  font: 12px system-ui, sans-serif;
+}
+
+.grip-floating-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.grip-floating-inner .grip-tray-toggle {
+  border: none;
+  border-radius: 9999px;
+  width: 36px;
+  height: 36px;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease, background 0.15s ease;
+  flex-shrink: 0;
+}
+
+.grip-floating-inner .grip-tray-toggle:hover {
+  background: #1d4ed8;
+}
+
+.grip-floating-inner.grip-tray-open .grip-tray-toggle {
+  transform: rotate(180deg);
+  background: #1d4ed8;
+}
+
+.grip-floating-menu {
+  display: none;
+  width: min(24rem, calc(100vw - 24px));
+  max-height: min(80vh, 640px);
+  overflow: auto;
+  order: -1;
+}
+
+.grip-floating-inner.grip-tray-open .grip-floating-menu {
+  display: block;
+}
+
+.grip-panel-floating {
+  border-radius: 16px;
+  border: 1px solid var(--grip-border);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}

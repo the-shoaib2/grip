@@ -8,10 +8,13 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@grip/core": ["../core/src/index.ts"]
+      "@grip/core": ["../core/src/index.ts"],
+      "@grip/devtools": ["../devtools/src/index.ts"],
+      "@grip/devtools-lib": ["../devtools/src/lib/index.ts"],
+      "@grip/devtools-floating": ["../devtools/src/floating/index.ts"]
     },
     "noEmit": true
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "../devtools/src/**/*.d.ts"],
   "exclude": ["node_modules", "dist", "src/**/*.js", "src/**/*.d.ts"]
 }

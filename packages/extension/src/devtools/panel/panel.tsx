@@ -1,4 +1,14 @@
 import { render } from "preact";
-import { App } from "@/devtools/panel/App";
+import {
+  chromeRuntime,
+  GripPanelView,
+  GripRuntimeProvider,
+} from "@grip/devtools";
+import "@grip/devtools-css";
 
-render(<App />, document.getElementById("app")!);
+render(
+  <GripRuntimeProvider runtime={chromeRuntime}>
+    <GripPanelView />
+  </GripRuntimeProvider>,
+  document.getElementById("app")!,
+);

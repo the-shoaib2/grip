@@ -1,22 +1,20 @@
 {
-  "name": "@grip/extension",
+  "name": "@grip/devtools",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc --noEmit && vite build",
-    "typecheck": "pnpm --filter @grip/core build && tsc --noEmit",
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
     "@grip/core": "workspace:*",
-    "@grip/devtools": "workspace:*",
     "preact": "^10.22.0",
     "zustand": "^4.5.5"
   },
   "devDependencies": {
-    "@crxjs/vite-plugin": "^2.0.0-beta.26",
     "@types/chrome": "^0.0.268",
     "@types/node": "^20.14.0",
     "autoprefixer": "^10.4.20",
@@ -24,5 +22,16 @@
     "tailwindcss": "^3.4.14",
     "typescript": "^5.4.5",
     "vite": "^5.4.10"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./dist/index.js"
+    },
+    "./floating": {
+      "types": "./src/floating/index.ts",
+      "import": "./dist/floating.js"
+    },
+    "./style.css": "./dist/devtools.css"
   }
 }

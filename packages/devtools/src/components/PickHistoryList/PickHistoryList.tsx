@@ -1,7 +1,7 @@
 import { formatAllMcpPrompts, formatMcpPrompt, type StoredPick } from "@grip/core";
-import { CopyButton } from "./CopyButton";
-import { ElementTagBadge } from "./ElementTagBadge";
-import { Tooltip } from "./Tooltip";
+import { CopyButton } from "../CopyButton";
+import { ElementTagBadge } from "../ElementTagBadge";
+import { Tooltip } from "../Tooltip";
 
 interface PickHistoryListProps {
   history: StoredPick[];

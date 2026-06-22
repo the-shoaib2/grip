@@ -98,11 +98,48 @@ importers:
         specifier: ^1.6.0
         version: 1.6.1(@types/node@20.19.43)(jsdom@24.1.3)
 
+  packages/devtools:
+    dependencies:
+      '@grip/core':
+        specifier: workspace:*
+        version: link:../core
+      preact:
+        specifier: ^10.22.0
+        version: 10.29.2
+      zustand:
+        specifier: ^4.5.5
+        version: 4.5.7(@types/react@18.3.31)(react@18.3.1)
+    devDependencies:
+      '@types/chrome':
+        specifier: ^0.0.268
+        version: 0.0.268
+      '@types/node':
+        specifier: ^20.14.0
+        version: 20.19.43
+      autoprefixer:
+        specifier: ^10.4.20
+        version: 10.5.0(postcss@8.5.15)
+      postcss:
+        specifier: ^8.4.47
+        version: 8.5.15
+      tailwindcss:
+        specifier: ^3.4.14
+        version: 3.4.19
+      typescript:
+        specifier: ^5.4.5
+        version: 5.9.3
+      vite:
+        specifier: ^5.4.10
+        version: 5.4.21(@types/node@20.19.43)
+
   packages/extension:
     dependencies:
       '@grip/core':
         specifier: workspace:*
         version: link:../core
+      '@grip/devtools':
+        specifier: workspace:*
+        version: link:../devtools
       preact:
         specifier: ^10.22.0
         version: 10.29.2

@@ -9,7 +9,7 @@ import {
   serializeEditor,
   setEditorFromComment,
   type InlineChipRef,
-} from "@/lib";
+} from "../../lib";
 
 interface CommentFieldProps {
   value: string;
