@@ -112,6 +112,7 @@ body {
   background: transparent;
 }
 
+/* ── Root layout shells (popup · panel · floating) ── */
 .grip-popup {
   display: flex;
   flex-direction: column;
@@ -125,6 +126,20 @@ body {
   color: var(--grip-fg);
   padding: 0.75rem;
   box-sizing: border-box;
+}
+
+.grip-shell-floating {
+  border-radius: 1rem;
+  border: 1px solid var(--grip-border);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  max-height: min(36rem, calc(100vh - 5rem));
+  overflow-y: auto;
+}
+
+.grip-shell-devtools {
+  width: 100%;
+  min-height: 100%;
+  overflow-y: auto;
 }
 
 .grip-popup-header {
@@ -221,20 +236,6 @@ body {
   align-items: center;
   gap: 0.125rem;
   flex-shrink: 0;
-}
-
-.grip-shell-floating {
-  border-radius: 1rem;
-  border: 1px solid var(--grip-border);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
-  max-height: min(36rem, calc(100vh - 5rem));
-  overflow-y: auto;
-}
-
-.grip-shell-devtools {
-  width: 100%;
-  min-height: 100%;
-  overflow-y: auto;
 }
 
 .grip-btn-minimize {

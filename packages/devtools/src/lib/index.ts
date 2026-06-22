@@ -23,6 +23,7 @@ export {
   serializeEditor,
   serializeSelectionForClipboard,
   setEditorFromComment,
+  toInlineChipRef,
   updateChipActiveStates,
   type InlineChipRef,
 } from "./inlineComposerDom";

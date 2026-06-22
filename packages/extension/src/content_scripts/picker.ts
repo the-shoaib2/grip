@@ -23,6 +23,7 @@ import {
   selectChipElement,
   serializeEditor,
   setEditorFromComment,
+  toInlineChipRef,
   updateChipActiveStates,
 } from "@/lib";
 
@@ -656,22 +657,7 @@ function addToPending(el: Element, options?: { keepTyping?: boolean }): void {
     pendingElements.push(next);
     activePendingIndex = pendingElements.length - 1;
     if (editor) {
-      insertChipAtSelection(
-        editor,
-        {
-          id: next.chipId,
-          tag: next.tag,
-          role: next.role,
-          css: next.css,
-          text: next.text,
-          name: next.name,
-          xpath: next.xpath,
-          rect: next.rect,
-          shadowDOM: next.shadowDOM,
-          iframe: next.iframe,
-        },
-        true,
-      );
+      insertChipAtSelection(editor, toInlineChipRef(next), true);
       inserted = true;
       composerPrompt = serializeEditor(editor);
     }

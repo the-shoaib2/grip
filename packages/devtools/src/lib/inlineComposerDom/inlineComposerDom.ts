@@ -12,8 +12,18 @@ export const INLINE_EDITOR_CLASS = "grip-inline-editor";
 
 const ZWSP = "\u200B";
 
-export interface InlineChipRef extends ChipClipboardMeta {
+/** Inline chip in the picker comment composer (includes stable id + clipboard metadata). */
+export interface InlineChipRef {
   id: string;
+  tag: string;
+  role?: string;
+  css?: string;
+  text?: string;
+  name?: string;
+  xpath?: string;
+  rect?: { top: number; left: number; width: number; height: number };
+  shadowDOM?: boolean;
+  iframe?: string;
 }
 
 function applyChipMeta(chip: HTMLSpanElement, meta: InlineChipRef): void {
@@ -521,4 +531,31 @@ export function handleEditorKeydown(
 
 export function createDefaultChip(tag: string): InlineChipRef {
   return { id: newChipId(), tag: tag.toLowerCase() };
+}
+
+/** Map a pending picker element to inline chip metadata. */
+export function toInlineChipRef(pick: {
+  chipId: string;
+  tag: string;
+  role: string;
+  text: string;
+  name: string;
+  css: string;
+  xpath: string;
+  rect: { top: number; left: number; width: number; height: number };
+  shadowDOM: boolean;
+  iframe: string;
+}): InlineChipRef {
+  return {
+    id: pick.chipId,
+    tag: pick.tag,
+    role: pick.role,
+    css: pick.css,
+    text: pick.text,
+    name: pick.name,
+    xpath: pick.xpath,
+    rect: pick.rect,
+    shadowDOM: pick.shadowDOM,
+    iframe: pick.iframe,
+  };
 }

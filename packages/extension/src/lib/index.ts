@@ -37,6 +37,7 @@ export {
   serializeEditor,
   serializeSelectionForClipboard,
   setEditorFromComment,
+  toInlineChipRef,
   updateChipActiveStates,
   type InlineChipRef,
 } from "@grip/devtools-lib";

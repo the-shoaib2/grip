@@ -12,11 +12,12 @@ import {
 import { usePickHistory } from "../../hooks/usePickHistory";
 import { usePickerActive } from "../../hooks/usePickerActive";
 import { useStartPicker } from "../../hooks/useStartPicker";
+import { GripRootLayout, type GripShellVariant } from "../../layout";
 import { useGripStore } from "../../store/gripStore";
 import { useGripRuntime } from "../../runtime/context";
 
 export interface GripMainViewProps {
-  className?: string;
+  variant?: GripShellVariant;
   closeOnPickSuccess?: boolean;
   onMinimize?: () => void;
   onOpenPanel?: () => void;
@@ -24,7 +25,7 @@ export interface GripMainViewProps {
 }
 
 export function GripMainView({
-  className = "grip-popup",
+  variant = "popup",
   closeOnPickSuccess = false,
   onMinimize,
   onOpenPanel,
@@ -87,7 +88,7 @@ export function GripMainView({
   };
 
   return (
-    <div className={className}>
+    <GripRootLayout variant={variant}>
       <header className="grip-popup-header">
         <div className="grip-popup-brand">
           <GripIcon size={22} />
@@ -127,6 +128,6 @@ export function GripMainView({
           onSelect={selectPick}
         />
       </div>
-    </div>
+    </GripRootLayout>
   );
 }

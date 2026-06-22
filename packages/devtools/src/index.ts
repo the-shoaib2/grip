@@ -12,4 +12,6 @@ export * from "./lib";
 
 export { GripPanelView } from "./views/GripPanelView";
 export { GripPopupView } from "./views/GripPopupView";
+export { GripView } from "./views/GripView";
 export { LogPanel } from "./views/LogPanel";
+export { GripRootLayout, gripShellClassName, type GripShellVariant } from "./layout";

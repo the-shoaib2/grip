@@ -1,4 +1,4 @@
-import { GripMainView } from "../GripMainView";
+import { GripView } from "../GripView";
 
 export interface GripPanelViewProps {
   layout?: "panel" | "floating";
@@ -6,14 +6,5 @@ export interface GripPanelViewProps {
 }
 
 export function GripPanelView({ layout = "panel", onMinimize }: GripPanelViewProps) {
-  const shellClass =
-    layout === "floating" ? "grip-popup grip-shell-floating" : "grip-popup grip-shell-devtools";
-
-  return (
-    <GripMainView
-      className={shellClass}
-      syncPanelReady
-      onMinimize={layout === "floating" ? onMinimize : undefined}
-    />
-  );
+  return <GripView variant={layout} onMinimize={onMinimize} />;
 }
