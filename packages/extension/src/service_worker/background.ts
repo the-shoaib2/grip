@@ -162,6 +162,24 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
       })();
       return true;
 
+    case "STOP_PICKER":
+      void (async () => {
+        let tab: chrome.tabs.Tab | undefined;
+        try {
+          tab = await resolveTargetTab(sender, msg);
+          if (!tab?.id) {
+            sendResponse({ ok: false, error: "No active tab" });
+            return;
+          }
+          await ensureTabReady(tab.id);
+          await sendToTab(tab.id, { type: "STOP_PICKER" });
+          sendResponse({ ok: true });
+        } catch (err) {
+          respondError(sendResponse, err, tab?.id);
+        }
+      })();
+      return true;
+
     case "PICKER_ELEMENT_SELECTED":
       void (async () => {
         try {

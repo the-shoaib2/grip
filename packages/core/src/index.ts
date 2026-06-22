@@ -27,6 +27,7 @@ export {
   formatMcpPrompt,
   GRIP_MCP_DEFAULT_PORT,
 } from "./mcp-prompt.js";
+export { GRIP_MCP_DOCS_URL } from "./mcp-docs.js";
 export {
   chipDisplayLabel,
   formatChipForClipboard,

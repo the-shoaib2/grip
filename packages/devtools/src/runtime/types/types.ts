@@ -17,6 +17,7 @@ export interface GripRuntime {
   getPageUrl(): Promise<string>;
   getTargetTabId?(): number | undefined;
   checkMcp(): Promise<{ ok: boolean }>;
+  openMcpDocs(): void;
   sessionGet(keys: string | string[]): Promise<Record<string, unknown>>;
   sessionSet(items: Record<string, unknown>): Promise<void>;
   getIconUrl(path?: string): string;

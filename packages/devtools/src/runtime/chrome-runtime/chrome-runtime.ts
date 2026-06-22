@@ -1,4 +1,4 @@
-import { checkChromeDebugPort } from "@grip/core";
+import { checkChromeDebugPort, GRIP_MCP_DOCS_URL } from "@grip/core";
 import type { RuntimeMessage } from "../types";
 import type { GripRuntime, StorageChangeHandler } from "../types";
 
@@ -36,6 +36,10 @@ export const chromeRuntime: GripRuntime = {
 
   checkMcp() {
     return checkChromeDebugPort();
+  },
+
+  openMcpDocs() {
+    void chrome.tabs.create({ url: GRIP_MCP_DOCS_URL });
   },
 
   sessionGet(keys: string | string[]) {

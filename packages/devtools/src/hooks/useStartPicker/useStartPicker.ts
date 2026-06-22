@@ -32,9 +32,27 @@ export function useStartPicker(runtime: GripRuntime) {
     [runtime],
   );
 
+  const stopPicker = useCallback(() => {
+    setPickError(null);
+    return runtime
+      .sendMessage<{ ok?: boolean; error?: string }>({ type: "STOP_PICKER" })
+      .then((res) => {
+        if (res?.ok === false) {
+          setPickError(gripUserError(res.error));
+          return false;
+        }
+        return true;
+      })
+      .catch((err: Error) => {
+        setPickError(gripUserError(err.message));
+        return false;
+      });
+  }, [runtime]);
+
   return {
     pickError,
     startPicker,
+    stopPicker,
     clearPickError: () => setPickError(null),
   };
 }

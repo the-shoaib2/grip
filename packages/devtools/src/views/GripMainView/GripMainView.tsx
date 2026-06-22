@@ -2,6 +2,7 @@ import { useEffect, useState } from "preact/hooks";
 import type { LogMessagePayload, PickerElementPayload } from "@grip/core";
 import {
   GripIcon,
+  GripMcpChip,
   GripSessionToolbar,
   MinusIcon,
   PickErrorBanner,
@@ -9,6 +10,7 @@ import {
   Tooltip,
 } from "../../components";
 import { usePickHistory } from "../../hooks/usePickHistory";
+import { usePickerActive } from "../../hooks/usePickerActive";
 import { useStartPicker } from "../../hooks/useStartPicker";
 import { useGripStore } from "../../store/gripStore";
 import { useGripRuntime } from "../../runtime/context";
@@ -34,7 +36,8 @@ export function GripMainView({
   const clearLogs = useGripStore((s) => s.clearLogs);
   const [mcpOk, setMcpOk] = useState(false);
   const { history, activePick, newSession, selectPick } = usePickHistory(runtime);
-  const { pickError, startPicker } = useStartPicker(runtime);
+  const isPickerActive = usePickerActive(runtime);
+  const { pickError, startPicker, stopPicker } = useStartPicker(runtime);
 
   useEffect(() => {
     void runtime.checkMcp().then((r) => setMcpOk(r.ok));
@@ -76,6 +79,10 @@ export function GripMainView({
   }, [runtime, setLastPick, addLog, clearLogs, syncPanelReady]);
 
   const handlePick = () => {
+    if (isPickerActive) {
+      void stopPicker();
+      return;
+    }
     void startPicker(closeOnPickSuccess ? { closeOnSuccess: true } : undefined);
   };
 
@@ -87,11 +94,7 @@ export function GripMainView({
           <span className="grip-popup-title">Grip</span>
         </div>
         <div className="grip-popup-header-actions">
-          <Tooltip text={mcpOk ? "MCP connected on :9222" : "Chrome debug port not found"}>
-            <span className={`grip-chip ${mcpOk ? "grip-chip-ok" : "grip-chip-warn"}`}>
-              {mcpOk ? "MCP" : "—"}
-            </span>
-          </Tooltip>
+          <GripMcpChip connected={mcpOk} onConfigure={() => runtime.openMcpDocs()} />
           {onMinimize ? (
             <Tooltip text="Minimize panel">
               <button
@@ -109,6 +112,7 @@ export function GripMainView({
 
       <GripSessionToolbar
         variant="popup"
+        pickActive={isPickerActive}
         onPick={handlePick}
         onOpenPanel={onOpenPanel}
         onNewSession={() => void newSession()}

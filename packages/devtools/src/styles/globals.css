@@ -444,18 +444,61 @@ body {
   line-height: 1;
 }
 
+.grip-btn-toolbar-icon {
+  width: 2rem;
+  padding-inline: 0.5rem;
+}
+
+.grip-btn-toolbar-active {
+  background: var(--grip-accent);
+  color: var(--grip-on-accent);
+}
+
+.grip-btn-toolbar-active:hover {
+  background: var(--grip-accent-hover);
+  color: var(--grip-on-accent);
+}
+
 .grip-chip {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   border-radius: 9999px;
   padding: 0.125rem 0.625rem;
   font-size: 10px;
   font-weight: 500;
+  line-height: 1;
+}
+
+.grip-mcp-chip {
+  height: 1.125rem;
+  min-height: 1.125rem;
+  padding: 0 0.375rem;
+  font-size: 9px;
+  letter-spacing: 0.02em;
+}
+
+button.grip-mcp-chip {
+  font: inherit;
+  line-height: 1;
 }
 
 .grip-chip-ok {
   background: var(--grip-success-soft);
   color: var(--grip-success);
+}
+
+.grip-chip-error {
+  background: var(--grip-danger-soft);
+  color: var(--grip-danger);
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.grip-chip-error:hover {
+  background: color-mix(in srgb, var(--grip-danger) 18%, transparent);
+  color: var(--grip-danger);
 }
 
 .grip-chip-warn {

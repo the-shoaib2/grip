@@ -3,6 +3,7 @@ export { CopyButton } from "./CopyButton";
 export { ElementTagBadge } from "./ElementTagBadge";
 export { FieldRow } from "./FieldRow";
 export { GripIcon } from "./GripIcon";
+export { GripMcpChip } from "./GripMcpChip";
 export { GripSessionToolbar } from "./GripSessionToolbar";
 export { PickErrorBanner } from "./PickErrorBanner";
 export { HistoryIcon, MinusIcon, MousePointerClickIcon, PlusIcon } from "./icons";

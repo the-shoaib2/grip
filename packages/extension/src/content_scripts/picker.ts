@@ -85,6 +85,7 @@ function cleanup(): void {
   composerPrompt = "";
   panelManuallyPlaced = false;
   panelDrag = null;
+  void chrome.storage.session.set({ pickerActive: false });
 }
 
 function stackAt(x: number, y: number): Element[] {
@@ -945,6 +946,7 @@ function startPicker(payload?: PickerStartPayload): void {
   document.addEventListener("mousemove", onMove, true);
   document.addEventListener("click", onClick, true);
   document.addEventListener("keydown", onKey, true);
+  void chrome.storage.session.set({ pickerActive: true });
 }
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {

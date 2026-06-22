@@ -1,8 +1,11 @@
-import { newSessionId, toStoredPick, type StoredPick } from "@grip/core";
+import { newSessionId, toStoredPick, type StoredPick, GRIP_MCP_DOCS_URL } from "@grip/core";
 import type { GripRuntime, RuntimeMessage, StorageChangeHandler } from "@grip/devtools";
 
 const SESSION_KEY = "pickSessionId";
 const HISTORY_KEY = "pickHistory";
+const PICKER_ACTIVE_KEY = "pickerActive";
+
+let pickerActive = false;
 
 const samplePick = toStoredPick(
   {
@@ -63,6 +66,16 @@ export const playgroundRuntime: GripRuntime = {
         return Promise.resolve({ ok: true, history: [] } as T);
       }
       case "START_PICKER":
+        pickerActive = true;
+        emitStorage("session", {
+          pickerActive: { newValue: true, oldValue: false },
+        });
+        return Promise.resolve({ ok: true } as T);
+      case "STOP_PICKER":
+        pickerActive = false;
+        emitStorage("session", {
+          pickerActive: { newValue: false, oldValue: true },
+        });
         return Promise.resolve({ ok: true } as T);
       case "TOGGLE_GRIP_TRAY":
       case "SHOW_TRAY":
@@ -109,12 +122,17 @@ export const playgroundRuntime: GripRuntime = {
     return Promise.resolve({ ok: false });
   },
 
+  openMcpDocs() {
+    window.open(GRIP_MCP_DOCS_URL, "_blank", "noopener,noreferrer");
+  },
+
   sessionGet(keys: string | string[]) {
     const keyList = Array.isArray(keys) ? keys : [keys];
     const out: Record<string, unknown> = {};
     if (keyList.includes(SESSION_KEY)) out[SESSION_KEY] = sessionId;
     if (keyList.includes("lastPick")) out.lastPick = lastPick;
     if (keyList.includes(HISTORY_KEY)) out[HISTORY_KEY] = pickHistory;
+    if (keyList.includes(PICKER_ACTIVE_KEY)) out[PICKER_ACTIVE_KEY] = pickerActive;
     return Promise.resolve(out);
   },
 
