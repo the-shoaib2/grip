@@ -134,6 +134,7 @@ body {
 }
 
 .grip-shell-floating {
+  min-height: 19rem;
   border-radius: 1rem;
   border: 1px solid var(--grip-border);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
@@ -452,7 +453,10 @@ body {
 
 .grip-btn-toolbar-icon {
   width: 1.75rem;
-  padding-inline: 0.375rem;
+  height: 1.75rem;
+  min-height: 1.75rem;
+  padding: 0;
+  flex-shrink: 0;
 }
 
 .grip-btn-toolbar-active {
@@ -463,6 +467,16 @@ body {
 .grip-btn-toolbar-active:hover {
   background: var(--grip-accent-hover);
   color: var(--grip-on-accent);
+}
+
+.grip-btn-toolbar-muted-active {
+  background: var(--grip-surface);
+  color: var(--grip-fg);
+}
+
+.grip-btn-toolbar-muted-active:hover {
+  background: var(--grip-surface-hover);
+  color: var(--grip-fg);
 }
 
 .grip-chip {

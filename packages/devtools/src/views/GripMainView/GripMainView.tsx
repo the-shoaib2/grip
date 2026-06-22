@@ -20,7 +20,6 @@ export interface GripMainViewProps {
   variant?: GripShellVariant;
   closeOnPickSuccess?: boolean;
   onMinimize?: () => void;
-  onOpenPanel?: () => void;
   syncPanelReady?: boolean;
 }
 
@@ -28,7 +27,6 @@ export function GripMainView({
   variant = "popup",
   closeOnPickSuccess = false,
   onMinimize,
-  onOpenPanel,
   syncPanelReady = false,
 }: GripMainViewProps) {
   const runtime = useGripRuntime();
@@ -36,6 +34,7 @@ export function GripMainView({
   const addLog = useGripStore((s) => s.addLog);
   const clearLogs = useGripStore((s) => s.clearLogs);
   const [mcpOk, setMcpOk] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(true);
   const { history, activePick, newSession, selectPick } = usePickHistory(runtime);
   const isPickerActive = usePickerActive(runtime);
   const { pickError, startPicker, stopPicker } = useStartPicker(runtime);
@@ -114,20 +113,23 @@ export function GripMainView({
       <GripSessionToolbar
         variant="popup"
         pickActive={isPickerActive}
+        historyOpen={historyOpen}
         onPick={handlePick}
-        onOpenPanel={onOpenPanel}
+        onToggleHistory={() => setHistoryOpen((open) => !open)}
         onNewSession={() => void newSession()}
       />
 
       {pickError ? <PickErrorBanner message={pickError} onRetry={handlePick} /> : null}
 
-      <div className="grip-popup-history">
-        <PickHistoryList
-          history={history}
-          activeId={activePick?.id}
-          onSelect={selectPick}
-        />
-      </div>
+      {historyOpen ? (
+        <div className="grip-popup-history">
+          <PickHistoryList
+            history={history}
+            activeId={activePick?.id}
+            onSelect={selectPick}
+          />
+        </div>
+      ) : null}
     </GripRootLayout>
   );
 }

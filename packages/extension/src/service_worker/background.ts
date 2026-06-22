@@ -24,27 +24,46 @@ import {
 
 const MAX_LOGS = 500;
 const HISTORY_KEY = "pickHistory";
-const SESSION_KEY = "pickSessionId";
+const TAB_SESSIONS_KEY = "tabSessionIds";
+const LEGACY_SESSION_KEY = "pickSessionId";
 const logs: LogMessagePayload[] = [];
 const bootstrapErrors = new Map<number, string>();
 
-async function getOrCreateSessionId(): Promise<string> {
-  const data = await chrome.storage.session.get(SESSION_KEY);
-  const existing = data[SESSION_KEY] as string | undefined;
+async function getTabSessionMap(): Promise<Record<string, string>> {
+  const data = await chrome.storage.session.get(TAB_SESSIONS_KEY);
+  return (data[TAB_SESSIONS_KEY] as Record<string, string>) ?? {};
+}
+
+async function setTabSessionMap(map: Record<string, string>): Promise<void> {
+  await chrome.storage.session.set({ [TAB_SESSIONS_KEY]: map });
+}
+
+async function getOrCreateSessionIdForTab(tabId: number): Promise<string> {
+  const map = await getTabSessionMap();
+  const key = String(tabId);
+  const existing = map[key];
   if (existing) return existing;
-  const id = newSessionId();
-  await chrome.storage.session.set({ [SESSION_KEY]: id });
+
+  const legacyData = await chrome.storage.session.get(LEGACY_SESSION_KEY);
+  const legacyId = legacyData[LEGACY_SESSION_KEY] as string | undefined;
+  const id = legacyId ?? newSessionId();
+  map[key] = id;
+  await setTabSessionMap(map);
+  if (legacyId) {
+    await chrome.storage.session.remove(LEGACY_SESSION_KEY);
+  }
   return id;
 }
 
-async function sessionPicksForUrl(url: string): Promise<StoredPick[]> {
-  const [historyData, sessionData] = await Promise.all([
+async function sessionPicksForTab(
+  tabId: number,
+  url: string,
+): Promise<StoredPick[]> {
+  const [historyData, sessionId] = await Promise.all([
     chrome.storage.local.get(HISTORY_KEY),
-    chrome.storage.session.get(SESSION_KEY),
+    getOrCreateSessionIdForTab(tabId),
   ]);
   const history = (historyData[HISTORY_KEY] as StoredPick[]) ?? [];
-  const sessionId = sessionData[SESSION_KEY] as string | undefined;
-  if (!sessionId) return [];
   return picksForSession(history, url, sessionId);
 }
 
@@ -76,8 +95,8 @@ async function startPickerOnTab(tabId: number, url?: string): Promise<void> {
     throw new Error("Open an http(s) page first");
   }
 
-  const sessionId = await getOrCreateSessionId();
-  const sessionPicks = await sessionPicksForUrl(url ?? "");
+  const sessionId = await getOrCreateSessionIdForTab(tabId);
+  const sessionPicks = await sessionPicksForTab(tabId, url ?? "");
 
   await ensureTabReady(tabId);
   await waitForBootstrap(tabId, "picker");
@@ -96,7 +115,15 @@ async function savePick(
   url?: string,
   title?: string,
 ): Promise<StoredPick> {
-  const sessionId = await getOrCreateSessionId();
+  let resolvedTabId = tabId;
+  if (resolvedTabId == null) {
+    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    resolvedTabId = tabs[0]?.id;
+  }
+  if (resolvedTabId == null) {
+    throw new Error("No target tab for pick");
+  }
+  const sessionId = await getOrCreateSessionIdForTab(resolvedTabId);
   const stored = toStoredPick(
     pick,
     url ?? "",
@@ -111,9 +138,9 @@ async function savePick(
   await chrome.storage.local.set({ [HISTORY_KEY]: history });
   await chrome.storage.session.set({ lastPick: stored });
 
-  if (tabId) {
+  if (resolvedTabId) {
     try {
-      await sendToTabWhenReady(tabId, { type: "SHOW_TRAY" });
+      await sendToTabWhenReady(resolvedTabId, { type: "SHOW_TRAY" });
     } catch {
       /* tab may not have floating mount yet */
     }
@@ -226,12 +253,18 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
       void (async () => {
         try {
           const tab = await resolveTargetTab(sender, msg);
-          const url = tab?.url ?? "";
-          const history = await sessionPicksForUrl(url);
+          if (!tab?.id) {
+            sendResponse({ history: [], all: [] });
+            return;
+          }
+          const url = tab.url ?? "";
+          const history = await sessionPicksForTab(tab.id, url);
           const data = await chrome.storage.local.get(HISTORY_KEY);
           sendResponse({
             history,
             all: (data[HISTORY_KEY] as StoredPick[]) ?? [],
+            sessionId: await getOrCreateSessionIdForTab(tab.id),
+            tabId: tab.id,
           });
         } catch {
           try {
@@ -273,22 +306,25 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
       void (async () => {
         try {
           const tab = await resolveTargetTab(sender, msg);
-          const url = tab?.url ?? "";
-          const sessionData = await chrome.storage.session.get(SESSION_KEY);
-          const currentSessionId = sessionData[SESSION_KEY] as string | undefined;
+          if (!tab?.id) {
+            sendResponse({ ok: false, history: [] });
+            return;
+          }
+          const url = tab.url ?? "";
+          const currentSessionId = await getOrCreateSessionIdForTab(tab.id);
           const data = await chrome.storage.local.get(HISTORY_KEY);
-          const history = currentSessionId
-            ? clearPicksForSession(
-                (data[HISTORY_KEY] as StoredPick[]) ?? [],
-                url,
-                currentSessionId,
-              )
-            : ((data[HISTORY_KEY] as StoredPick[]) ?? []);
+          const history = clearPicksForSession(
+            (data[HISTORY_KEY] as StoredPick[]) ?? [],
+            url,
+            currentSessionId,
+          );
           const sessionId = newSessionId();
+          const map = await getTabSessionMap();
+          map[String(tab.id)] = sessionId;
           await chrome.storage.local.set({ [HISTORY_KEY]: history });
-          await chrome.storage.session.set({ [SESSION_KEY]: sessionId });
+          await setTabSessionMap(map);
           await chrome.storage.session.remove("lastPick");
-          sendResponse({ ok: true, history: [] });
+          sendResponse({ ok: true, history: [], sessionId, tabId: tab.id });
         } catch {
           try {
             sendResponse({ ok: false, history: [] });
@@ -400,4 +436,13 @@ chrome.tabs.onActivated.addListener(({ tabId }) => {
   void chrome.tabs.get(tabId).then((tab) => warmTab(tabId, tab.url)).catch(() => {
     /* tab may have closed */
   });
+});
+
+chrome.tabs.onRemoved.addListener((tabId) => {
+  void (async () => {
+    const map = await getTabSessionMap();
+    if (!(String(tabId) in map)) return;
+    delete map[String(tabId)];
+    await setTabSessionMap(map);
+  })();
 });

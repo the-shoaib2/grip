@@ -1,9 +1,10 @@
 import { newSessionId, toStoredPick, type StoredPick, GRIP_MCP_DOCS_URL } from "@grip/core";
 import type { GripRuntime, RuntimeMessage, StorageChangeHandler } from "@grip/devtools";
 
-const SESSION_KEY = "pickSessionId";
+const TAB_SESSIONS_KEY = "tabSessionIds";
 const HISTORY_KEY = "pickHistory";
 const PICKER_ACTIVE_KEY = "pickerActive";
+const MOCK_TAB_ID = 1;
 
 let pickerActive = false;
 
@@ -26,6 +27,7 @@ const samplePick = toStoredPick(
 );
 
 let sessionId = "playground-session";
+let tabSessionIds: Record<string, string> = { [String(MOCK_TAB_ID)]: sessionId };
 let pickHistory: StoredPick[] = [samplePick];
 let lastPick: StoredPick | undefined = samplePick;
 const storageListeners = new Set<StorageChangeHandler>();
@@ -40,7 +42,7 @@ function emitStorage(
 }
 
 function withTabId(msg: RuntimeMessage): RuntimeMessage {
-  return msg;
+  return msg.tabId == null ? { ...msg, tabId: MOCK_TAB_ID } : msg;
 }
 
 export const playgroundRuntime: GripRuntime = {
@@ -51,19 +53,22 @@ export const playgroundRuntime: GripRuntime = {
         return Promise.resolve({
           history: pickHistory.filter((p) => p.sessionId === sessionId),
           all: pickHistory,
+          sessionId,
+          tabId: MOCK_TAB_ID,
         } as T);
       case "NEW_SESSION": {
         pickHistory = pickHistory.filter((p) => p.sessionId !== sessionId);
         sessionId = newSessionId();
+        tabSessionIds = { ...tabSessionIds, [String(MOCK_TAB_ID)]: sessionId };
         lastPick = undefined;
         emitStorage("local", {
           pickHistory: { newValue: [...pickHistory], oldValue: undefined },
         });
         emitStorage("session", {
-          pickSessionId: { newValue: sessionId, oldValue: undefined },
+          tabSessionIds: { newValue: { ...tabSessionIds }, oldValue: undefined },
           lastPick: { newValue: undefined, oldValue: lastPick },
         });
-        return Promise.resolve({ ok: true, history: [] } as T);
+        return Promise.resolve({ ok: true, history: [], sessionId, tabId: MOCK_TAB_ID } as T);
       }
       case "START_PICKER":
         pickerActive = true;
@@ -118,6 +123,10 @@ export const playgroundRuntime: GripRuntime = {
     return window.location.origin + "/";
   },
 
+  getTargetTabId() {
+    return MOCK_TAB_ID;
+  },
+
   checkMcp() {
     return Promise.resolve({ ok: false });
   },
@@ -129,7 +138,7 @@ export const playgroundRuntime: GripRuntime = {
   sessionGet(keys: string | string[]) {
     const keyList = Array.isArray(keys) ? keys : [keys];
     const out: Record<string, unknown> = {};
-    if (keyList.includes(SESSION_KEY)) out[SESSION_KEY] = sessionId;
+    if (keyList.includes(TAB_SESSIONS_KEY)) out[TAB_SESSIONS_KEY] = tabSessionIds;
     if (keyList.includes("lastPick")) out.lastPick = lastPick;
     if (keyList.includes(HISTORY_KEY)) out[HISTORY_KEY] = pickHistory;
     if (keyList.includes(PICKER_ACTIVE_KEY)) out[PICKER_ACTIVE_KEY] = pickerActive;

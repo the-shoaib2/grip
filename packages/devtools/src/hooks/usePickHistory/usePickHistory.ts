@@ -1,9 +1,20 @@
-import { useCallback, useEffect, useState } from "preact/hooks";
+import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { picksForSession, type StoredPick } from "@grip/core";
 import type { GripRuntime } from "../../runtime/types";
 
 interface HistoryResponse {
   history?: StoredPick[];
+  sessionId?: string;
+  tabId?: number;
+}
+
+async function sessionIdForRuntime(runtime: GripRuntime): Promise<string | undefined> {
+  const tabId = runtime.getTargetTabId?.();
+  const data = await runtime.sessionGet("tabSessionIds");
+  const map = (data.tabSessionIds as Record<string, string> | undefined) ?? {};
+  if (tabId != null) return map[String(tabId)];
+  const keys = Object.keys(map);
+  return keys.length === 1 ? map[keys[0]] : undefined;
 }
 
 export interface UsePickHistoryResult {
@@ -18,6 +29,7 @@ export interface UsePickHistoryResult {
 export function usePickHistory(runtime: GripRuntime): UsePickHistoryResult {
   const [history, setHistory] = useState<StoredPick[]>([]);
   const [activePick, setActivePick] = useState<StoredPick | null>(null);
+  const inspectedTabRef = useRef<number | undefined>(runtime.getTargetTabId?.());
 
   const refresh = useCallback(async () => {
     try {
@@ -48,29 +60,51 @@ export function usePickHistory(runtime: GripRuntime): UsePickHistoryResult {
   }, [refresh]);
 
   useEffect(() => {
+    if (!runtime.getTargetTabId) return;
+
+    const poll = window.setInterval(() => {
+      const current = runtime.getTargetTabId?.();
+      if (current == null || current === inspectedTabRef.current) return;
+      inspectedTabRef.current = current;
+      void refresh();
+    }, 400);
+
+    return () => window.clearInterval(poll);
+  }, [runtime, refresh]);
+
+  useEffect(() => {
     const unsub = runtime.onStorageChanged((changes, area) => {
       if (area === "session" && changes.lastPick?.newValue) {
         const pick = changes.lastPick.newValue as StoredPick;
         setActivePick(pick);
       }
       if (area === "local" && changes.pickHistory?.newValue) {
-        void runtime.sessionGet("pickSessionId").then((sessionData) => {
-          void runtime.getPageUrl().then((url) => {
-            const sessionId = sessionData.pickSessionId as string | undefined;
-            const all = changes.pickHistory!.newValue as StoredPick[];
-            const next = sessionId ? picksForSession(all, url, sessionId) : [];
-            setHistory(next);
-            setActivePick((prev) => {
-              if (prev && next.some((p) => p.id === prev.id)) {
-                return next.find((p) => p.id === prev.id) ?? prev;
-              }
-              return next[next.length - 1] ?? null;
-            });
+        void (async () => {
+          const sessionId = await sessionIdForRuntime(runtime);
+          if (!sessionId) {
+            void refresh();
+            return;
+          }
+          const url = await runtime.getPageUrl();
+          const all = changes.pickHistory!.newValue as StoredPick[];
+          const next = picksForSession(all, url, sessionId);
+          setHistory(next);
+          setActivePick((prev) => {
+            if (prev && next.some((p) => p.id === prev.id)) {
+              return next.find((p) => p.id === prev.id) ?? prev;
+            }
+            return next[next.length - 1] ?? null;
           });
-        });
+        })();
       }
-      if (area === "session" && changes.pickSessionId?.newValue) {
-        void refresh();
+      if (area === "session" && changes.tabSessionIds?.newValue) {
+        const tabId = runtime.getTargetTabId?.();
+        if (tabId == null) {
+          void refresh();
+          return;
+        }
+        const map = changes.tabSessionIds.newValue as Record<string, string>;
+        if (map[String(tabId)]) void refresh();
       }
     });
     return unsub;

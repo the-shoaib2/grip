@@ -4,16 +4,18 @@ import { Tooltip } from "../Tooltip";
 export interface GripSessionToolbarProps {
   variant: "popup" | "compact";
   pickActive?: boolean;
+  historyOpen?: boolean;
   onPick: () => void;
-  onOpenPanel?: () => void;
+  onToggleHistory: () => void;
   onNewSession: () => void;
 }
 
 export function GripSessionToolbar({
   variant,
   pickActive = false,
+  historyOpen = true,
   onPick,
-  onOpenPanel,
+  onToggleHistory,
   onNewSession,
 }: GripSessionToolbarProps) {
   if (variant === "compact") {
@@ -55,18 +57,17 @@ export function GripSessionToolbar({
             <PlusIcon size={16} />
           </button>
         </Tooltip>
-        {onOpenPanel && (
-          <Tooltip text="Open in-page Grip panel">
-            <button
-              type="button"
-              className="grip-btn-ghost grip-btn-toolbar grip-btn-toolbar-icon"
-              aria-label="Open in-page Grip panel"
-              onClick={onOpenPanel}
-            >
-              <HistoryIcon size={16} />
-            </button>
-          </Tooltip>
-        )}
+        <Tooltip text={historyOpen ? "Hide session picks" : "Show session picks"}>
+          <button
+            type="button"
+            className={`grip-btn-ghost grip-btn-toolbar grip-btn-toolbar-icon${historyOpen ? " grip-btn-toolbar-muted-active" : ""}`}
+            aria-label={historyOpen ? "Hide session picks" : "Show session picks"}
+            aria-pressed={historyOpen ? "true" : "false"}
+            onClick={onToggleHistory}
+          >
+            <HistoryIcon size={16} />
+          </button>
+        </Tooltip>
       </div>
     </div>
   );
