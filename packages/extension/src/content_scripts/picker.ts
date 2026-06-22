@@ -8,6 +8,8 @@ import {
 } from "@grip/core";
 import type { PickerStartPayload } from "@grip/core";
 import {
+  bindChipTooltipRoot,
+  chipMetaFromElement,
   findChipElement,
   focusEditor,
   handleEditorKeydown,
@@ -40,6 +42,8 @@ interface PendingPick {
   css: string;
   tag: string;
   role: string;
+  text: string;
+  name: string;
 }
 
 let phase: PickerPhase = "idle";
@@ -230,6 +234,52 @@ function ensureStyle(): void {
     .grip-inline-chip-active{
       background:rgba(37,99,235,0.22);
       color:#f8fafc;
+    }
+    .grip-chip-tooltip{
+      position:fixed;
+      z-index:2147483647;
+      pointer-events:none;
+      max-width:min(240px,calc(100vw - 16px));
+      padding:8px 10px;
+      border-radius:10px;
+      background:#18181b;
+      border:1px solid #3f3f46;
+      box-shadow:0 8px 24px rgba(0,0,0,.38);
+      font:11px/1.35 system-ui,sans-serif;
+      color:#fafafa;
+    }
+    .grip-chip-tooltip-head{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      margin-bottom:2px;
+    }
+    .grip-chip-tooltip-tag{
+      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+      font-size:10px;
+      color:#93c5fd;
+    }
+    .grip-chip-tooltip-role{
+      font-size:9px;
+      color:#a1a1aa;
+      padding:1px 6px;
+      border-radius:9999px;
+      background:#27272a;
+    }
+    .grip-chip-tooltip-text{
+      margin:2px 0 0;
+      color:#d4d4d8;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .grip-chip-tooltip-css{
+      margin:4px 0 0;
+      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+      font-size:9px;
+      color:#71717a;
+      overflow-wrap:anywhere;
+      word-break:break-all;
     }
     .grip-picker-actions{
       display:flex;
@@ -442,6 +492,8 @@ function toPending(el: Element): PendingPick {
     css: desc.css,
     tag: desc.tagName.toLowerCase(),
     role: desc.role?.toLowerCase() ?? "",
+    text: desc.innerText,
+    name: desc.name,
   };
 }
 
@@ -580,7 +632,18 @@ function addToPending(el: Element, options?: { keepTyping?: boolean }): void {
     pendingElements.push(next);
     activePendingIndex = pendingElements.length - 1;
     if (editor) {
-      insertChipAtSelection(editor, next.chipId, next.tag, true);
+      insertChipAtSelection(
+        editor,
+        {
+          id: next.chipId,
+          tag: next.tag,
+          role: next.role,
+          css: next.css,
+          text: next.text,
+          name: next.name,
+        },
+        true,
+      );
       inserted = true;
       composerPrompt = serializeEditor(editor);
     }
@@ -682,6 +745,20 @@ function bindComposerEvents(panel: HTMLElement): void {
       finishPick(serializeEditor(editor), true);
     }
     if (e.key === "Escape") resumeHover();
+  });
+
+  bindChipTooltipRoot(editor, (chip) => {
+    const meta = chipMetaFromElement(chip);
+    if (meta) return meta;
+    const pick = pendingElements.find((item) => item.chipId === chip.dataset.gripChip);
+    if (!pick) return null;
+    return {
+      tag: pick.tag,
+      role: pick.role,
+      css: pick.css,
+      text: pick.text,
+      name: pick.name,
+    };
   });
 }
 

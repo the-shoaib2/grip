@@ -13,20 +13,44 @@ const ZWSP = "\u200B";
 export interface InlineChipRef {
   id: string;
   tag: string;
+  role?: string;
+  css?: string;
+  text?: string;
+  name?: string;
+}
+
+function applyChipMeta(chip: HTMLSpanElement, meta: InlineChipRef): void {
+  chip.dataset.gripChip = meta.id;
+  chip.dataset.tag = meta.tag.toLowerCase();
+  if (meta.role) chip.dataset.role = meta.role;
+  if (meta.css) chip.dataset.css = meta.css;
+  if (meta.text) chip.dataset.text = meta.text;
+  if (meta.name) chip.dataset.name = meta.name;
+}
+
+export function chipMetaFromElement(chip: HTMLElement): InlineChipRef | null {
+  const id = chip.dataset.gripChip;
+  const tag = chip.dataset.tag;
+  if (!id || !tag) return null;
+  return {
+    id,
+    tag,
+    role: chip.dataset.role,
+    css: chip.dataset.css,
+    text: chip.dataset.text,
+    name: chip.dataset.name,
+  };
 }
 
 export function createChipElement(
-  chipId: string,
-  tag: string,
+  meta: InlineChipRef,
   active = false,
 ): HTMLSpanElement {
   const chip = document.createElement("span");
   chip.className = `${INLINE_CHIP_CLASS}${active ? " grip-inline-chip-active" : ""}`;
   chip.contentEditable = "false";
-  chip.dataset.gripChip = chipId;
-  chip.dataset.tag = tag.toLowerCase();
-  chip.title = chipDisplayLabel(tag);
-  chip.textContent = chipDisplayLabel(tag);
+  applyChipMeta(chip, meta);
+  chip.textContent = chipDisplayLabel(meta.tag);
   return chip;
 }
 
@@ -70,21 +94,20 @@ export function setEditorFromComment(
   activeChipId?: string,
 ): void {
   editor.innerHTML = "";
-  const chipMap = new Map(chips.map((chip) => [chip.id, chip.tag]));
   const parts = parseInlineComment(value);
 
   if (!parts.length && chips.length === 1) {
-    editor.appendChild(createChipElement(chips[0]!.id, chips[0]!.tag, true));
+    editor.appendChild(createChipElement(chips[0]!, true));
     editor.appendChild(document.createTextNode(ZWSP));
     return;
   }
 
   for (const part of parts) {
     if (part.type === "chip") {
-      const tag = chipMap.get(part.id);
-      if (!tag) continue;
+      const chipMeta = chips.find((chip) => chip.id === part.id);
+      if (!chipMeta) continue;
       editor.appendChild(
-        createChipElement(part.id, tag, part.id === activeChipId),
+        createChipElement(chipMeta, part.id === activeChipId),
       );
       editor.appendChild(document.createTextNode(ZWSP));
       continue;
@@ -96,9 +119,7 @@ export function setEditorFromComment(
 
   if (isEditorEmpty(editor) && chips.length) {
     for (const chip of chips) {
-      editor.appendChild(
-        createChipElement(chip.id, chip.tag, chip.id === activeChipId),
-      );
+      editor.appendChild(createChipElement(chip, chip.id === activeChipId));
       editor.appendChild(document.createTextNode(ZWSP));
     }
   }
@@ -110,15 +131,14 @@ export function setEditorFromComment(
 
 export function insertChipAtSelection(
   editor: HTMLElement,
-  chipId: string,
-  tag: string,
+  meta: InlineChipRef,
   active = true,
 ): void {
   editor
     .querySelectorAll<HTMLElement>(`.${INLINE_CHIP_CLASS}`)
     .forEach((node) => node.classList.remove("grip-inline-chip-active"));
 
-  const chip = createChipElement(chipId, tag, active);
+  const chip = createChipElement(meta, active);
   const spacer = document.createTextNode(ZWSP);
   const sel = window.getSelection();
   const range =

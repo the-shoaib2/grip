@@ -1,4 +1,5 @@
 import type { StoredPick } from "@grip/core";
+import { bindTrayBadgeTooltips } from "@/lib";
 import { navigateToSelector } from "@/content_scripts/navigator";
 
 export const TRAY_ID = "__grip_tray__";
@@ -85,6 +86,24 @@ function ensureStyle(): void {
     }
     #${TRAY_ID} .grip-tray-badge:hover{background:#3b82f6;color:#fff}
     #${TRAY_ID} .grip-tray-empty{margin:0;padding:6px 10px;color:#71717a;font-size:11px}
+    .grip-chip-tooltip{
+      position:fixed;
+      z-index:2147483647;
+      pointer-events:none;
+      max-width:min(240px,calc(100vw - 16px));
+      padding:8px 10px;
+      border-radius:10px;
+      background:#18181b;
+      border:1px solid #3f3f46;
+      box-shadow:0 8px 24px rgba(0,0,0,.38);
+      font:11px/1.35 system-ui,sans-serif;
+      color:#fafafa;
+    }
+    .grip-chip-tooltip-head{display:flex;align-items:center;gap:6px;margin-bottom:2px}
+    .grip-chip-tooltip-tag{font-family:ui-monospace,monospace;font-size:10px;color:#93c5fd}
+    .grip-chip-tooltip-role{font-size:9px;color:#a1a1aa;padding:1px 6px;border-radius:9999px;background:#27272a}
+    .grip-chip-tooltip-text{margin:2px 0 0;color:#d4d4d8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .grip-chip-tooltip-css{margin:4px 0 0;font-family:ui-monospace,monospace;font-size:9px;color:#71717a;overflow-wrap:anywhere;word-break:break-all}
   `;
   document.documentElement.appendChild(style);
 }
@@ -138,6 +157,7 @@ function ensureTray(): HTMLDivElement {
   trayRoot.appendChild(menuEl);
   trayRoot.appendChild(toggleEl);
   document.documentElement.appendChild(trayRoot);
+  ensureTrayTooltips(trayRoot);
   return trayRoot;
 }
 
@@ -150,9 +170,37 @@ function updateBadges(): void {
   badgesEl.innerHTML = picks
     .map(
       (p) =>
-        `<button type="button" data-id="${p.id}" class="grip-tray-badge" title="${escapeAttr(p.css)}">${escapeHtml(p.label)}</button>`,
+        `<button type="button" data-id="${p.id}" data-tag="${escapeAttr(p.tagName)}" data-role="${escapeAttr(p.role)}" data-css="${escapeAttr(p.css)}" data-text="${escapeAttr(p.innerText)}" data-name="${escapeAttr(p.name)}" class="grip-tray-badge">${escapeHtml(p.label)}</button>`,
     )
     .join("");
+}
+
+let unbindTrayTooltips: (() => void) | null = null;
+
+function ensureTrayTooltips(tray: HTMLElement): void {
+  if (unbindTrayTooltips) return;
+  unbindTrayTooltips = bindTrayBadgeTooltips(tray, (badge) => {
+    const id = badge.dataset.id;
+    const pick = picks.find((p) => p.id === id);
+    if (pick) {
+      return {
+        tag: pick.tagName,
+        role: pick.role,
+        css: pick.css,
+        text: pick.innerText,
+        name: pick.name,
+      };
+    }
+    const tag = badge.dataset.tag;
+    if (!tag) return null;
+    return {
+      tag,
+      role: badge.dataset.role,
+      css: badge.dataset.css,
+      text: badge.dataset.text,
+      name: badge.dataset.name,
+    };
+  });
 }
 
 function updateTray(): void {

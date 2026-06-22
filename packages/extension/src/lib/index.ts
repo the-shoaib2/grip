@@ -10,6 +10,13 @@ export {
 } from "./tab-bridge";
 export { isExtensionContextValid, safeSendMessage } from "./runtime";
 export {
+  bindChipTooltipRoot,
+  bindTrayBadgeTooltips,
+  hideChipTooltip,
+  type ChipTooltipMeta,
+} from "./chipTooltip";
+export {
+  chipMetaFromElement,
   createChipElement,
   createDefaultChip,
   focusEditor,

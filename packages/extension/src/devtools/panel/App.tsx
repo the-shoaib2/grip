@@ -147,6 +147,9 @@ export function App() {
             onChange={persistComment}
             tagName={lastPick.tagName}
             role={lastPick.role}
+            css={lastPick.css}
+            innerText={lastPick.innerText}
+            name={lastPick.name}
           />
           <div className="flex items-end gap-2">
             <SelectDropdown

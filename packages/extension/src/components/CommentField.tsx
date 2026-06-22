@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef } from "preact/hooks";
 import {
+  bindChipTooltipRoot,
+  chipMetaFromElement,
   focusEditor,
   handleEditorKeydown,
   INLINE_EDITOR_CLASS,
@@ -15,6 +17,9 @@ interface CommentFieldProps {
   placeholder?: string;
   tagName?: string;
   role?: string;
+  css?: string;
+  innerText?: string;
+  name?: string;
   tags?: string[];
   maxHeight?: number;
 }
@@ -25,6 +30,9 @@ export function CommentField({
   placeholder = "Describe what you need…",
   tagName,
   role,
+  css,
+  innerText,
+  name,
   tags,
   maxHeight = 160,
 }: CommentFieldProps) {
@@ -37,14 +45,23 @@ export function CommentField({
     }
     if (tagName) {
       const primary = tagName.toLowerCase();
-      const refs: InlineChipRef[] = [{ id: "static-0", tag: primary }];
+      const refs: InlineChipRef[] = [
+        {
+          id: "static-0",
+          tag: primary,
+          role: role?.toLowerCase(),
+          css,
+          text: innerText,
+          name,
+        },
+      ];
       if (role && role.toLowerCase() !== primary) {
         refs.push({ id: "static-1", tag: role.toLowerCase() });
       }
       return refs;
     }
     return [];
-  }, [tagName, role, tags]);
+  }, [tagName, role, css, innerText, name, tags]);
 
   useEffect(() => {
     const editor = editorRef.current;
@@ -57,16 +74,17 @@ export function CommentField({
     };
 
     const onKeyDown = (e: KeyboardEvent) => {
-      handleEditorKeydown(editor, e, () => {
-        onInput();
-      });
+      handleEditorKeydown(editor, e, () => onInput());
     };
 
     editor.addEventListener("input", onInput);
     editor.addEventListener("keydown", onKeyDown);
+    const unbindTooltip = bindChipTooltipRoot(editor, (chip) => chipMetaFromElement(chip));
+
     return () => {
       editor.removeEventListener("input", onInput);
       editor.removeEventListener("keydown", onKeyDown);
+      unbindTooltip();
     };
   }, [onChange]);
 
