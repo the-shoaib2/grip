@@ -73,17 +73,14 @@ function highlight(el: Element): void {
     hover = document.createElement("div");
     hover.id = HOVER_ID;
     hover.style.cssText =
-      "position:fixed;z-index:2147483646;border:2px solid #3b82f6;border-radius:6px;background:rgba(59,130,246,0.14);box-shadow:0 0 0 1px rgba(59,130,246,0.35);transition:top 40ms,left 40ms,width 40ms,height 40ms;";
+      "position:fixed;z-index:2147483646;border:1px dashedrgb(8, 73, 177);border-radius:0;background:rgba(59,130,246,0.08);box-shadow:none;transition:top 40ms,left 40ms,width 40ms,height 40ms;";
     document.documentElement.appendChild(hover);
   }
   const r = el.getBoundingClientRect();
-  const min = 4;
-  const w = Math.max(r.width, min);
-  const h = Math.max(r.height, min);
-  hover.style.top = `${r.top - (h - r.height) / 2}px`;
-  hover.style.left = `${r.left - (w - r.width) / 2}px`;
-  hover.style.width = `${w}px`;
-  hover.style.height = `${h}px`;
+  hover.style.top = `${r.top}px`;
+  hover.style.left = `${r.left}px`;
+  hover.style.width = `${Math.max(r.width, 1)}px`;
+  hover.style.height = `${Math.max(r.height, 1)}px`;
 
   const hint = ensureHint();
   const tag = el.tagName.toLowerCase();

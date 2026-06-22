@@ -22,11 +22,6 @@ export function navigateToSelector(css: string): Element | null {
 export function flashElement(el: Element): void {
   document.getElementById(FLASH_ID)?.remove();
   const r = el.getBoundingClientRect();
-  const min = 6;
-  const w = Math.max(r.width, min);
-  const h = Math.max(r.height, min);
-  const padX = (w - r.width) / 2;
-  const padY = (h - r.height) / 2;
 
   const box = document.createElement("div");
   box.id = FLASH_ID;
@@ -34,14 +29,14 @@ export function flashElement(el: Element): void {
     "position:fixed",
     "pointer-events:none",
     "z-index:2147483645",
-    `top:${r.top - padY}px`,
-    `left:${r.left - padX}px`,
-    `width:${w}px`,
-    `height:${h}px`,
-    "border:2px solid #22c55e",
-    "border-radius:8px",
-    "background:rgba(34,197,94,0.15)",
-    "box-shadow:0 0 0 4px rgba(34,197,94,0.25)",
+    `top:${r.top}px`,
+    `left:${r.left}px`,
+    `width:${Math.max(r.width, 1)}px`,
+    `height:${Math.max(r.height, 1)}px`,
+    "border:1px dashed #22c55e",
+    "border-radius:0",
+    "background:rgba(34,197,94,0.1)",
+    "box-shadow:none",
     "transition:opacity 0.4s ease",
   ].join(";");
   document.documentElement.appendChild(box);

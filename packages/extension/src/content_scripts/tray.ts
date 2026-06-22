@@ -95,11 +95,10 @@ chrome.runtime.onMessage.addListener((msg) => {
   }
 });
 
-// Show tray button on load when history exists for this page
-chrome.runtime.sendMessage({ type: "GET_PICK_HISTORY" }, (data: { history?: StoredPick[] }) => {
-  if (chrome.runtime.lastError) return;
-  if (data?.history?.length) {
-    picks = data.history;
+// Tray toggle on page (http/https only)
+if (/^https?:/i.test(location.href)) {
+  chrome.runtime.sendMessage({ type: "GET_PICK_HISTORY" }, (data: { history?: StoredPick[] }) => {
+    if (!chrome.runtime.lastError && data?.history?.length) picks = data.history;
     render();
-  }
-});
+  });
+}

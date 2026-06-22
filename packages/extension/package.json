@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "pnpm --filter @grip/core build && tsc --noEmit",
     "lint": "tsc --noEmit"
   },
   "dependencies": {

@@ -4,7 +4,10 @@
     "jsx": "react-jsx",
     "jsxImportSource": "preact",
     "lib": ["ES2022", "DOM"],
-    "types": ["chrome"]
+    "types": ["chrome"],
+    "paths": {
+      "@grip/core": ["../core/src/index.ts"]
+    }
   },
   "include": ["src/**/*"]
 }

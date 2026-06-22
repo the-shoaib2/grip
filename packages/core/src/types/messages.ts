@@ -23,6 +23,14 @@ export interface PickerElementPayload {
   comment?: string;
 }
 
+export interface StoredPick extends PickerElementPayload {
+  id: string;
+  url: string;
+  pageTitle: string;
+  timestamp: number;
+  label: string;
+}
+
 export interface GripMessage<T = unknown> {
   type: GripMessageType;
   payload: T;

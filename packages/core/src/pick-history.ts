@@ -1,12 +1,6 @@
-import type { PickerElementPayload } from "./types/messages.js";
+import type { PickerElementPayload, StoredPick } from "./types/messages.js";
 
-export interface StoredPick extends PickerElementPayload {
-  id: string;
-  url: string;
-  pageTitle: string;
-  timestamp: number;
-  label: string;
-}
+export type { StoredPick };
 
 const MAX_HISTORY = 80;
 
