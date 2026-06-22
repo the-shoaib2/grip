@@ -1,19 +1,34 @@
 import {
   deepElementFromPoint,
   describeElement,
+  elementFromComposedEvent,
   elementsAtPoint,
+  pickLabel,
 } from "@grip/core";
+import type { PickerElementPayload } from "@grip/core";
 import { isExtensionContextValid, safeSendMessage } from "@/lib";
 
+const TRAY_ID = "__grip_tray__";
 const HOVER_ID = "__grip_picker_hover__";
 const STYLE_ID = "__grip_picker_style__";
 const COMMENT_ID = "__grip_picker_comment__";
 const HINT_ID = "__grip_picker_hint__";
-let pickerActive = false;
+
+const VIEWPORT_PAD = 8;
+const PANEL_GAP = 8;
+
+type PickerPhase = "idle" | "hover" | "comment";
+
+let phase: PickerPhase = "idle";
 let cycleIndex = 0;
 let lastX = 0;
 let lastY = 0;
 let stackSize = 1;
+let selectedElement: Element | null = null;
+
+function pickLabelFor(el: Element): string {
+  return pickLabel({ ...describeElement(el) } as PickerElementPayload);
+}
 
 function cleanup(): void {
   document.getElementById(HOVER_ID)?.remove();
@@ -23,8 +38,42 @@ function cleanup(): void {
   document.removeEventListener("mousemove", onMove, true);
   document.removeEventListener("click", onClick, true);
   document.removeEventListener("keydown", onKey, true);
-  pickerActive = false;
+  phase = "idle";
   cycleIndex = 0;
+  selectedElement = null;
+}
+
+function stackAt(x: number, y: number): Element[] {
+  return elementsAtPoint(x, y);
+}
+
+function targetAt(x: number, y: number, index: number): Element | null {
+  const stack = stackAt(x, y);
+  stackSize = Math.max(stack.length, 1);
+  if (stack.length) return stack[index % stack.length] ?? null;
+  return deepElementFromPoint(x, y);
+}
+
+function targetFromClick(e: MouseEvent): Element | null {
+  const fromEvent = elementFromComposedEvent(e, cycleIndex);
+  if (fromEvent) return fromEvent;
+  return targetAt(e.clientX, e.clientY, cycleIndex);
+}
+
+function cycleSelection(dir: 1 | -1): void {
+  if (stackSize <= 1) return;
+  cycleIndex = (cycleIndex + dir + stackSize) % stackSize;
+  const el = targetAt(lastX, lastY, cycleIndex);
+  if (!el) return;
+  if (phase === "comment") {
+    selectedElement = el;
+    highlight(el);
+    const panel = document.getElementById(COMMENT_ID);
+    if (panel) positionCommentPanel(panel, el);
+    updateCommentLabel(el);
+  } else {
+    highlight(el);
+  }
 }
 
 function onKey(e: KeyboardEvent): void {
@@ -32,17 +81,26 @@ function onKey(e: KeyboardEvent): void {
     cleanup();
     return;
   }
-  if (e.key === "Escape") cleanup();
-  if (!pickerActive) return;
+
+  if (e.key === "Escape") {
+    if (phase === "comment") {
+      e.preventDefault();
+      resumeHover();
+      return;
+    }
+    cleanup();
+    return;
+  }
+
+  if (phase === "idle") return;
+
   if (e.key === "[" || e.key === "ArrowDown") {
     e.preventDefault();
-    cycleIndex = (cycleIndex + 1) % Math.max(stackSize, 1);
-    updateHover(lastX, lastY);
+    cycleSelection(1);
   }
   if (e.key === "]" || e.key === "ArrowUp") {
     e.preventDefault();
-    cycleIndex = (cycleIndex - 1 + Math.max(stackSize, 1)) % Math.max(stackSize, 1);
-    updateHover(lastX, lastY);
+    cycleSelection(-1);
   }
 }
 
@@ -53,6 +111,8 @@ function ensureStyle(): void {
   s.textContent = `
     *{cursor:crosshair!important}
     #${HOVER_ID},#${HINT_ID}{pointer-events:none!important}
+    #${COMMENT_ID}{pointer-events:auto!important}
+    #${COMMENT_ID} *{cursor:auto!important}
     #${HOVER_ID}{
       position:fixed;
       z-index:2147483646;
@@ -73,7 +133,7 @@ function ensureHint(): HTMLElement {
     hint = document.createElement("div");
     hint.id = HINT_ID;
     hint.style.cssText =
-      "position:fixed;z-index:2147483647;padding:4px 8px;border-radius:9999px;background:#18181b;color:#a1a1aa;font:10px system-ui,sans-serif;border:1px solid #3f3f46;";
+      "position:fixed;z-index:2147483647;padding:4px 8px;border-radius:9999px;background:#18181b;color:#a1a1aa;font:10px system-ui,sans-serif;border:1px solid #3f3f46;pointer-events:none;";
     document.documentElement.appendChild(hint);
   }
   return hint;
@@ -94,28 +154,37 @@ function highlight(el: Element): void {
   hover.style.width = `${Math.max(r.width, min)}px`;
   hover.style.height = `${Math.max(r.height, min)}px`;
 
-  const hint = ensureHint();
-  const tag = el.tagName.toLowerCase();
-  const cycle =
-    stackSize > 1 ? ` · ${cycleIndex + 1}/${stackSize}` : "";
-  hint.textContent = `${tag}${cycle} · [ ] cycle`;
-  hint.style.top = `${Math.max(4, r.top - 22)}px`;
-  hint.style.left = `${Math.min(window.innerWidth - 120, r.left)}px`;
+  if (phase === "hover") {
+    const hint = ensureHint();
+    const tag = el.tagName.toLowerCase();
+    const cycle = stackSize > 1 ? ` · ${cycleIndex + 1}/${stackSize}` : "";
+    hint.textContent = `${tag}${cycle} · [ ] parent/child`;
+    hint.style.top = `${Math.max(4, r.top - 24)}px`;
+    hint.style.left = `${clamp(r.left, 4, window.innerWidth - 160)}px`;
+  }
 }
 
-function currentTarget(x: number, y: number): Element | null {
-  const stack = elementsAtPoint(x, y);
-  stackSize = Math.max(stack.length, 1);
-  if (stack.length) return stack[cycleIndex % stack.length] ?? null;
-  return deepElementFromPoint(x, y);
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(value, max));
 }
 
 function updateHover(x: number, y: number): void {
   lastX = x;
   lastY = y;
-  const el = currentTarget(x, y);
-  if (!el || el.id === HOVER_ID || el.closest(`#${COMMENT_ID}`)) return;
+  const stack = stackAt(x, y);
+  if (stack.length && cycleIndex >= stack.length) cycleIndex = 0;
+  stackSize = Math.max(stack.length, 1);
+  const el = targetAt(x, y, cycleIndex);
+  if (!el || el.closest(`#${COMMENT_ID}`)) return;
   highlight(el);
+}
+
+function isGripChrome(target: EventTarget | null): boolean {
+  const el = target instanceof Element ? target : null;
+  if (!el) return false;
+  return Boolean(
+    el.closest(`#${TRAY_ID}, #${COMMENT_ID}, #${HOVER_ID}, #${HINT_ID}`),
+  );
 }
 
 function onMove(e: MouseEvent): void {
@@ -123,10 +192,8 @@ function onMove(e: MouseEvent): void {
     cleanup();
     return;
   }
-  if ((e.target as Element).closest?.(`#${COMMENT_ID}`)) return;
-  const stack = elementsAtPoint(e.clientX, e.clientY);
-  if (stack.length && cycleIndex >= stack.length) cycleIndex = 0;
-  stackSize = Math.max(stack.length, 1);
+  if (phase !== "hover") return;
+  if (isGripChrome(e.target)) return;
   updateHover(e.clientX, e.clientY);
 }
 
@@ -135,43 +202,138 @@ function sendPick(el: Element, comment: string): void {
   safeSendMessage({ type: "PICKER_ELEMENT_SELECTED", payload });
 }
 
+function positionCommentPanel(panel: HTMLElement, el: Element): void {
+  const anchor = el.getBoundingClientRect();
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  panel.style.display = "block";
+  panel.style.visibility = "hidden";
+  panel.style.transform = "none";
+  panel.style.bottom = "auto";
+  panel.style.right = "auto";
+  panel.style.left = "0";
+  panel.style.top = "0";
+
+  const panelRect = panel.getBoundingClientRect();
+  const width = panelRect.width;
+  const height = panelRect.height;
+
+  let top = anchor.bottom + PANEL_GAP;
+  if (top + height > vh - VIEWPORT_PAD) {
+    top = anchor.top - height - PANEL_GAP;
+  }
+  top = clamp(top, VIEWPORT_PAD, vh - VIEWPORT_PAD - height);
+
+  let left = anchor.left;
+  if (left + width > vw - VIEWPORT_PAD) {
+    left = anchor.right - width;
+  }
+  left = clamp(left, VIEWPORT_PAD, vw - VIEWPORT_PAD - width);
+
+  panel.style.top = `${top}px`;
+  panel.style.left = `${left}px`;
+  panel.style.visibility = "visible";
+}
+
+function updateCommentLabel(el: Element): void {
+  const label = document.getElementById("__grip_comment_label__");
+  if (!label) return;
+  const cycle = stackSize > 1 ? ` · ${cycleIndex + 1}/${stackSize}` : "";
+  label.textContent = `${pickLabelFor(el)}${cycle}`;
+}
+
+function ensureCommentPanel(): HTMLElement {
+  let panel = document.getElementById(COMMENT_ID);
+  if (panel) return panel;
+
+  panel = document.createElement("div");
+  panel.id = COMMENT_ID;
+  panel.style.cssText =
+    "position:fixed;z-index:2147483647;display:none;width:min(300px,calc(100vw - 16px));padding:10px 12px;border-radius:16px;background:#18181b;border:1px solid #3f3f46;box-shadow:0 12px 40px rgba(0,0,0,.45);font:12px system-ui,sans-serif;color:#fafafa;";
+  panel.innerHTML = `
+    <div id="__grip_comment_label__" style="margin-bottom:8px;font-size:11px;color:#a1a1aa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+    <input id="__grip_comment_input__" type="text" placeholder="Context (optional)" style="width:100%;box-sizing:border-box;border-radius:9999px;border:1px solid #3f3f46;background:#09090b;color:#fafafa;padding:8px 12px;font-size:12px;outline:none" />
+    <div style="display:flex;gap:6px;margin-top:8px;justify-content:flex-end;flex-wrap:wrap">
+      <button type="button" id="__grip_comment_done__" style="border-radius:9999px;border:none;background:#27272a;color:#d4d4d8;padding:6px 12px;font-size:11px;cursor:pointer">Done</button>
+      <button type="button" id="__grip_comment_skip__" style="border-radius:9999px;border:none;background:#27272a;color:#d4d4d8;padding:6px 12px;font-size:11px;cursor:pointer">Skip</button>
+      <button type="button" id="__grip_comment_save__" style="border-radius:9999px;border:none;background:#2563eb;color:#fff;padding:6px 12px;font-size:11px;cursor:pointer">Save</button>
+    </div>
+  `;
+  document.documentElement.appendChild(panel);
+  return panel;
+}
+
+function resumeHover(): void {
+  document.getElementById(COMMENT_ID)?.remove();
+  document.getElementById(HINT_ID)?.remove();
+  selectedElement = null;
+  phase = "hover";
+  document.addEventListener("mousemove", onMove, true);
+  document.addEventListener("click", onClick, true);
+  updateHover(lastX, lastY);
+}
+
+function finishPick(comment: string, continueSession: boolean): void {
+  if (!selectedElement) return;
+  sendPick(selectedElement, comment);
+  safeSendMessage({ type: "SHOW_TRAY" });
+
+  if (continueSession) {
+    resumeHover();
+    return;
+  }
+  cleanup();
+}
+
 function showCommentPrompt(el: Element): void {
+  selectedElement = el;
+  phase = "comment";
   document.removeEventListener("mousemove", onMove, true);
   document.removeEventListener("click", onClick, true);
   document.getElementById(HINT_ID)?.remove();
 
-  let panel = document.getElementById(COMMENT_ID);
-  if (!panel) {
-    panel = document.createElement("div");
-    panel.id = COMMENT_ID;
-    panel.style.cssText =
-      "position:fixed;z-index:2147483647;left:50%;bottom:20px;transform:translateX(-50%);width:min(360px,calc(100vw - 24px));padding:12px;border-radius:20px;background:#18181b;border:1px solid #3f3f46;box-shadow:0 12px 40px rgba(0,0,0,.45);font:12px system-ui,sans-serif;color:#fafafa;";
-    panel.innerHTML = `
-      <input id="__grip_comment_input__" type="text" placeholder="Context (optional)" style="width:100%;box-sizing:border-box;border-radius:9999px;border:1px solid #3f3f46;background:#09090b;color:#fafafa;padding:10px 14px;font-size:12px;outline:none" />
-      <div style="display:flex;gap:6px;margin-top:8px;justify-content:flex-end">
-        <button type="button" id="__grip_comment_skip__" style="border-radius:9999px;border:none;background:#27272a;color:#d4d4d8;padding:7px 14px;font-size:11px;cursor:pointer">Skip</button>
-        <button type="button" id="__grip_comment_done__" style="border-radius:9999px;border:none;background:#2563eb;color:#fff;padding:7px 14px;font-size:11px;cursor:pointer">Save</button>
-      </div>
-    `;
-    document.documentElement.appendChild(panel);
-  }
-
+  const panel = ensureCommentPanel();
   const input = panel.querySelector("#__grip_comment_input__") as HTMLInputElement;
-  const done = panel.querySelector("#__grip_comment_done__") as HTMLButtonElement;
+  const save = panel.querySelector("#__grip_comment_save__") as HTMLButtonElement;
   const skip = panel.querySelector("#__grip_comment_skip__") as HTMLButtonElement;
+  const done = panel.querySelector("#__grip_comment_done__") as HTMLButtonElement;
 
-  const finish = (comment: string) => {
+  input.value = "";
+  highlight(el);
+  updateCommentLabel(el);
+  positionCommentPanel(panel, el);
+
+  save.onclick = (e) => {
+    e.stopPropagation();
+    finishPick(input.value, true);
+  };
+  skip.onclick = (e) => {
+    e.stopPropagation();
+    finishPick("", true);
+  };
+  done.onclick = (e) => {
+    e.stopPropagation();
     cleanup();
-    sendPick(el, comment);
-    safeSendMessage({ type: "SHOW_TRAY" });
+  };
+  input.onkeydown = (e) => {
+    e.stopPropagation();
+    if (e.key === "Enter") finishPick(input.value, true);
+    if (e.key === "Escape") resumeHover();
   };
 
-  done.onclick = () => finish(input.value);
-  skip.onclick = () => finish("");
-  input.onkeydown = (e) => {
-    if (e.key === "Enter") finish(input.value);
-    if (e.key === "Escape") finish("");
+  panel.onmousedown = (e) => e.stopPropagation();
+  panel.onclick = (e) => e.stopPropagation();
+
+  const reposition = () => {
+    if (phase === "comment" && selectedElement) {
+      highlight(selectedElement);
+      positionCommentPanel(panel, selectedElement);
+    }
   };
+  window.addEventListener("resize", reposition, { once: true });
+  window.addEventListener("scroll", reposition, { once: true, capture: true });
+
   input.focus();
 }
 
@@ -180,11 +342,20 @@ function onClick(e: MouseEvent): void {
     cleanup();
     return;
   }
-  if ((e.target as Element).closest?.(`#${COMMENT_ID}`)) return;
+  if (phase !== "hover") return;
+  if (isGripChrome(e.target)) return;
+
   e.preventDefault();
   e.stopPropagation();
   e.stopImmediatePropagation();
-  const el = currentTarget(e.clientX, e.clientY);
+
+  lastX = e.clientX;
+  lastY = e.clientY;
+  const stack = stackAt(lastX, lastY);
+  stackSize = Math.max(stack.length, 1);
+  if (cycleIndex >= stackSize) cycleIndex = 0;
+
+  const el = targetFromClick(e);
   if (!el) {
     cleanup();
     return;
@@ -194,7 +365,7 @@ function onClick(e: MouseEvent): void {
 
 function startPicker(): void {
   cleanup();
-  pickerActive = true;
+  phase = "hover";
   cycleIndex = 0;
   ensureStyle();
   document.addEventListener("mousemove", onMove, true);
