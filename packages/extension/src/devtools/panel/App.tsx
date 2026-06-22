@@ -100,7 +100,7 @@ export function App() {
       ? "Copy CSS for selected element"
       : copyAs === "xpath"
         ? "Copy XPath for selected element"
-        : "Copy MCP prompt for selected element";
+        : "Copy prompt for selected element";
 
   const persistComment = (comment: string) => {
     setPickComment(comment);
@@ -156,7 +156,7 @@ export function App() {
               className="flex-1"
               value={copyAs}
               options={[
-                { value: "mcp", label: "MCP prompt" },
+                { value: "mcp", label: "Prompt" },
                 { value: "css", label: "CSS" },
                 { value: "xpath", label: "XPath" },
               ]}

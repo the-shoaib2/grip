@@ -35,7 +35,7 @@ export function PickHistoryList({
       ? "Copy all CSS selectors"
       : copyAs === "xpath"
         ? "Copy all XPath"
-        : "Copy all MCP prompts";
+        : "Copy all prompts";
 
   const allPlain =
     copyAs === "css"
@@ -64,7 +64,7 @@ export function PickHistoryList({
               ? "Copy CSS"
               : copyAs === "xpath"
                 ? "Copy XPath"
-                : "Copy MCP prompt";
+                : "Copy prompt";
 
           return (
             <li key={pick.id} className={`grip-pick-row ${selected ? "grip-pick-row-active" : ""}`}>

@@ -77,7 +77,7 @@ function Popup() {
       ? "Copy CSS for selected element"
       : copyAs === "xpath"
         ? "Copy XPath for selected element"
-        : "Copy MCP prompt for selected element";
+        : "Copy prompt for selected element";
 
   return (
     <div className="grip-popup">
@@ -98,31 +98,31 @@ function Popup() {
           <button
             type="button"
             className="grip-btn-ghost grip-btn-toolbar"
-            aria-label="Pick element"
             onClick={startPicker}
           >
-            <MousePointerClickIcon size={15} />
+            <MousePointerClickIcon size={16} />
+            <span>Pick</span>
           </button>
         </Tooltip>
-        <div className="flex items-center gap-0.5">
+        <div className="flex items-center gap-1">
           <Tooltip text="Open saved picks on the page">
             <button
               type="button"
               className="grip-btn-ghost grip-btn-toolbar"
-              aria-label="History"
               onClick={openTray}
             >
-              <HistoryIcon size={15} />
+              <HistoryIcon size={16} />
+              <span>History</span>
             </button>
           </Tooltip>
           <Tooltip text="New session — clear picks for this page">
             <button
               type="button"
               className="grip-btn-ghost grip-btn-toolbar"
-              aria-label="New session"
               onClick={newSession}
             >
-              <PlusIcon size={15} />
+              <PlusIcon size={16} />
+              <span>New</span>
             </button>
           </Tooltip>
         </div>
@@ -144,7 +144,7 @@ function Popup() {
             className="flex-1"
             value={copyAs}
             options={[
-              { value: "mcp", label: "MCP prompt" },
+              { value: "mcp", label: "Prompt" },
               { value: "css", label: "CSS" },
               { value: "xpath", label: "XPath" },
             ]}
