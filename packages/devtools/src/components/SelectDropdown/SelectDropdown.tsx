@@ -14,11 +14,11 @@ export function SelectDropdown({
   className = "",
 }: SelectDropdownProps) {
   return (
-    <label className={`block ${className}`}>
-      {label && <span className="grip-label mb-1.5 block">{label}</span>}
+    <label className={`grip-select-field ${className}`.trim()}>
+      {label && <span className="grip-label grip-field-label">{label}</span>}
       <div className="grip-select-wrap">
         <select
-          className="grip-select w-full"
+          className="grip-select"
           value={value}
           onChange={(e) => onChange((e.target as HTMLSelectElement).value)}
         >

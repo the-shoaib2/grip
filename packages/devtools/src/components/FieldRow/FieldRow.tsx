@@ -8,8 +8,8 @@ interface FieldRowProps {
 
 export function FieldRow({ label, value, copyLabel = "Copy" }: FieldRowProps) {
   return (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between gap-2">
+    <div className="grip-field-row">
+      <div className="grip-field-row-header">
         <span className="grip-label">{label}</span>
         <CopyButton
           label={copyLabel}

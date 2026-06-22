@@ -120,19 +120,17 @@ export function GripPanelView({ layout = "panel" }: GripPanelViewProps) {
   };
 
   const panelClass =
-    layout === "floating"
-      ? "grip-panel grip-panel-floating flex flex-col gap-3 p-4"
-      : "grip-panel flex flex-col gap-3 p-4";
+    layout === "floating" ? "grip-panel grip-panel-floating" : "grip-panel";
 
   return (
     <div className={panelClass}>
-      <header className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <header className="grip-panel-header">
+        <div className="grip-panel-brand">
           <GripIcon size={24} />
-          <h1 className="text-sm font-semibold">Grip</h1>
+          <h1 className="grip-panel-title">Grip</h1>
         </div>
         <Tooltip text={mcpOk ? "MCP connected on :9222" : "Chrome debug port not found"}>
-          <span className={mcpOk ? "grip-chip-ok" : "grip-chip-warn"}>
+          <span className={`grip-chip ${mcpOk ? "grip-chip-ok" : "grip-chip-warn"}`}>
             {mcpOk ? "MCP" : "—"}
           </span>
         </Tooltip>
@@ -141,7 +139,7 @@ export function GripPanelView({ layout = "panel" }: GripPanelViewProps) {
       <Tooltip text="Pick any element on the page">
         <button
           type="button"
-          className="grip-btn-primary w-full"
+          className="grip-btn-primary"
           onClick={() => void runtime.sendMessage({ type: "START_PICKER" })}
         >
           Pick
@@ -165,10 +163,9 @@ export function GripPanelView({ layout = "panel" }: GripPanelViewProps) {
             innerText={lastPick.innerText}
             name={lastPick.name}
           />
-          <div className="flex items-end gap-2">
+          <div className="grip-panel-copy-row">
             <SelectDropdown
               label="Copy as"
-              className="flex-1"
               value={copyAs}
               options={[
                 { value: "mcp", label: "Prompt" },

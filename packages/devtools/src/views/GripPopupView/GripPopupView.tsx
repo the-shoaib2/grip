@@ -76,19 +76,19 @@ export function GripPopupView() {
 
   return (
     <div className="grip-popup">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
+      <header className="grip-popup-header">
+        <div className="grip-popup-brand">
           <GripIcon size={22} />
-          <span className="text-sm font-semibold">Grip</span>
+          <span className="grip-popup-title">Grip</span>
         </div>
         <Tooltip text={mcpOk ? "MCP connected on :9222" : "Chrome debug port not found"}>
-          <span className={mcpOk ? "grip-chip-ok" : "grip-chip-warn"}>
+          <span className={`grip-chip ${mcpOk ? "grip-chip-ok" : "grip-chip-warn"}`}>
             {mcpOk ? "MCP" : "—"}
           </span>
         </Tooltip>
-      </div>
+      </header>
 
-      <div className="mt-3 flex items-center justify-between gap-2">
+      <div className="grip-popup-toolbar">
         <Tooltip text="Pick any element on the page">
           <button
             type="button"
@@ -99,7 +99,7 @@ export function GripPopupView() {
             <span>Pick</span>
           </button>
         </Tooltip>
-        <div className="flex items-center gap-1">
+        <div className="grip-popup-toolbar-actions">
           <Tooltip text="Open saved picks on the page">
             <button
               type="button"
@@ -123,13 +123,9 @@ export function GripPopupView() {
         </div>
       </div>
 
-      {pickError && (
-        <p className="mt-2 text-[11px] leading-snug" style={{ color: "var(--grip-danger)" }}>
-          {pickError}
-        </p>
-      )}
+      {pickError && <p className="grip-popup-error">{pickError}</p>}
 
-      <div className="mt-3 min-w-0">
+      <div className="grip-popup-history">
         <PickHistoryList
           history={history}
           activeId={active?.id}

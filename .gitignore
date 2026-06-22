@@ -45,6 +45,8 @@ playwright-report/
 test-results/
 blob-report/
 playwright/.cache/
+.playwright-user-data/
+.e2e-chrome.json
 
 # --- Build outputs ---
 

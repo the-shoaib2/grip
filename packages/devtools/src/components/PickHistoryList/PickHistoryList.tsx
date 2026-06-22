@@ -15,18 +15,14 @@ export function PickHistoryList({
   onSelect,
 }: PickHistoryListProps) {
   if (!history.length) {
-    return (
-      <p className="py-2 text-center text-[11px]" style={{ color: "var(--grip-muted)" }}>
-        No picks yet
-      </p>
-    );
+    return <p className="grip-empty-state">No picks yet</p>;
   }
 
   const allText = formatAllMcpPrompts(history);
 
   return (
     <section className="grip-pick-section">
-      <div className="mb-2 flex items-center justify-between gap-2">
+      <div className="grip-pick-section-header">
         <span className="grip-label grip-label-plain">
           Session{history.length > 0 ? ` · ${history.length}` : ""}
         </span>
@@ -44,12 +40,12 @@ export function PickHistoryList({
 
           return (
             <li key={pick.id} className={`grip-pick-row ${selected ? "grip-pick-row-active" : ""}`}>
-              <ElementTagBadge tagName={pick.tagName} role={pick.role} className="shrink-0" />
+              <ElementTagBadge tagName={pick.tagName} role={pick.role} className="grip-shrink-0" />
               <Tooltip
                 text={pick.comment?.trim() || `Go to ${pick.label}`}
                 position="top"
                 wide
-                className="min-w-0 flex-1"
+                className="grip-grow"
               >
                 <button
                   type="button"

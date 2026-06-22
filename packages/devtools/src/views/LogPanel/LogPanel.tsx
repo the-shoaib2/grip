@@ -7,8 +7,8 @@ export function LogPanel() {
   const clearLogs = useGripStore((s) => s.clearLogs);
 
   return (
-    <section className="mt-4 border-t pt-3" style={{ borderColor: "var(--grip-border)" }}>
-      <div className="mb-2 flex items-center justify-between">
+    <section className="grip-log-section">
+      <div className="grip-log-section-header">
         <h2 className="grip-label">Console ({logs.length})</h2>
         <Tooltip text="Clear captured console logs">
           <button type="button" className="grip-btn-ghost" onClick={clearLogs}>
@@ -16,11 +16,9 @@ export function LogPanel() {
           </button>
         </Tooltip>
       </div>
-      <ul className="grip-log-list max-h-40 space-y-1 overflow-y-auto">
+      <ul className="grip-log-list">
         {logs.length === 0 && (
-          <li className="text-[11px]" style={{ color: "var(--grip-muted)" }}>
-            No logs captured yet.
-          </li>
+          <li className="grip-empty-state">No logs captured yet.</li>
         )}
         {logs.map((entry, i) => (
           <LogLine key={`${entry.timestamp}-${i}`} entry={entry} />
@@ -36,7 +34,7 @@ function LogLine({ entry }: { entry: LogMessagePayload }) {
       ? "grip-log-error"
       : entry.level === "warn"
         ? "grip-log-warn"
-        : "text-zinc-400";
+        : "grip-log-muted";
   return (
     <li className={cls}>
       [{entry.level}] {entry.message}

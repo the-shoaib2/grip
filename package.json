@@ -10,7 +10,9 @@
     "test": "turbo test",
     "typecheck": "turbo typecheck",
     "build:mcp": "bash scripts/build-mcp.sh",
-    "smoke": "pnpm --filter @grip/core test"
+    "smoke": "pnpm --filter @grip/core test",
+    "test:e2e": "playwright test -c e2e/playwright.config.mjs",
+    "test:e2e:ui": "playwright test -c e2e/playwright.config.mjs --ui"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.10",

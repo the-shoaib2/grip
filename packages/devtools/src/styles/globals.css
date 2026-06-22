@@ -113,6 +113,9 @@ body {
 }
 
 .grip-popup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
   width: 20rem;
   min-height: 18rem;
   max-width: 100%;
@@ -121,9 +124,69 @@ body {
   background: var(--grip-bg);
   color: var(--grip-fg);
   padding: 0.75rem;
+  box-sizing: border-box;
+}
+
+.grip-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.grip-popup-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.grip-popup-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.grip-popup-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.grip-popup-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.grip-popup-error {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.375;
+  color: var(--grip-danger);
+}
+
+.grip-popup-history {
+  min-width: 0;
+}
+
+.grip-empty-state {
+  margin: 0;
+  padding: 0.5rem 0;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.375;
+  color: var(--grip-muted);
 }
 
 .grip-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
   min-height: 100%;
   overflow-x: hidden;
   background: var(--grip-bg);
@@ -131,6 +194,130 @@ body {
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   font-size: 0.875rem;
   -webkit-font-smoothing: antialiased;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.grip-panel-floating {
+  width: 22rem;
+  max-width: min(22rem, calc(100vw - 1.5rem));
+  max-height: min(32rem, calc(100vh - 4rem));
+  overflow-y: auto;
+  border-radius: 1rem;
+  border: 1px solid var(--grip-border);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+}
+
+.grip-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.grip-panel-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.grip-panel-title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.grip-panel-copy-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.grip-panel-copy-row > .grip-select-field {
+  flex: 1;
+  min-width: 0;
+}
+
+.grip-pick-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  min-width: 0;
+}
+
+.grip-log-section {
+  margin-top: 0.25rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--grip-border);
+}
+
+.grip-log-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.grip-select-field {
+  display: block;
+  flex: 1;
+  min-width: 0;
+}
+
+.grip-field-label {
+  display: block;
+  margin-bottom: 0.375rem;
+}
+
+.grip-grow {
+  flex: 1;
+  min-width: 0;
+}
+
+.grip-shrink-0 {
+  flex-shrink: 0;
+}
+
+.grip-copy-check {
+  font-size: 10px;
+}
+
+.grip-field-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.grip-field-row-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.grip-log-list {
+  max-height: 10rem;
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.grip-log-list > li + li {
+  margin-top: 0.25rem;
+}
+
+.grip-log-muted {
+  color: var(--grip-muted);
 }
 
 .grip-mono {
