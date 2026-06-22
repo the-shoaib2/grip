@@ -59,23 +59,23 @@
 }
 
 .grip-btn-icon {
-  @apply inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-400 transition-colors hover:border-zinc-600 hover:bg-zinc-800 hover:text-zinc-200 disabled:cursor-not-allowed disabled:opacity-40;
+  @apply inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-transparent text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-200 disabled:cursor-not-allowed disabled:opacity-40;
 }
 
 .grip-pick-section {
-  @apply rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-2;
+  @apply p-0;
 }
 
 .grip-pick-list {
-  @apply max-h-36 space-y-1 overflow-y-auto;
+  @apply max-h-36 space-y-0.5 overflow-y-auto;
 }
 
 .grip-pick-row {
-  @apply flex items-center gap-1 rounded-lg border border-transparent pr-0.5 transition-colors;
+  @apply flex items-center gap-1 rounded-lg pr-0.5 transition-colors;
 }
 
 .grip-pick-row-active {
-  @apply border-blue-500/40 bg-blue-600/10;
+  @apply bg-blue-600/10;
 }
 
 .grip-pick-item {
@@ -104,4 +104,34 @@
 
 .grip-log-warn {
   @apply text-amber-400;
+}
+
+.grip-tooltip-wrap {
+  @apply relative inline-flex;
+}
+
+.grip-tooltip {
+  @apply pointer-events-none absolute z-50 rounded-full border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-[10px] font-medium text-zinc-200 opacity-0 shadow-lg transition-opacity duration-150;
+}
+
+.grip-tooltip-wrap:hover .grip-tooltip,
+.grip-tooltip-wrap:focus-within .grip-tooltip {
+  @apply opacity-100;
+}
+
+.grip-tooltip-top {
+  @apply bottom-full left-1/2 mb-1.5 -translate-x-1/2;
+}
+
+.grip-tooltip-bottom {
+  @apply left-1/2 top-full mt-1.5 -translate-x-1/2;
+}
+
+.grip-tooltip-wide {
+  @apply left-0 max-w-[220px] translate-x-0 whitespace-normal break-all rounded-lg text-left normal-case;
+}
+
+.grip-tooltip-wrap:hover .grip-tooltip-wide.grip-tooltip-top,
+.grip-tooltip-wrap:focus-within .grip-tooltip-wide.grip-tooltip-top {
+  @apply bottom-full left-0 mb-1.5 -translate-x-0;
 }

@@ -12,6 +12,7 @@ import { CopyButton } from "../../components/CopyButton";
 import { GripIcon } from "../../components/GripIcon";
 import { PickHistoryList } from "../../components/PickHistoryList";
 import { SelectDropdown } from "../../components/SelectDropdown";
+import { Tooltip } from "../../components/Tooltip";
 import { LogPanel } from "./LogPanel";
 import "../../styles/globals.css";
 
@@ -120,18 +121,22 @@ export function App() {
           <GripIcon size={24} />
           <h1 className="text-sm font-semibold">Grip</h1>
         </div>
-        <span className={mcpOk ? "grip-chip-ok" : "grip-chip-warn"}>
-          {mcpOk ? "MCP" : "—"}
-        </span>
+        <Tooltip text={mcpOk ? "MCP connected on :9222" : "Chrome debug port not found"}>
+          <span className={mcpOk ? "grip-chip-ok" : "grip-chip-warn"}>
+            {mcpOk ? "MCP" : "—"}
+          </span>
+        </Tooltip>
       </header>
 
-      <button
-        type="button"
-        className="grip-btn-primary"
-        onClick={() => chrome.runtime.sendMessage({ type: "START_PICKER" })}
-      >
-        Pick
-      </button>
+      <Tooltip text="Pick any element on the page">
+        <button
+          type="button"
+          className="grip-btn-primary w-full"
+          onClick={() => chrome.runtime.sendMessage({ type: "START_PICKER" })}
+        >
+          Pick
+        </button>
+      </Tooltip>
 
       <PickHistoryList
         history={history}

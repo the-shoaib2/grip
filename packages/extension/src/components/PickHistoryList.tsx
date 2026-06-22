@@ -1,5 +1,6 @@
 import { formatAllMcpPrompts, formatMcpPrompt, type StoredPick } from "@grip/core";
 import { CopyButton } from "./CopyButton";
+import { Tooltip } from "./Tooltip";
 
 interface PickHistoryListProps {
   history: StoredPick[];
@@ -56,7 +57,6 @@ export function PickHistoryList({
       <ul className="grip-pick-list">
         {history.map((pick) => {
           const selected = activeId === pick.id;
-          const itemTooltip = pick.css;
           const copyTooltip =
             copyAs === "css"
               ? `Copy CSS: ${pick.label}`
@@ -66,14 +66,20 @@ export function PickHistoryList({
 
           return (
             <li key={pick.id} className={`grip-pick-row ${selected ? "grip-pick-row-active" : ""}`}>
-              <button
-                type="button"
-                className="grip-pick-item"
-                title={itemTooltip}
-                onClick={() => onSelect(pick)}
+              <Tooltip
+                text={`Go to · ${pick.css}`}
+                wide
+                className="min-w-0 flex-1"
               >
-                <span className="truncate">{pick.label}</span>
-              </button>
+                <button
+                  type="button"
+                  className="grip-pick-item w-full"
+                  aria-label={`Go to ${pick.label}`}
+                  onClick={() => onSelect(pick)}
+                >
+                  <span className="truncate">{pick.label}</span>
+                </button>
+              </Tooltip>
               <CopyButton
                 label="Copy"
                 text={pickCopyText(pick, copyAs)}

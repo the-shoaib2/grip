@@ -1,5 +1,6 @@
 import { useGripStore } from "../../stores/gripStore";
 import type { LogMessagePayload } from "@grip/core";
+import { Tooltip } from "../../components/Tooltip";
 
 export function LogPanel() {
   const logs = useGripStore((s) => s.logs);
@@ -9,9 +10,11 @@ export function LogPanel() {
     <section className="mt-4 border-t border-zinc-800 pt-3">
       <div className="mb-2 flex items-center justify-between">
         <h2 className="grip-label">Console ({logs.length})</h2>
-        <button type="button" className="grip-btn-ghost" onClick={clearLogs}>
-          Clear
-        </button>
+        <Tooltip text="Clear captured console logs">
+          <button type="button" className="grip-btn-ghost" onClick={clearLogs}>
+            Clear
+          </button>
+        </Tooltip>
       </div>
       <ul className="max-h-40 space-y-1 overflow-y-auto">
         {logs.length === 0 && (

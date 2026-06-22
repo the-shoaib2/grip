@@ -5,6 +5,7 @@ import { CopyButton } from "../components/CopyButton";
 import { GripIcon } from "../components/GripIcon";
 import { PickHistoryList } from "../components/PickHistoryList";
 import { SelectDropdown } from "../components/SelectDropdown";
+import { Tooltip } from "../components/Tooltip";
 import "../styles/globals.css";
 
 type CopyAs = "mcp" | "css" | "xpath";
@@ -70,23 +71,24 @@ function Popup() {
           <GripIcon size={22} />
           <span className="text-sm font-semibold">Grip</span>
         </div>
-        <span className={mcpOk ? "grip-chip-ok" : "grip-chip-warn"}>
-          {mcpOk ? "MCP" : "—"}
-        </span>
+        <Tooltip text={mcpOk ? "MCP connected on :9222" : "Chrome debug port not found"}>
+          <span className={mcpOk ? "grip-chip-ok" : "grip-chip-warn"}>
+            {mcpOk ? "MCP" : "—"}
+          </span>
+        </Tooltip>
       </div>
 
       <div className="mt-3 flex gap-2">
-        <button type="button" className="grip-btn-primary flex-1" onClick={startPicker}>
-          Pick
-        </button>
-        <button
-          type="button"
-          className="grip-btn-secondary"
-          onClick={openTray}
-          title="Open list on page"
-        >
-          List
-        </button>
+        <Tooltip text="Pick any element on the page" className="flex-1">
+          <button type="button" className="grip-btn-primary w-full" onClick={startPicker}>
+            Pick
+          </button>
+        </Tooltip>
+        <Tooltip text="Open saved picks on the page">
+          <button type="button" className="grip-btn-secondary" onClick={openTray}>
+            List
+          </button>
+        </Tooltip>
       </div>
 
       <div className="mt-3">
