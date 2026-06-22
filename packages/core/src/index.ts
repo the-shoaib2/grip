@@ -10,6 +10,7 @@ export {
 } from "./selector.js";
 export {
   appendPickHistory,
+  clearPicksForUrl,
   pickLabel,
   picksForUrl,
   toStoredPick,
@@ -32,7 +33,7 @@ export type {
   LogLevel,
   RefEntry,
   SelectorResult,
-} from "./types.js";
+} from "./types/a11y.js";
 export type {
   GripMessage,
   GripMessageType,

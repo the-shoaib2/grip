@@ -1,12 +1,17 @@
 import { render } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { checkChromeDebugPort, formatMcpPrompt, type StoredPick } from "@grip/core";
-import { CopyButton } from "../components/CopyButton";
-import { GripIcon } from "../components/GripIcon";
-import { PickHistoryList } from "../components/PickHistoryList";
-import { SelectDropdown } from "../components/SelectDropdown";
-import { Tooltip } from "../components/Tooltip";
-import "../styles/globals.css";
+import {
+  CopyButton,
+  GripIcon,
+  HistoryIcon,
+  MousePointerClickIcon,
+  PickHistoryList,
+  PlusIcon,
+  SelectDropdown,
+  Tooltip,
+} from "@/components";
+import "@/styles/globals.css";
 
 type CopyAs = "mcp" | "css" | "xpath";
 
@@ -39,6 +44,16 @@ function Popup() {
     chrome.runtime.sendMessage({ type: "TOGGLE_GRIP_TRAY" }, () => {
       void chrome.runtime.lastError;
       window.close();
+    });
+  };
+
+  const newSession = () => {
+    chrome.runtime.sendMessage({ type: "NEW_SESSION" }, (data: {
+      history?: StoredPick[];
+    }) => {
+      if (chrome.runtime.lastError) return;
+      setHistory(data?.history ?? []);
+      setActive(null);
     });
   };
 
@@ -78,17 +93,39 @@ function Popup() {
         </Tooltip>
       </div>
 
-      <div className="mt-3 flex gap-2">
-        <Tooltip text="Pick any element on the page" className="flex-1">
-          <button type="button" className="grip-btn-primary w-full" onClick={startPicker}>
-            Pick
+      <div className="mt-3 flex items-center justify-between gap-2">
+        <Tooltip text="Pick any element on the page">
+          <button
+            type="button"
+            className="grip-btn-ghost grip-btn-toolbar"
+            aria-label="Pick element"
+            onClick={startPicker}
+          >
+            <MousePointerClickIcon size={15} />
           </button>
         </Tooltip>
-        <Tooltip text="Open saved picks on the page">
-          <button type="button" className="grip-btn-secondary" onClick={openTray}>
-            List
-          </button>
-        </Tooltip>
+        <div className="flex items-center gap-0.5">
+          <Tooltip text="Open saved picks on the page">
+            <button
+              type="button"
+              className="grip-btn-ghost grip-btn-toolbar"
+              aria-label="History"
+              onClick={openTray}
+            >
+              <HistoryIcon size={15} />
+            </button>
+          </Tooltip>
+          <Tooltip text="New session — clear picks for this page">
+            <button
+              type="button"
+              className="grip-btn-ghost grip-btn-toolbar"
+              aria-label="New session"
+              onClick={newSession}
+            >
+              <PlusIcon size={15} />
+            </button>
+          </Tooltip>
+        </div>
       </div>
 
       <div className="mt-3 min-w-0">

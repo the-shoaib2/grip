@@ -3,8 +3,8 @@ import {
   describeElement,
   elementsAtPoint,
 } from "@grip/core";
-import { isExtensionContextValid, safeSendMessage } from "../lib/runtime";
-import { showTray } from "./tray";
+import { isExtensionContextValid, safeSendMessage } from "@/lib";
+import { showTray } from "@/content_scripts/tray";
 
 const HOVER_ID = "__grip_picker_hover__";
 const STYLE_ID = "__grip_picker_style__";

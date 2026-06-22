@@ -46,7 +46,7 @@ export function CopyButton({
       : (tooltip ?? label);
 
   return (
-    <Tooltip text={tip} position="top">
+    <Tooltip text={tip} position="top" wide={size === "icon" || tip.length > 24}>
       <button
         type="button"
         className={cls}

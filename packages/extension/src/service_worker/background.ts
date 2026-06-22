@@ -4,7 +4,7 @@ import type {
   PickerElementPayload,
   StoredPick,
 } from "@grip/core";
-import { appendPickHistory, picksForUrl, toStoredPick } from "@grip/core";
+import { appendPickHistory, clearPicksForUrl, picksForUrl, toStoredPick } from "@grip/core";
 
 const MAX_LOGS = 500;
 const HISTORY_KEY = "pickHistory";
@@ -159,6 +159,31 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
       });
       sendResponse({ ok: true });
       return;
+
+    case "NEW_SESSION":
+      void (async () => {
+        try {
+          const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tab = tabs[0];
+          const url = tab?.url ?? "";
+          const data = await chrome.storage.local.get(HISTORY_KEY);
+          const history = clearPicksForUrl(
+            (data[HISTORY_KEY] as StoredPick[]) ?? [],
+            url,
+          );
+          await chrome.storage.local.set({ [HISTORY_KEY]: history });
+          await chrome.storage.session.remove("lastPick");
+          if (tab?.id) await pushTrayToTab(tab.id, []);
+          sendResponse({ ok: true, history: [] });
+        } catch {
+          try {
+            sendResponse({ ok: false, history: [] });
+          } catch {
+            // Receiver closed before session was cleared.
+          }
+        }
+      })();
+      return true;
 
     case "LOG_ENTRY": {
       const entry = msg.payload as LogMessagePayload;

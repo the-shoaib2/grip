@@ -12,6 +12,9 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "paths": {
+      "@grip/core": ["./packages/core/src/index.ts"]
+    }
   }
 }

@@ -8,7 +8,7 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/the-shoaib2/grip/packages/mcp-server/internal/cdp"
-	"github.com/the-shoaib2/grip/packages/mcp-server/tools"
+	"github.com/the-shoaib2/grip/packages/mcp-server/internal/tools"
 )
 
 func Run(ctx context.Context, logger *slog.Logger, chromePort int) error {

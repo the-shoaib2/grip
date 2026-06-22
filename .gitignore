@@ -62,6 +62,11 @@ packages/extension/src/**/*.js
 packages/extension/src/**/*.d.ts
 packages/extension/src/**/*.js.map
 packages/extension/src/**/*.d.ts.map
+# Accidental tsc output in core source
+packages/core/src/**/*.js
+packages/core/src/**/*.d.ts
+packages/core/src/**/*.js.map
+packages/core/src/**/*.d.ts.map
 
 # Go MCP server
 bin/grip-mcp

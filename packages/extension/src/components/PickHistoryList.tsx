@@ -47,7 +47,7 @@ export function PickHistoryList({
   return (
     <section className="grip-pick-section">
       <div className="mb-2 flex items-center justify-between gap-2">
-        <span className="grip-label">Saved on page</span>
+        <span className="grip-label grip-label-plain">Saved</span>
         <CopyButton
           label="Copy all"
           text={allPlain}
@@ -61,16 +61,17 @@ export function PickHistoryList({
           const selected = activeId === pick.id;
           const copyTooltip =
             copyAs === "css"
-              ? `Copy CSS: ${pick.label}`
+              ? "Copy CSS"
               : copyAs === "xpath"
-                ? `Copy XPath: ${pick.label}`
-                : `Copy MCP prompt: ${pick.label}`;
+                ? "Copy XPath"
+                : "Copy MCP prompt";
 
           return (
             <li key={pick.id} className={`grip-pick-row ${selected ? "grip-pick-row-active" : ""}`}>
               <Tooltip
                 text={`Go to ${pick.label}`}
-                position="bottom"
+                position="top"
+                wide
                 className="min-w-0 flex-1"
               >
                 <button

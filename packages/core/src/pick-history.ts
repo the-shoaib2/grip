@@ -36,6 +36,23 @@ export function appendPickHistory(
   return [entry, ...withoutDup].slice(0, MAX_HISTORY);
 }
 
+export function clearPicksForUrl(history: StoredPick[], url: string): StoredPick[] {
+  try {
+    const u = new URL(url);
+    const pageKey = u.origin + u.pathname;
+    return history.filter((h) => {
+      try {
+        const hu = new URL(h.url);
+        return hu.origin + hu.pathname !== pageKey;
+      } catch {
+        return h.url !== url;
+      }
+    });
+  } catch {
+    return history.filter((h) => h.url !== url);
+  }
+}
+
 export function picksForUrl(history: StoredPick[], url: string): StoredPick[] {
   try {
     const u = new URL(url);

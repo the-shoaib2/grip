@@ -1,4 +1,4 @@
-import { safeSendMessage } from "../lib/runtime";
+import { safeSendMessage } from "@/lib";
 
 const levels = ["log", "info", "warn", "error", "debug"] as const;
 

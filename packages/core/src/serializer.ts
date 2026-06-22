@@ -1,4 +1,4 @@
-import type { A11ySnapshot } from "./types.js";
+import type { A11ySnapshot } from "./types/a11y.js";
 
 export function serializeForLLM(snapshot: A11ySnapshot): string {
   const parts: string[] = [];

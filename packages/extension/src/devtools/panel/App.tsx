@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
-import { useGripStore } from "../../stores/gripStore";
+import { useGripStore } from "@/stores";
 import {
   checkChromeDebugPort,
   formatMcpPrompt,
@@ -7,14 +7,16 @@ import {
   type PickerElementPayload,
   type StoredPick,
 } from "@grip/core";
-import { CommentField } from "../../components/CommentField";
-import { CopyButton } from "../../components/CopyButton";
-import { GripIcon } from "../../components/GripIcon";
-import { PickHistoryList } from "../../components/PickHistoryList";
-import { SelectDropdown } from "../../components/SelectDropdown";
-import { Tooltip } from "../../components/Tooltip";
-import { LogPanel } from "./LogPanel";
-import "../../styles/globals.css";
+import {
+  CommentField,
+  CopyButton,
+  GripIcon,
+  PickHistoryList,
+  SelectDropdown,
+  Tooltip,
+} from "@/components";
+import { LogPanel } from "@/devtools/panel/LogPanel";
+import "@/styles/globals.css";
 
 type CopyAs = "mcp" | "css" | "xpath";
 

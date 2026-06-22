@@ -1,5 +1,5 @@
 import type { RefMap } from "./ref-map.js";
-import type { A11ySnapshot, CdpSession } from "./types.js";
+import type { A11ySnapshot, CdpSession } from "./types/a11y.js";
 import { serializeForLLM } from "./serializer.js";
 
 interface AXNode {

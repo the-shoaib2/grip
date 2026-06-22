@@ -1,4 +1,4 @@
-import type { RefEntry } from "./types.js";
+import type { RefEntry } from "./types/a11y.js";
 
 export class RefMap {
   private entries = new Map<string, RefEntry>();

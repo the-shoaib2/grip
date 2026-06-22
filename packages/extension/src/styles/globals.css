@@ -19,9 +19,9 @@
   --grip-on-accent: #ffffff;
   --grip-scrollbar-thumb: rgba(0, 0, 0, 0.22);
   --grip-scrollbar-thumb-hover: rgba(0, 0, 0, 0.35);
-  --grip-tooltip-bg: #27272a;
+  --grip-tooltip-bg: #18181b;
   --grip-tooltip-fg: #fafafa;
-  --grip-tooltip-border: #3f3f46;
+  --grip-tooltip-border: #a1a1aa;
   --grip-success: #059669;
   --grip-success-soft: rgba(5, 150, 105, 0.12);
   --grip-warning: #d97706;
@@ -46,9 +46,9 @@
     --grip-on-accent: #ffffff;
     --grip-scrollbar-thumb: rgba(255, 255, 255, 0.22);
     --grip-scrollbar-thumb-hover: rgba(255, 255, 255, 0.34);
-    --grip-tooltip-bg: #27272a;
-    --grip-tooltip-fg: #fafafa;
-    --grip-tooltip-border: #52525b;
+    --grip-tooltip-bg: #fafafa;
+    --grip-tooltip-fg: #18181b;
+    --grip-tooltip-border: #71717a;
     --grip-success: #34d399;
     --grip-success-soft: rgba(52, 211, 153, 0.15);
     --grip-warning: #fbbf24;
@@ -114,8 +114,10 @@ body {
 
 .grip-popup {
   width: 20rem;
+  min-height: 20rem;
   max-width: 100%;
   overflow-x: hidden;
+  overflow-y: visible;
   background: var(--grip-bg);
   color: var(--grip-fg);
   padding: 0.75rem;
@@ -142,6 +144,11 @@ body {
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--grip-muted);
+}
+
+.grip-label-plain {
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .grip-value {
@@ -199,11 +206,20 @@ body {
 .grip-btn-ghost {
   background: transparent;
   color: var(--grip-muted);
+  box-shadow: none;
 }
 
 .grip-btn-ghost:hover {
   background: var(--grip-surface-hover);
   color: var(--grip-fg);
+}
+
+.grip-btn-toolbar {
+  width: 1.625rem;
+  height: 1.625rem;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
 }
 
 .grip-chip {
@@ -286,19 +302,21 @@ body {
 
 .grip-pick-section {
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
   padding: 0;
 }
 
 .grip-pick-list {
-  max-height: 9rem;
+  max-height: 11.5rem;
   min-width: 0;
   overflow-x: hidden;
   overflow-y: auto;
+  padding-top: 0.125rem;
+  padding-bottom: 0.125rem;
 }
 
 .grip-pick-list > * + * {
-  margin-top: 0.125rem;
+  margin-top: 0.25rem;
 }
 
 .grip-pick-row {
@@ -306,12 +324,23 @@ body {
   min-width: 0;
   align-items: center;
   gap: 0.25rem;
+  min-height: 1.875rem;
+  border: none;
   border-radius: 0.5rem;
-  padding-right: 0.125rem;
+  background: var(--grip-surface);
+  padding: 0.125rem 0.125rem 0.125rem 0.625rem;
   transition: background 0.15s ease;
 }
 
+.grip-pick-row:hover {
+  background: var(--grip-surface-hover);
+}
+
 .grip-pick-row-active {
+  background: var(--grip-accent-soft);
+}
+
+.grip-pick-row-active:hover {
   background: var(--grip-accent-soft);
 }
 
@@ -322,19 +351,45 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  border-radius: 0.5rem;
-  padding: 0.375rem 0.625rem;
+  border: 0;
+  background: transparent;
+  padding: 0.1875rem 0;
   text-align: left;
   font-size: 11px;
+  line-height: 1.2;
   color: var(--grip-fg);
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: color 0.15s ease;
 }
 
 .grip-pick-item:hover {
-  background: var(--grip-surface-hover);
+  background: transparent;
 }
 
 .grip-pick-row-active .grip-pick-item {
+  color: var(--grip-accent-fg);
+}
+
+.grip-pick-row .grip-btn-icon {
+  height: 1.5rem;
+  width: 1.5rem;
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  color: var(--grip-muted);
+}
+
+.grip-pick-row .grip-btn-icon:hover {
+  background: color-mix(in srgb, var(--grip-surface-hover) 80%, transparent);
+  color: var(--grip-fg);
+}
+
+.grip-pick-row-active .grip-btn-icon {
+  background: transparent;
+  color: var(--grip-accent-fg);
+}
+
+.grip-pick-row-active .grip-btn-icon:hover {
+  background: color-mix(in srgb, var(--grip-accent) 12%, transparent);
   color: var(--grip-accent-fg);
 }
 
@@ -399,7 +454,6 @@ body {
 }
 
 .grip-tooltip-wrap {
-  position: relative;
   display: inline-flex;
   min-width: 0;
   max-width: 100%;
@@ -407,57 +461,32 @@ body {
 
 .grip-tooltip {
   pointer-events: none;
-  visibility: hidden;
-  position: absolute;
-  z-index: 50;
-  max-width: 240px;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: min(16rem, calc(100vw - 1rem));
   border-radius: 9999px;
-  border: 1px solid var(--grip-tooltip-border);
+  border: none;
   background: var(--grip-tooltip-bg);
   color: var(--grip-tooltip-fg);
-  padding: 0.25rem 0.625rem;
-  font-size: 10px;
+  padding: 0.375rem 0.75rem;
+  font-size: 11px;
   font-weight: 500;
-  opacity: 0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transition: opacity 0.15s ease;
+  line-height: 1.35;
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
 }
 
-.grip-tooltip-wrap:hover .grip-tooltip,
-.grip-tooltip-wrap:focus-within .grip-tooltip {
-  visibility: visible;
-  opacity: 1;
-}
-
-.grip-tooltip-top {
-  bottom: 100%;
-  left: 50%;
-  margin-bottom: 0.375rem;
-  transform: translateX(-50%);
-}
-
-.grip-tooltip-bottom {
-  left: 50%;
-  top: 100%;
-  margin-top: 0.375rem;
-  transform: translateX(-50%);
+.grip-tooltip-portal {
+  position: fixed;
+  z-index: 2147483646;
 }
 
 .grip-tooltip-wide {
-  left: auto;
-  right: 0;
-  max-width: 240px;
-  transform: translateX(0);
+  width: auto;
+  max-width: min(16rem, calc(100vw - 1rem));
   white-space: normal;
-  word-break: break-all;
-  border-radius: 0.5rem;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  border-radius: 9999px;
   text-align: left;
-  text-transform: none;
-}
-
-.grip-tooltip-wrap:hover .grip-tooltip-wide.grip-tooltip-top,
-.grip-tooltip-wrap:focus-within .grip-tooltip-wide.grip-tooltip-top {
-  bottom: 100%;
-  right: 0;
-  margin-bottom: 0.375rem;
 }

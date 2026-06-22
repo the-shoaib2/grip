@@ -1,5 +1,5 @@
 import type { StoredPick } from "@grip/core";
-import { navigateToSelector } from "./navigator";
+import { navigateToSelector } from "@/content_scripts/navigator";
 
 const TRAY_ID = "__grip_tray__";
 

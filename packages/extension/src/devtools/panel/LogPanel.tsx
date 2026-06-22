@@ -1,6 +1,6 @@
-import { useGripStore } from "../../stores/gripStore";
+import { useGripStore } from "@/stores";
 import type { LogMessagePayload } from "@grip/core";
-import { Tooltip } from "../../components/Tooltip";
+import { Tooltip } from "@/components";
 
 export function LogPanel() {
   const logs = useGripStore((s) => s.logs);

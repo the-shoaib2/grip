@@ -1,5 +1,5 @@
 import { finder } from "@medv/finder";
-import type { SelectorResult } from "./types.js";
+import type { SelectorResult } from "./types/a11y.js";
 
 function escapeCssIdent(value: string): string {
   if (typeof CSS !== "undefined" && typeof CSS.escape === "function") {
