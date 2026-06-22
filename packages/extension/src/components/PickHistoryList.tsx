@@ -6,20 +6,12 @@ interface PickHistoryListProps {
   history: StoredPick[];
   activeId?: string;
   onSelect: (pick: StoredPick) => void;
-  copyAs?: "mcp" | "css" | "xpath";
-}
-
-function pickCopyText(pick: StoredPick, copyAs: "mcp" | "css" | "xpath"): string {
-  if (copyAs === "css") return pick.css;
-  if (copyAs === "xpath") return pick.xpath;
-  return formatMcpPrompt(pick);
 }
 
 export function PickHistoryList({
   history,
   activeId,
   onSelect,
-  copyAs = "mcp",
 }: PickHistoryListProps) {
   if (!history.length) {
     return (
@@ -30,19 +22,6 @@ export function PickHistoryList({
   }
 
   const allText = formatAllMcpPrompts(history);
-  const copyAllTooltip =
-    copyAs === "css"
-      ? "Copy all CSS selectors"
-      : copyAs === "xpath"
-        ? "Copy all XPath"
-        : "Copy all prompts";
-
-  const allPlain =
-    copyAs === "css"
-      ? history.map((p) => p.css).join("\n")
-      : copyAs === "xpath"
-        ? history.map((p) => p.xpath).join("\n")
-        : allText;
 
   return (
     <section className="grip-pick-section">
@@ -50,8 +29,8 @@ export function PickHistoryList({
         <span className="grip-label grip-label-plain">Saved</span>
         <CopyButton
           label="Copy all"
-          text={allPlain}
-          tooltip={copyAllTooltip}
+          text={allText}
+          tooltip="Copy all prompts"
           variant="ghost"
           size="default"
         />
@@ -59,12 +38,6 @@ export function PickHistoryList({
       <ul className="grip-pick-list">
         {history.map((pick) => {
           const selected = activeId === pick.id;
-          const copyTooltip =
-            copyAs === "css"
-              ? "Copy CSS"
-              : copyAs === "xpath"
-                ? "Copy XPath"
-                : "Copy prompt";
 
           return (
             <li key={pick.id} className={`grip-pick-row ${selected ? "grip-pick-row-active" : ""}`}>
@@ -85,8 +58,8 @@ export function PickHistoryList({
               </Tooltip>
               <CopyButton
                 label="Copy"
-                text={pickCopyText(pick, copyAs)}
-                tooltip={copyTooltip}
+                text={formatMcpPrompt(pick)}
+                tooltip="Copy prompt"
                 variant="ghost"
                 size="icon"
               />

@@ -143,7 +143,6 @@ export function App() {
       <PickHistoryList
         history={history}
         activeId={activeId}
-        copyAs={copyAs}
         onSelect={selectPick}
       />
 

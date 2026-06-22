@@ -1,25 +1,21 @@
 import { render } from "preact";
 import { useEffect, useState } from "preact/hooks";
-import { checkChromeDebugPort, formatMcpPrompt, type StoredPick } from "@grip/core";
+import { checkChromeDebugPort, type StoredPick } from "@grip/core";
 import {
-  CopyButton,
   GripIcon,
   HistoryIcon,
   MousePointerClickIcon,
   PickHistoryList,
   PlusIcon,
-  SelectDropdown,
   Tooltip,
 } from "@/components";
 import "@/styles/globals.css";
-
-type CopyAs = "mcp" | "css" | "xpath";
 
 function Popup() {
   const [mcpOk, setMcpOk] = useState(false);
   const [history, setHistory] = useState<StoredPick[]>([]);
   const [active, setActive] = useState<StoredPick | null>(null);
-  const [copyAs, setCopyAs] = useState<CopyAs>("mcp");
+  const [pickError, setPickError] = useState<string | null>(null);
 
   useEffect(() => {
     void checkChromeDebugPort().then((r: { ok: boolean }) => setMcpOk(r.ok));
@@ -34,8 +30,19 @@ function Popup() {
   }, []);
 
   const startPicker = () => {
-    chrome.runtime.sendMessage({ type: "START_PICKER" }, () => {
-      void chrome.runtime.lastError;
+    setPickError(null);
+    chrome.runtime.sendMessage({ type: "START_PICKER" }, (res: {
+      ok?: boolean;
+      error?: string;
+    }) => {
+      if (chrome.runtime.lastError) {
+        setPickError(chrome.runtime.lastError.message ?? "Could not start picker");
+        return;
+      }
+      if (res?.ok === false) {
+        setPickError(res.error ?? "Could not start picker");
+        return;
+      }
       window.close();
     });
   };
@@ -63,21 +70,6 @@ function Popup() {
       void chrome.runtime.lastError;
     });
   };
-
-  const activeCopyText = !active
-    ? ""
-    : copyAs === "css"
-      ? active.css
-      : copyAs === "xpath"
-        ? active.xpath
-        : formatMcpPrompt(active);
-
-  const activeCopyTooltip =
-    copyAs === "css"
-      ? "Copy CSS for selected element"
-      : copyAs === "xpath"
-        ? "Copy XPath for selected element"
-        : "Copy prompt for selected element";
 
   return (
     <div className="grip-popup">
@@ -128,35 +120,19 @@ function Popup() {
         </div>
       </div>
 
+      {pickError && (
+        <p className="mt-2 text-[11px] leading-snug" style={{ color: "var(--grip-danger)" }}>
+          {pickError}
+        </p>
+      )}
+
       <div className="mt-3 min-w-0">
         <PickHistoryList
           history={history}
           activeId={active?.id}
-          copyAs={copyAs}
           onSelect={selectPick}
         />
       </div>
-
-      {active && (
-        <div className="mt-3 flex min-w-0 items-end gap-2">
-          <SelectDropdown
-            label="Copy as"
-            className="flex-1"
-            value={copyAs}
-            options={[
-              { value: "mcp", label: "Prompt" },
-              { value: "css", label: "CSS" },
-              { value: "xpath", label: "XPath" },
-            ]}
-            onChange={(v) => setCopyAs(v as CopyAs)}
-          />
-          <CopyButton
-            label="Copy"
-            text={activeCopyText}
-            tooltip={activeCopyTooltip}
-          />
-        </div>
-      )}
     </div>
   );
 }

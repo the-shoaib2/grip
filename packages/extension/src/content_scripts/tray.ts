@@ -93,6 +93,7 @@ chrome.runtime.onMessage.addListener((msg) => {
   if (msg.type === "UPDATE_TRAY_PICKS") {
     setTrayPicks(msg.payload ?? []);
   }
+  if (msg.type === "SHOW_TRAY") showTray();
 });
 
 // Tray toggle on page (http/https only)

@@ -4,7 +4,6 @@ import {
   elementsAtPoint,
 } from "@grip/core";
 import { isExtensionContextValid, safeSendMessage } from "@/lib";
-import { showTray } from "@/content_scripts/tray";
 
 const HOVER_ID = "__grip_picker_hover__";
 const STYLE_ID = "__grip_picker_style__";
@@ -164,7 +163,7 @@ function showCommentPrompt(el: Element): void {
   const finish = (comment: string) => {
     cleanup();
     sendPick(el, comment);
-    showTray();
+    safeSendMessage({ type: "SHOW_TRAY" });
   };
 
   done.onclick = () => finish(input.value);
@@ -193,18 +192,21 @@ function onClick(e: MouseEvent): void {
   showCommentPrompt(el);
 }
 
+function startPicker(): void {
+  cleanup();
+  pickerActive = true;
+  cycleIndex = 0;
+  ensureStyle();
+  document.addEventListener("mousemove", onMove, true);
+  document.addEventListener("click", onClick, true);
+  document.addEventListener("keydown", onKey, true);
+}
+
 chrome.runtime.onMessage.addListener((msg) => {
   if (!isExtensionContextValid()) {
     cleanup();
     return;
   }
-  if (msg.type === "START_PICKER" && !pickerActive) {
-    pickerActive = true;
-    cycleIndex = 0;
-    ensureStyle();
-    document.addEventListener("mousemove", onMove, true);
-    document.addEventListener("click", onClick, true);
-    document.addEventListener("keydown", onKey, true);
-  }
+  if (msg.type === "START_PICKER") startPicker();
   if (msg.type === "STOP_PICKER") cleanup();
 });

@@ -28,7 +28,9 @@ function sendToTab(tabId: number, message: unknown): Promise<void> {
 async function ensureContentScripts(tabId: number): Promise<void> {
   const entry = chrome.runtime.getManifest().content_scripts?.[0];
   const files = entry?.js;
-  if (!files?.length) return;
+  if (!files?.length) {
+    throw new Error("Grip content scripts are not configured");
+  }
   await chrome.scripting.executeScript({
     target: { tabId, allFrames: true },
     files: [...files],
@@ -45,15 +47,19 @@ async function pushTrayToTab(tabId: number, picks: StoredPick[]): Promise<void> 
 
 async function startPickerOnTab(tabId: number, url?: string): Promise<void> {
   if (!isInspectableUrl(url)) {
-    console.warn("[Grip] Open an http(s) page first.");
-    return;
+    throw new Error("Open an http(s) page first");
   }
+
+  const message = { type: "START_PICKER" };
+
   try {
-    await sendToTab(tabId, { type: "START_PICKER" });
+    await sendToTab(tabId, message);
+    return;
   } catch {
     await ensureContentScripts(tabId);
-    await sendToTab(tabId, { type: "START_PICKER" });
   }
+
+  await sendToTab(tabId, message);
 }
 
 async function savePick(
@@ -85,12 +91,28 @@ async function savePick(
 chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) => {
   switch (msg.type) {
     case "START_PICKER":
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        const tab = tabs[0];
-        if (tab?.id) void startPickerOnTab(tab.id, tab.url);
-      });
-      sendResponse({ ok: true });
-      return;
+      void (async () => {
+        try {
+          const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tab = tabs[0];
+          if (!tab?.id) {
+            sendResponse({ ok: false, error: "No active tab" });
+            return;
+          }
+          await startPickerOnTab(tab.id, tab.url);
+          sendResponse({ ok: true });
+        } catch (err) {
+          try {
+            sendResponse({
+              ok: false,
+              error: err instanceof Error ? err.message : "Could not start picker",
+            });
+          } catch {
+            // Receiver closed before picker could start.
+          }
+        }
+      })();
+      return true;
 
     case "PICKER_ELEMENT_SELECTED":
       void (async () => {

@@ -8,7 +8,8 @@ export type GripMessageType =
   | "NETWORK_ENTRY"
   | "PANEL_READY"
   | "TOGGLE_GRIP_TRAY"
-  | "NEW_SESSION";
+  | "NEW_SESSION"
+  | "SHOW_TRAY";
 
 export interface PickerElementPayload {
   tagName: string;
