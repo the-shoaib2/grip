@@ -6,10 +6,10 @@
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev --filter=@grip/playground --filter=@grip/extension",
-    "dev:playground": "pnpm --filter @grip/playground dev",
+    "dev:playground": "turbo dev --filter=@grip/playground --filter=@grip/devtools",
     "dev:extension": "pnpm --filter @grip/extension dev",
     "dev:grip": "bash scripts/dev-grip.sh",
-    "dev:ui": "pnpm --filter @grip/playground dev",
+    "dev:ui": "turbo dev --filter=@grip/playground --filter=@grip/devtools",
     "lint": "turbo lint",
     "test": "turbo test",
     "typecheck": "turbo typecheck",

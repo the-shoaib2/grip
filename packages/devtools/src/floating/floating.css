@@ -52,8 +52,8 @@
 
 .grip-floating-menu {
   display: none;
-  width: 21.25rem;
-  max-width: min(21.25rem, calc(100vw - 24px));
+  width: 20rem;
+  max-width: min(20rem, calc(100vw - 24px));
   max-height: min(80vh, 640px);
   overflow: hidden;
   order: -1;
