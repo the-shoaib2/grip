@@ -48,6 +48,8 @@ function onClick(e: MouseEvent): void {
       iframe: window !== window.top ? location.href : "none",
       innerText: (el.textContent ?? "").slice(0, 80),
     },
+  }, () => {
+    void chrome.runtime.lastError;
   });
 }
 

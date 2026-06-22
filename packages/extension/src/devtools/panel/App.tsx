@@ -1,6 +1,6 @@
 import { useEffect } from "preact/hooks";
 import { useGripStore } from "../../stores/gripStore";
-import type { GripMessage, LogMessagePayload, PickerElementPayload } from "@grip/core";
+import type { LogMessagePayload, PickerElementPayload } from "@grip/core";
 import { LogPanel } from "./LogPanel";
 import "../../styles/globals.css";
 
@@ -8,34 +8,42 @@ export function App() {
   const lastPick = useGripStore((s) => s.lastPick);
   const setLastPick = useGripStore((s) => s.setLastPick);
   const addLog = useGripStore((s) => s.addLog);
+  const clearLogs = useGripStore((s) => s.clearLogs);
 
   useEffect(() => {
     chrome.runtime.sendMessage({ type: "PANEL_READY" }, (data: {
       lastPick?: PickerElementPayload;
       logs?: LogMessagePayload[];
     }) => {
+      if (chrome.runtime.lastError) return;
       if (data?.lastPick) setLastPick(data.lastPick);
-      if (data?.logs) {
+      if (data?.logs?.length) {
+        clearLogs();
         for (const entry of data.logs) addLog(entry);
       }
     });
 
-    const listener = (msg: GripMessage) => {
-      if (msg.type === "PICKER_ELEMENT_SELECTED") {
-        setLastPick(msg.payload as PickerElementPayload);
+    const onStorage = (
+      changes: Record<string, chrome.storage.StorageChange>,
+      area: string,
+    ) => {
+      if (area !== "session") return;
+      if (changes.lastPick?.newValue) {
+        setLastPick(changes.lastPick.newValue as PickerElementPayload);
       }
-      if (msg.type === "LOG_ENTRY") {
-        addLog(msg.payload as LogMessagePayload);
+      if (changes.logs?.newValue) {
+        const next = changes.logs.newValue as LogMessagePayload[];
+        useGripStore.setState({ logs: next });
       }
     };
-    chrome.runtime.onMessage.addListener(listener);
-    return () => chrome.runtime.onMessage.removeListener(listener);
-  }, [setLastPick, addLog]);
+    chrome.storage.onChanged.addListener(onStorage);
+    return () => chrome.storage.onChanged.removeListener(onStorage);
+  }, [setLastPick, addLog, clearLogs]);
 
   if (!lastPick) {
     return (
       <div className="grip-panel p-3">
-        <p className="text-zinc-500">Use the popup to pick an element.</p>
+        <p className="text-zinc-500">Use the popup to pick an element on an http(s) page.</p>
         <LogPanel />
       </div>
     );

@@ -3,8 +3,10 @@ import "../styles/globals.css";
 
 function Popup() {
   const startPicker = () => {
-    chrome.runtime.sendMessage({ type: "START_PICKER" });
-    window.close();
+    chrome.runtime.sendMessage({ type: "START_PICKER" }, () => {
+      void chrome.runtime.lastError;
+      window.close();
+    });
   };
 
   return (
