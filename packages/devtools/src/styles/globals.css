@@ -10,24 +10,34 @@
   --grip-muted: #71717a;
   --grip-surface: #f4f4f5;
   --grip-surface-hover: #e4e4e7;
+  --grip-inset-bg: #f4f4f5;
   --grip-border: #e4e4e7;
   --grip-border-strong: #d4d4d8;
+  --grip-shell-bg: #ffffff;
+  --grip-shell-border: #e4e4e7;
+  --grip-shell-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.1);
+  --grip-shell-radius: 0.75rem;
+  --grip-focus-ring: #93c5fd;
   --grip-accent: #2563eb;
   --grip-accent-hover: #1d4ed8;
-  --grip-accent-soft: rgba(37, 99, 235, 0.12);
+  --grip-accent-soft: #dbeafe;
   --grip-accent-fg: #1d4ed8;
   --grip-on-accent: #ffffff;
-  --grip-scrollbar-thumb: rgba(0, 0, 0, 0.22);
-  --grip-scrollbar-thumb-hover: rgba(0, 0, 0, 0.35);
+  --grip-chip-bg: #e4e4e7;
+  --grip-chip-fg: #3f3f46;
+  --grip-chip-active-bg: #bfdbfe;
+  --grip-chip-active-fg: #1e3a8a;
+  --grip-scrollbar-thumb: #c4c4cc;
+  --grip-scrollbar-thumb-hover: #a1a1aa;
   --grip-tooltip-bg: #18181b;
   --grip-tooltip-fg: #fafafa;
   --grip-tooltip-border: #a1a1aa;
   --grip-success: #059669;
-  --grip-success-soft: rgba(5, 150, 105, 0.12);
+  --grip-success-soft: #d1fae5;
   --grip-warning: #d97706;
-  --grip-warning-soft: rgba(217, 119, 6, 0.12);
+  --grip-warning-soft: #fef3c7;
   --grip-danger: #dc2626;
-  --grip-danger-soft: rgba(220, 38, 38, 0.12);
+  --grip-danger-soft: #fee2e2;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -37,24 +47,33 @@
     --grip-muted: #a1a1aa;
     --grip-surface: #18181b;
     --grip-surface-hover: #27272a;
+    --grip-inset-bg: #18181b;
     --grip-border: #3f3f46;
     --grip-border-strong: #52525b;
+    --grip-shell-bg: #09090b;
+    --grip-shell-border: #3f3f46;
+    --grip-shell-shadow: 0 1px 2px rgba(0, 0, 0, 0.28), 0 8px 24px rgba(0, 0, 0, 0.42);
+    --grip-focus-ring: #1d4ed8;
     --grip-accent: #3b82f6;
     --grip-accent-hover: #60a5fa;
-    --grip-accent-soft: rgba(59, 130, 246, 0.15);
+    --grip-accent-soft: #1e3a5f;
     --grip-accent-fg: #93c5fd;
     --grip-on-accent: #ffffff;
-    --grip-scrollbar-thumb: rgba(255, 255, 255, 0.22);
-    --grip-scrollbar-thumb-hover: rgba(255, 255, 255, 0.34);
+    --grip-chip-bg: #27272a;
+    --grip-chip-fg: #d4d4d8;
+    --grip-chip-active-bg: #1e40af;
+    --grip-chip-active-fg: #dbeafe;
+    --grip-scrollbar-thumb: #52525b;
+    --grip-scrollbar-thumb-hover: #71717a;
     --grip-tooltip-bg: #fafafa;
     --grip-tooltip-fg: #18181b;
     --grip-tooltip-border: #71717a;
     --grip-success: #34d399;
-    --grip-success-soft: rgba(52, 211, 153, 0.15);
+    --grip-success-soft: #064e3b;
     --grip-warning: #fbbf24;
-    --grip-warning-soft: rgba(251, 191, 36, 0.15);
+    --grip-warning-soft: #78350f;
     --grip-danger: #f87171;
-    --grip-danger-soft: rgba(248, 113, 113, 0.15);
+    --grip-danger-soft: #7f1d1d;
   }
 }
 
@@ -119,10 +138,11 @@ body {
   gap: 0.25rem;
   overflow-x: hidden;
   overflow-y: visible;
-  background: var(--grip-bg);
+  background: var(--grip-shell-bg);
   color: var(--grip-fg);
   padding: 0.75rem;
   box-sizing: border-box;
+  box-shadow: var(--grip-shell-shadow);
 }
 
 .grip-popup:not(.grip-shell-devtools):not(.grip-shell-floating) {
@@ -131,13 +151,12 @@ body {
   max-width: 20rem;
   min-height: 19rem;
   flex-shrink: 0;
+  border-radius: var(--grip-shell-radius);
 }
 
 .grip-shell-floating {
   min-height: 19rem;
   border-radius: 1rem;
-  border: 1px solid var(--grip-border);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
   max-height: min(36rem, calc(100vh - 5rem));
   overflow-y: auto;
 }
@@ -146,6 +165,7 @@ body {
   width: 100%;
   min-height: 100%;
   overflow-y: auto;
+  border-radius: var(--grip-shell-radius);
 }
 
 .grip-popup-header {
@@ -241,13 +261,14 @@ body {
   gap: 0.25rem;
   min-height: 100%;
   overflow-x: hidden;
-  background: var(--grip-bg);
+  background: var(--grip-shell-bg);
   color: var(--grip-fg);
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   font-size: 0.875rem;
   -webkit-font-smoothing: antialiased;
   padding: 1rem;
   box-sizing: border-box;
+  box-shadow: var(--grip-shell-shadow);
 }
 
 .grip-popup-header-actions {
@@ -395,7 +416,7 @@ body {
   margin-top: 0.25rem;
   word-break: break-all;
   border-radius: 0.5rem;
-  background: color-mix(in srgb, var(--grip-surface) 80%, transparent);
+  background: var(--grip-inset-bg);
   padding: 0.5rem 0.75rem;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 0.75rem;
@@ -544,7 +565,7 @@ button.grip-mcp-chip {
 }
 
 .grip-chip-error:hover {
-  background: color-mix(in srgb, var(--grip-danger) 18%, transparent);
+  background: var(--grip-danger-soft);
   color: var(--grip-danger);
 }
 
@@ -560,7 +581,7 @@ button.grip-chip-warn {
 }
 
 button.grip-chip-warn:hover {
-  background: color-mix(in srgb, var(--grip-warning) 18%, transparent);
+  background: var(--grip-warning-soft);
   color: var(--grip-warning);
 }
 
@@ -583,7 +604,7 @@ button.grip-chip-warn:hover {
 
 .grip-select:focus {
   border-color: var(--grip-accent);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--grip-accent) 40%, transparent);
+  box-shadow: 0 0 0 2px var(--grip-focus-ring);
 }
 
 .grip-select-wrap {
@@ -719,7 +740,7 @@ button.grip-chip-warn:hover {
 }
 
 .grip-pick-row .grip-btn-icon:hover {
-  background: color-mix(in srgb, var(--grip-surface-hover) 80%, transparent);
+  background: var(--grip-surface-hover);
   color: var(--grip-fg);
 }
 
@@ -729,7 +750,7 @@ button.grip-chip-warn:hover {
 }
 
 .grip-pick-row-active .grip-btn-icon:hover {
-  background: color-mix(in srgb, var(--grip-accent) 12%, transparent);
+  background: var(--grip-accent-soft);
   color: var(--grip-accent-fg);
 }
 
@@ -764,7 +785,7 @@ button.grip-chip-warn:hover {
   resize: none;
   border-radius: 1rem;
   border: 1px solid var(--grip-border);
-  background: color-mix(in srgb, var(--grip-surface) 80%, transparent);
+  background: var(--grip-inset-bg);
   color: var(--grip-fg);
   padding: 0.75rem 1rem;
   font-size: 0.75rem;
@@ -782,7 +803,7 @@ button.grip-chip-warn:hover {
 
 .grip-textarea:focus {
   border-color: var(--grip-accent);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--grip-accent) 40%, transparent);
+  box-shadow: 0 0 0 2px var(--grip-focus-ring);
 }
 
 .grip-context-field {
@@ -795,7 +816,7 @@ button.grip-chip-warn:hover {
   max-height: 10rem;
   overflow-y: auto;
   border-radius: 0.75rem;
-  background: color-mix(in srgb, var(--grip-surface) 80%, transparent);
+  background: var(--grip-inset-bg);
   padding: 0.5rem 0.625rem;
   cursor: text;
   line-height: 1.45;
@@ -828,9 +849,8 @@ button.grip-chip-warn:hover {
   margin: 0 0.125rem;
   padding: 0.125rem 0.5rem;
   border-radius: 9999px;
-  border: none;
-  background: color-mix(in srgb, #2d3748 88%, var(--grip-surface));
-  color: #cbd5e1;
+  background: var(--grip-chip-bg);
+  color: var(--grip-chip-fg);
   font-size: 10px;
   font-weight: 500;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -842,8 +862,8 @@ button.grip-chip-warn:hover {
 }
 
 .grip-inline-chip-active {
-  background: color-mix(in srgb, var(--grip-accent) 18%, #2d3748);
-  color: #f8fafc;
+  background: var(--grip-chip-active-bg);
+  color: var(--grip-chip-active-fg);
 }
 
 .grip-chip-tooltip {
@@ -871,7 +891,7 @@ button.grip-chip-warn:hover {
 .grip-chip-tooltip-tag {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 10px;
-  color: #93c5fd;
+  color: var(--grip-accent-fg);
 }
 
 .grip-chip-tooltip-role {
@@ -879,12 +899,12 @@ button.grip-chip-warn:hover {
   color: var(--grip-muted);
   padding: 0.0625rem 0.375rem;
   border-radius: 9999px;
-  background: color-mix(in srgb, var(--grip-surface-hover) 90%, transparent);
+  background: var(--grip-surface-hover);
 }
 
 .grip-chip-tooltip-text {
   margin: 0.125rem 0 0;
-  color: color-mix(in srgb, var(--grip-fg) 88%, transparent);
+  color: var(--grip-fg);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
