@@ -468,10 +468,10 @@ body {
   border: none;
   background: var(--grip-tooltip-bg);
   color: var(--grip-tooltip-fg);
-  padding: 0.375rem 0.75rem;
-  font-size: 11px;
+  padding: 0.1875rem 0.625rem;
+  font-size: 10px;
   font-weight: 500;
-  line-height: 1.35;
+  line-height: 1.2;
   white-space: nowrap;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
 }

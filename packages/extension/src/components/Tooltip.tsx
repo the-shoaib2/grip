@@ -35,7 +35,7 @@ function computeLayout(
   let placement = preferred;
   const spaceTop = anchor.top - VIEWPORT_PAD;
   const spaceBottom = vh - anchor.bottom - VIEWPORT_PAD;
-  const tooltipHeight = tooltip.height || 28;
+  const tooltipHeight = tooltip.height || 22;
 
   if (placement === "top" && spaceTop < tooltipHeight + GAP && spaceBottom > spaceTop) {
     placement = "bottom";
