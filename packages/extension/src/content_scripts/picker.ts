@@ -34,6 +34,7 @@ let stackSize = 1;
 let pendingElements: PendingPick[] = [];
 let activePendingIndex = 0;
 let sessionPickCount = 0;
+let composerPrompt = "";
 let panelManuallyPlaced = false;
 let panelDrag: {
   startX: number;
@@ -55,6 +56,7 @@ function cleanup(): void {
   cycleIndex = 0;
   pendingElements = [];
   activePendingIndex = 0;
+  composerPrompt = "";
   panelManuallyPlaced = false;
   panelDrag = null;
 }
@@ -266,7 +268,7 @@ function ensureStyle(): void {
       position:fixed;
       z-index:2147483645;
       box-sizing:border-box;
-      border:2px dashed rgba(59,130,246,0.45);
+      border:1px dashed rgba(59,130,246,0.45);
       border-radius:0;
       background:rgba(59,130,246,0.04);
       pointer-events:none;
@@ -275,7 +277,7 @@ function ensureStyle(): void {
       position:fixed;
       z-index:2147483646;
       box-sizing:border-box;
-      border:2px dashed rgba(59,130,246,0.45);
+      border:1px dashed rgba(59,130,246,0.45);
       border-radius:0;
       background:rgba(59,130,246,0.04);
       pointer-events:none;
@@ -284,7 +286,7 @@ function ensureStyle(): void {
       position:fixed;
       z-index:2147483646;
       box-sizing:border-box;
-      border:2px dashed #3b82f6;
+      border:1px dashed #3b82f6;
       border-radius:0;
       background:rgba(59,130,246,0.06);
       box-shadow:none;
@@ -469,6 +471,81 @@ function ensureSelectedLayer(): HTMLElement {
   return layer;
 }
 
+function getComposerInput(): HTMLTextAreaElement | null {
+  return document.getElementById("__grip_comment_input__") as HTMLTextAreaElement | null;
+}
+
+function chipHtml(index: number, tag: string, active: boolean): string {
+  return `<button type="button" class="grip-pending-chip${active ? " grip-pending-chip-active" : ""}" data-index="${index}">
+    <span>${escapeHtml(tag)}</span>
+    <span class="grip-pending-remove" data-remove="${index}" aria-label="Remove">×</span>
+  </button>`;
+}
+
+function renderPendingBadges(): void {
+  const badges = document.getElementById("__grip_comment_badges__");
+  if (!badges) return;
+
+  const chips = badges.querySelectorAll<HTMLElement>("[data-index]");
+
+  if (chips.length === pendingElements.length) {
+    chips.forEach((chip, index) => {
+      const item = pendingElements[index];
+      if (!item) return;
+      chip.className = `grip-pending-chip${index === activePendingIndex ? " grip-pending-chip-active" : ""}`;
+      chip.dataset.index = String(index);
+      const label = chip.querySelector("span:first-child");
+      if (label) label.textContent = item.tag;
+      chip.querySelector<HTMLElement>("[data-remove]")?.setAttribute("data-remove", String(index));
+    });
+    return;
+  }
+
+  if (chips.length + 1 === pendingElements.length) {
+    const index = pendingElements.length - 1;
+    const item = pendingElements[index];
+    if (item) {
+      badges.insertAdjacentHTML(
+        "beforeend",
+        chipHtml(index, item.tag, index === activePendingIndex),
+      );
+    }
+    chips.forEach((chip, index) => {
+      chip.className = `grip-pending-chip${index === activePendingIndex ? " grip-pending-chip-active" : ""}`;
+    });
+    return;
+  }
+
+  badges.innerHTML = pendingElements
+    .map((item, index) => chipHtml(index, item.tag, index === activePendingIndex))
+    .join("");
+}
+
+function withComposerState(fn: () => void): void {
+  const input = getComposerInput();
+  const snapshot = input
+    ? {
+        value: input.value,
+        start: input.selectionStart,
+        end: input.selectionEnd,
+        focused: document.activeElement === input,
+      }
+    : null;
+
+  fn();
+
+  if (!input || !snapshot) return;
+  input.value = snapshot.value;
+  composerPrompt = snapshot.value;
+  if (snapshot.focused) {
+    input.focus({ preventScroll: true });
+    const start = Math.min(snapshot.start, input.value.length);
+    const end = Math.min(snapshot.end, input.value.length);
+    input.setSelectionRange(start, end);
+  }
+  syncComposerInput(input);
+}
+
 function updatePendingHighlights(): void {
   ensureStyle();
   const layer = ensureSelectedLayer();
@@ -488,27 +565,15 @@ function updatePendingHighlights(): void {
 }
 
 function updatePendingUI(): void {
-  const badges = document.getElementById("__grip_comment_badges__");
-  const sessionLabel = document.getElementById("__grip_session_label__");
-  if (!badges) return;
-
-  badges.innerHTML = pendingElements
-    .map((item, index) => {
-      const active = index === activePendingIndex ? " grip-pending-chip-active" : "";
-      return `<button type="button" class="grip-pending-chip${active}" data-index="${index}">
-        <span>${escapeHtml(item.tag)}</span>
-        <span class="grip-pending-remove" data-remove="${index}" aria-label="Remove">×</span>
-      </button>`;
-    })
-    .join("");
-
-  if (sessionLabel) {
-    sessionLabel.textContent = formatPickerIndexLabel();
-  }
-
-  updateComposerPlaceholder();
-  updatePendingHighlights();
-  syncComposerInput();
+  withComposerState(() => {
+    renderPendingBadges();
+    const sessionLabel = document.getElementById("__grip_session_label__");
+    if (sessionLabel) {
+      sessionLabel.textContent = formatPickerIndexLabel();
+    }
+    updateComposerPlaceholder();
+    updatePendingHighlights();
+  });
 }
 
 function formatPickerIndexLabel(): string {
@@ -564,18 +629,24 @@ function handleComposerBackspace(input: HTMLTextAreaElement): boolean {
 }
 
 function syncComposerInput(input?: HTMLTextAreaElement | null): void {
-  const el =
-    input ?? (document.getElementById("__grip_comment_input__") as HTMLTextAreaElement | null);
+  const el = input ?? getComposerInput();
   const grow = document.getElementById("__grip_input_grow__");
   if (!el || !grow) return;
 
+  composerPrompt = el.value;
   const mirror = el.value.length > 0 ? el.value : el.placeholder;
   grow.setAttribute("data-value", mirror);
+
+  const start = el.selectionStart;
+  const end = el.selectionEnd;
   el.style.height = "auto";
   el.style.height = `${Math.min(el.scrollHeight, 96)}px`;
+  if (document.activeElement === el) {
+    el.setSelectionRange(start, end);
+  }
 }
 
-function addToPending(el: Element): void {
+function addToPending(el: Element, options?: { keepTyping?: boolean }): void {
   const next = toPending(el);
   const existingIndex = pendingElements.findIndex((item) => item.css === next.css);
   if (existingIndex >= 0) {
@@ -589,7 +660,7 @@ function addToPending(el: Element): void {
   updatePendingUI();
 
   const panel = document.getElementById(COMMENT_ID);
-  if (panel && !panelManuallyPlaced) {
+  if (panel && !panelManuallyPlaced && !options?.keepTyping) {
     positionCommentPanel(panel, el);
   }
 }
@@ -625,23 +696,22 @@ function ensureCommentPanel(): HTMLElement {
 }
 
 function bindBadgeEvents(panel: HTMLElement): void {
-  const badges = panel.querySelector("#__grip_comment_badges__");
   const composer = panel.querySelector("#__grip_comment_composer__");
-  if (!badges || badges.getAttribute("data-bound") === "1") return;
-  badges.setAttribute("data-bound", "1");
+  if (!composer || composer.getAttribute("data-bound") === "1") return;
+  composer.setAttribute("data-bound", "1");
 
-    composer?.addEventListener("mousedown", (e) => {
-      const target = e.target as HTMLElement;
-      if (target.closest("[data-index], [data-remove]")) {
-        e.preventDefault();
-        return;
-      }
-      if (!target.closest("#__grip_comment_input__")) {
-        focusComposerInput();
-      }
-    });
+  composer.addEventListener("mousedown", (e) => {
+    const target = e.target as HTMLElement;
+    if (target.closest("[data-index], [data-remove]")) {
+      e.preventDefault();
+      return;
+    }
+    if (!target.closest("#__grip_comment_input__")) {
+      focusComposerInput();
+    }
+  });
 
-  badges.addEventListener("click", (e) => {
+  composer.addEventListener("click", (e) => {
     const target = e.target as HTMLElement;
     const removeBtn = target.closest<HTMLElement>("[data-remove]");
     if (removeBtn) {
@@ -661,8 +731,7 @@ function bindBadgeEvents(panel: HTMLElement): void {
 }
 
 function focusComposerInput(): void {
-  const input = document.getElementById("__grip_comment_input__") as HTMLTextAreaElement | null;
-  input?.focus();
+  getComposerInput()?.focus({ preventScroll: true });
 }
 
 function resumeHover(): void {
@@ -671,6 +740,7 @@ function resumeHover(): void {
   document.getElementById(SELECTED_ID)?.remove();
   pendingElements = [];
   activePendingIndex = 0;
+  composerPrompt = "";
   panelManuallyPlaced = false;
   panelDrag = null;
   phase = "hover";
@@ -679,7 +749,7 @@ function resumeHover(): void {
 
 function finishPick(comment: string, continueSession: boolean): void {
   if (!pendingElements.length) return;
-  const trimmed = comment.trim();
+  const trimmed = (comment || composerPrompt).trim();
   for (const item of pendingElements) {
     sendPick(item.el, trimmed);
   }
@@ -687,6 +757,7 @@ function finishPick(comment: string, continueSession: boolean): void {
   sessionPickCount += pendingElements.length;
   pendingElements = [];
   activePendingIndex = 0;
+  composerPrompt = "";
 
   if (continueSession) {
     resumeHover();
@@ -714,6 +785,7 @@ function showCommentPrompt(el: Element): void {
   if (isNewPanel) {
     pendingElements = [];
     activePendingIndex = 0;
+    composerPrompt = "";
     input.value = "";
   }
 
@@ -743,17 +815,13 @@ function showCommentPrompt(el: Element): void {
       }
       if (e.key === "Escape") resumeHover();
     };
-    input.addEventListener("input", () => syncComposerInput(input));
+    input.addEventListener("input", () => {
+      composerPrompt = input.value;
+      syncComposerInput(input);
+    });
 
     panel.addEventListener("mousedown", (e) => e.stopPropagation());
     panel.addEventListener("click", (e) => e.stopPropagation());
-
-    composer?.addEventListener("mousedown", (e) => {
-      const target = e.target as HTMLElement;
-      if (target === composer || target.classList.contains("grip-context-composer")) {
-        focusComposerInput();
-      }
-    });
   }
 
   if (!panelManuallyPlaced) {
@@ -804,10 +872,9 @@ function onClick(e: MouseEvent): void {
   }
 
   if (phase === "comment") {
-    const input = document.getElementById("__grip_comment_input__") as HTMLTextAreaElement | null;
-    const hadFocus = document.activeElement === input;
-    addToPending(el);
-    if (hadFocus) input?.focus();
+    const input = getComposerInput();
+    const keepTyping = document.activeElement === input;
+    addToPending(el, { keepTyping });
     return;
   }
 
