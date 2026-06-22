@@ -46,6 +46,14 @@
   @apply grip-chip bg-amber-500/15 text-amber-400;
 }
 
+.grip-select {
+  @apply rounded-full border border-zinc-800 bg-zinc-900/80 px-4 py-2 text-xs text-zinc-200 outline-none transition-colors hover:border-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/40;
+}
+
+.grip-textarea {
+  @apply w-full resize-none rounded-2xl border border-zinc-800 bg-zinc-900/80 px-4 py-3 text-xs text-zinc-200 outline-none transition-colors placeholder:text-zinc-600 hover:border-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/40;
+}
+
 .grip-log-error {
   @apply text-red-400;
 }

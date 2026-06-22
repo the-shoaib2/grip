@@ -16,6 +16,8 @@ export interface PickerElementPayload {
   shadowDOM: boolean;
   iframe: string;
   innerText: string;
+  /** User context note — included in MCP prompt for the agent. */
+  comment?: string;
 }
 
 export interface GripMessage<T = unknown> {

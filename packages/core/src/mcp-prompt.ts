@@ -6,7 +6,13 @@ export interface PickerElementDetails extends PickerElementPayload {
 
 /** Format picked element for Grip MCP / Cursor agent consumption. */
 export function formatMcpPrompt(pick: PickerElementDetails): string {
-  const lines = [
+  const lines: string[] = [];
+
+  if (pick.comment?.trim()) {
+    lines.push(`Context: ${pick.comment.trim()}`, "");
+  }
+
+  lines.push(
     `Element: ${pick.tagName} · role: ${pick.role}`,
     `Text: "${pick.innerText}"`,
     `CSS selector: ${pick.css}`,
@@ -24,7 +30,7 @@ export function formatMcpPrompt(pick: PickerElementDetails): string {
     "",
     "If refs expired after navigation, call snapshot() again.",
     `CSS/XPath above are fallbacks when MCP refs are unavailable.`,
-  ];
+  );
   return lines.join("\n");
 }
 

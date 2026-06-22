@@ -1,6 +1,7 @@
 import { render } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { checkChromeDebugPort } from "@grip/core";
+import { GripIcon } from "../components/GripIcon";
 import "../styles/globals.css";
 
 function Popup() {
@@ -19,8 +20,11 @@ function Popup() {
 
   return (
     <div className="w-64 bg-zinc-950 p-4 text-zinc-100">
-      <div className="flex items-center justify-between">
-        <h1 className="text-sm font-semibold">Grip</h1>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <GripIcon size={24} />
+          <h1 className="text-sm font-semibold">Grip</h1>
+        </div>
         <span className={mcpOk ? "grip-chip-ok" : "grip-chip-warn"}>
           {mcpOk ? "MCP" : "No MCP"}
         </span>
@@ -30,7 +34,7 @@ function Popup() {
         Pick element
       </button>
       <p className="mt-3 text-center text-[10px] leading-relaxed text-zinc-600">
-        Deep reach into shadow DOM. Esc to cancel. Open DevTools → Grip for copy &amp; MCP prompt.
+        Add a context comment after pick. Open DevTools → Grip for copy &amp; MCP prompt.
       </p>
     </div>
   );
