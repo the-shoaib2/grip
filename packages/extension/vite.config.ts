@@ -22,7 +22,11 @@ export default defineConfig({
         rootDir,
         "../devtools/src/styles/globals.css",
       ),
+      react: "preact/compat",
+      "react-dom": "preact/compat",
+      "react/jsx-runtime": "preact/jsx-runtime",
     },
+    dedupe: ["preact", "preact/hooks", "preact/compat"],
   },
   css: {
     postcss: "./postcss.config.js",
@@ -30,6 +34,8 @@ export default defineConfig({
   build: {
     outDir: "dist",
     emptyOutDir: true,
+    /** Content scripts run on arbitrary origins; default modulepreload uses `/assets/...` and breaks bootstrap. */
+    modulePreload: false,
   },
   server: {
     port: 5173,

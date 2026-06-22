@@ -32,5 +32,16 @@
       "run_at": "document_start",
       "all_frames": false
     }
+  ],
+  "web_accessible_resources": [
+    {
+      "matches": ["<all_urls>"],
+      "resources": [
+        "public/icons/icon-16.png",
+        "public/icons/icon-32.png",
+        "public/icons/icon-48.png"
+      ],
+      "use_dynamic_url": false
+    }
   ]
 }

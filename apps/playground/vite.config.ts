@@ -10,8 +10,13 @@ export default defineConfig({
     alias: {
       "@grip/core": path.resolve(rootDir, "../../packages/core/src/index.ts"),
       "@grip/devtools": path.resolve(devtoolsDir, "src/index.ts"),
+      "@grip/devtools-floating": path.resolve(devtoolsDir, "src/floating/index.ts"),
       "@grip/devtools-css": path.resolve(devtoolsDir, "src/styles/globals.css"),
+      react: "preact/compat",
+      "react-dom": "preact/compat",
+      "react/jsx-runtime": "preact/jsx-runtime",
     },
+    dedupe: ["preact", "preact/hooks", "preact/compat"],
   },
   css: {
     postcss: "./postcss.config.js",

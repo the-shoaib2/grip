@@ -5,7 +5,7 @@ export { FieldRow } from "./FieldRow";
 export { GripIcon } from "./GripIcon";
 export { GripSessionToolbar } from "./GripSessionToolbar";
 export { PickErrorBanner } from "./PickErrorBanner";
-export { HistoryIcon, MousePointerClickIcon, PlusIcon } from "./icons";
+export { HistoryIcon, MinusIcon, MousePointerClickIcon, PlusIcon } from "./icons";
 export { PickHistoryList } from "./PickHistoryList";
 export { SelectDropdown } from "./SelectDropdown";
 export { Tooltip } from "./Tooltip";

@@ -88,6 +88,21 @@
   width: 22rem;
 }
 
+.lab-preview-floating-stage {
+  position: relative;
+  width: min(28rem, calc(100vw - 2rem));
+  min-height: 28rem;
+  border-radius: 12px;
+  background: #e8eaed;
+  box-shadow: inset 0 0 0 1px #dadce0;
+}
+
+.lab-preview-floating-stage .grip-floating-inner {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+}
+
 .lab-gallery {
   display: grid;
   gap: 1.5rem;

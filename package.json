@@ -8,6 +8,7 @@
     "dev": "turbo dev --filter=@grip/playground --filter=@grip/extension",
     "dev:playground": "pnpm --filter @grip/playground dev",
     "dev:extension": "pnpm --filter @grip/extension dev",
+    "dev:grip": "bash scripts/dev-grip.sh",
     "dev:ui": "pnpm --filter @grip/playground dev",
     "lint": "turbo lint",
     "test": "turbo test",

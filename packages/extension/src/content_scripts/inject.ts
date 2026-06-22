@@ -1,43 +1,12 @@
-import { isExtensionContextValid, safeSendMessage } from "@/lib/runtime";
+import { isExtensionContextValid } from "@/lib/runtime";
+import "@/content_scripts/bootstrap-core";
+import "@/content_scripts/bootstrap-floating";
 
 export type BootstrapFeature = "picker" | "floating";
 
-let corePromise: Promise<void> | null = null;
-let floatingPromise: Promise<void> | null = null;
-
-function reportBootstrapError(err: unknown, feature: BootstrapFeature): never {
-  const message = err instanceof Error ? err.message : String(err);
-  if (isExtensionContextValid()) {
-    safeSendMessage({
-      type: "GRIP_BOOTSTRAP_ERROR",
-      payload: { feature, message },
-    });
-  }
-  throw err instanceof Error ? err : new Error(message);
-}
-
-export function ensureBootstrap(feature: BootstrapFeature = "picker"): Promise<void> {
-  if (feature === "floating") {
-    if (!floatingPromise) {
-      floatingPromise = import("@/content_scripts/bootstrap-floating")
-        .then(() => undefined)
-        .catch((err) => reportBootstrapError(err, feature));
-    }
-    return floatingPromise;
-  }
-
-  if (!corePromise) {
-    corePromise = import("@/content_scripts/bootstrap-core")
-      .then(() => undefined)
-      .catch((err) => reportBootstrapError(err, feature));
-  }
-  return corePromise;
-}
-
-function prefetchFloating(): void {
-  setTimeout(() => {
-    void ensureBootstrap("floating");
-  }, 0);
+/** Bootstraps are loaded eagerly so content-script dynamic imports never break on page origins. */
+export function ensureBootstrap(_feature: BootstrapFeature = "picker"): Promise<void> {
+  return Promise.resolve();
 }
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
@@ -59,9 +28,6 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 
   return false;
 });
-
-void ensureBootstrap("picker");
-void ensureBootstrap("floating");
 
 /** Called by CRXJS loader after this module is imported. */
 export function onExecute(): void {}

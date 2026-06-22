@@ -12,7 +12,9 @@ import {
   SelectDropdown,
   Tooltip,
 } from "@grip/devtools";
+import { FloatingShell } from "@grip/devtools-floating";
 import "@grip/devtools-css";
+import "../../../packages/devtools/src/floating/floating.css";
 import { playgroundRuntime } from "./mockRuntime";
 import "./styles/devtools-lab.css";
 
@@ -89,6 +91,7 @@ function ComponentGallery() {
 
 function DevToolsLab() {
   const [view, setView] = useState<LabView>("popup");
+  const [floatingOpen, setFloatingOpen] = useState(true);
 
   return (
     <GripRuntimeProvider runtime={playgroundRuntime}>
@@ -134,8 +137,16 @@ function DevToolsLab() {
             </div>
           )}
           {view === "floating" && (
-            <div class="lab-preview lab-preview-floating">
-              <GripPanelView layout="floating" />
+            <div class="lab-preview-floating-stage">
+              <FloatingShell
+                open={floatingOpen}
+                onToggle={() => setFloatingOpen((open) => !open)}
+              >
+                <GripPanelView
+                  layout="floating"
+                  onMinimize={() => setFloatingOpen(false)}
+                />
+              </FloatingShell>
             </div>
           )}
           {view === "components" && <ComponentGallery />}

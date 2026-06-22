@@ -1,6 +1,6 @@
-#__grip_tray__ {
+:host {
   position: fixed;
-  top: 12px;
+  bottom: 12px;
   right: 12px;
   z-index: 2147483645;
   pointer-events: none;
@@ -18,33 +18,44 @@
 .grip-floating-inner .grip-tray-toggle {
   border: none;
   border-radius: 9999px;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
   background: #2563eb;
-  color: #fff;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.15s ease, background 0.15s ease;
+  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
   flex-shrink: 0;
+}
+
+.grip-floating-inner .grip-tray-toggle-icon {
+  border-radius: 0;
+  display: block;
+  object-fit: contain;
+  width: 24px;
+  height: 24px;
 }
 
 .grip-floating-inner .grip-tray-toggle:hover {
   background: #1d4ed8;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.5);
 }
 
 .grip-floating-inner.grip-tray-open .grip-tray-toggle {
-  transform: rotate(180deg);
-  background: #1d4ed8;
+  transform: scale(0.94);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .grip-floating-menu {
   display: none;
-  width: min(24rem, calc(100vw - 24px));
+  width: 21.25rem;
+  max-width: min(21.25rem, calc(100vw - 24px));
   max-height: min(80vh, 640px);
-  overflow: auto;
+  overflow: hidden;
   order: -1;
 }
 

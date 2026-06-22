@@ -13,7 +13,7 @@ export function GripIcon({ size = 20, className = "" }: GripIconProps) {
       alt=""
       width={size}
       height={size}
-      className={`rounded-lg ${className}`}
+      className={className}
     />
   );
 }

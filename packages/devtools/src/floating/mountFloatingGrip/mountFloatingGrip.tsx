@@ -9,6 +9,15 @@ import floatingCss from "../floating.css?inline";
 
 export const TRAY_ID = "__grip_tray__";
 
+const HOST_STYLE: Partial<CSSStyleDeclaration> = {
+  position: "fixed",
+  bottom: "12px",
+  right: "12px",
+  zIndex: "2147483645",
+  pointerEvents: "none",
+  font: "12px system-ui, sans-serif",
+};
+
 export interface FloatingGripController {
   toggle(): void;
   setOpen(open: boolean): void;
@@ -37,7 +46,7 @@ function FloatingApp() {
   return (
     <GripRuntimeProvider runtime={chromeRuntimeForMount!}>
       <FloatingShell open={open} onToggle={onToggle}>
-        <GripPanelView layout="floating" />
+        <GripPanelView layout="floating" onMinimize={() => syncOpen(false)} />
       </FloatingShell>
     </GripRuntimeProvider>
   );
@@ -52,7 +61,10 @@ export function mountFloatingGrip(runtime: GripRuntime): FloatingGripController 
   if (!host) {
     host = document.createElement("div");
     host.id = TRAY_ID;
+    Object.assign(host.style, HOST_STYLE);
     document.documentElement.appendChild(host);
+  } else {
+    Object.assign(host.style, HOST_STYLE);
   }
 
   const shadow = host.shadowRoot ?? host.attachShadow({ mode: "open" });
@@ -69,7 +81,14 @@ export function mountFloatingGrip(runtime: GripRuntime): FloatingGripController 
     mountPoint = document.createElement("div");
     mountPoint.setAttribute("data-grip-mount", "true");
     shadow.appendChild(mountPoint);
-    render(<FloatingApp />, mountPoint);
+  }
+
+  if (!mountPoint.childElementCount) {
+    try {
+      render(<FloatingApp />, mountPoint);
+    } catch (err) {
+      console.error("[Grip] Failed to mount floating panel:", err);
+    }
   }
 
   return {
