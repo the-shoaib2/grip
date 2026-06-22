@@ -1,31 +1,30 @@
 {
-  "name": "grip-mcp",
-  "version": "0.1.0",
-  "description": "Grip — browser automation MCP server via Chrome DevTools Protocol",
-  "type": "module",
-  "bin": {
-    "grip-mcp": "./dist/cli.js"
-  },
-  "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
-    "start": "node dist/cli.js",
-    "typecheck": "tsc --noEmit",
-    "smoke": "tsx scripts/smoke-test.ts"
-  },
-  "engines": {
-    "node": ">=20"
-  },
+  "name": "grip",
+  "private": true,
+  "description": "Grab anything on the web.",
   "license": "MIT",
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.12.1",
-    "puppeteer-core": "^24.8.2",
-    "zod": "^3.24.4"
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "lint": "turbo lint",
+    "test": "turbo test",
+    "typecheck": "turbo typecheck",
+    "build:mcp": "cd packages/mcp-server && go build -o ../../bin/grip-mcp ./cmd/grip-mcp",
+    "smoke": "pnpm --filter @grip/core test"
   },
   "devDependencies": {
-    "@types/node": "^22.15.21",
-    "tsup": "^8.5.0",
-    "tsx": "^4.19.4",
-    "typescript": "^5.8.3"
+    "@changesets/cli": "^2.27.10",
+    "@playwright/test": "^1.45.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint": "^9.0.0",
+    "playwright": "^1.45.0",
+    "prettier": "^3.3.3",
+    "turbo": "^2.3.3",
+    "typescript": "^5.4.5"
+  },
+  "packageManager": "pnpm@10.3.0",
+  "engines": {
+    "node": ">=20"
   }
 }

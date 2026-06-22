@@ -1,10 +1,11 @@
 {
   "mcpServers": {
     "grip": {
-      "command": "node",
-      "args": ["${workspaceFolder}/dist/cli.js", "--port", "9229"],
+      "command": "${workspaceFolder}/bin/grip-mcp",
+      "args": ["--port", "9222"],
       "env": {
-        "GRIP_LOG_LEVEL": "info"
+        "GRIP_LOG_LEVEL": "info",
+        "GRIP_CHROME_PORT": "9222"
       }
     }
   }

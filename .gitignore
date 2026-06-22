@@ -1,6 +1,12 @@
 node_modules/
 dist/
+.next/
+.turbo/
+coverage/
+bin/grip-mcp
 *.log
 .DS_Store
 .env
 .env.*
+packages/extension/dist/
+packages/mcp-server/grip-mcp

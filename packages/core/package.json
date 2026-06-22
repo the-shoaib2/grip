@@ -1,0 +1,35 @@
+{
+  "name": "@grip/core",
+  "version": "0.1.0",
+  "description": "Grip core — selectors, accessibility snapshots, ref maps",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@medv/finder": "^4.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@vitest/coverage-v8": "^1.6.0",
+    "tsup": "^8.1.0",
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0"
+  }
+}

@@ -219,9 +219,10 @@ Group errors first, then warnings, then logs.
   "mcpServers": {
     "grip": {
       "command": "grip-mcp",
-      "args": ["--port", "9229"],
+      "args": [],
       "env": {
-        "GRIP_LOG_LEVEL": "info"
+        "GRIP_LOG_LEVEL": "info",
+        "GRIP_CHROME_PORT": "9222"
       }
     }
   }
