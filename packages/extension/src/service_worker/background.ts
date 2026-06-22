@@ -4,7 +4,7 @@ import type {
   PickerElementPayload,
   StoredPick,
 } from "@grip/core";
-import { appendPickHistory, clearPicksForUrl, picksForUrl, toStoredPick } from "@grip/core";
+import { appendPickHistory, clearPicksForUrl, newSessionId, picksForSession, toStoredPick } from "@grip/core";
 import { gripUserError } from "@/lib/errors";
 import {
   ensureTabReady,
@@ -14,7 +14,28 @@ import {
 
 const MAX_LOGS = 500;
 const HISTORY_KEY = "pickHistory";
+const SESSION_KEY = "pickSessionId";
 const logs: LogMessagePayload[] = [];
+
+async function getOrCreateSessionId(): Promise<string> {
+  const data = await chrome.storage.session.get(SESSION_KEY);
+  const existing = data[SESSION_KEY] as string | undefined;
+  if (existing) return existing;
+  const id = newSessionId();
+  await chrome.storage.session.set({ [SESSION_KEY]: id });
+  return id;
+}
+
+async function sessionPicksForUrl(url: string): Promise<StoredPick[]> {
+  const [historyData, sessionData] = await Promise.all([
+    chrome.storage.local.get(HISTORY_KEY),
+    chrome.storage.session.get(SESSION_KEY),
+  ]);
+  const history = (historyData[HISTORY_KEY] as StoredPick[]) ?? [];
+  const sessionId = sessionData[SESSION_KEY] as string | undefined;
+  if (!sessionId) return [];
+  return picksForSession(history, url, sessionId);
+}
 
 function isInspectableUrl(url?: string): boolean {
   if (!url) return false;
@@ -34,8 +55,17 @@ async function startPickerOnTab(tabId: number, url?: string): Promise<void> {
     throw new Error("Open an http(s) page first");
   }
 
+  const sessionId = await getOrCreateSessionId();
+  const sessionPicks = await sessionPicksForUrl(url ?? "");
+
   await ensureTabReady(tabId);
-  await sendToTab(tabId, { type: "START_PICKER" });
+  await sendToTab(tabId, {
+    type: "START_PICKER",
+    payload: {
+      sessionId,
+      sessionPickCount: sessionPicks.length,
+    },
+  });
 }
 
 async function savePick(
@@ -44,10 +74,12 @@ async function savePick(
   url?: string,
   title?: string,
 ): Promise<StoredPick> {
+  const sessionId = await getOrCreateSessionId();
   const stored = toStoredPick(
     pick,
     url ?? "",
     title ?? "",
+    sessionId,
   );
   const data = await chrome.storage.local.get(HISTORY_KEY);
   const history = appendPickHistory(
@@ -58,7 +90,7 @@ async function savePick(
   await chrome.storage.session.set({ lastPick: stored });
 
   if (tabId && url) {
-    const pagePicks = picksForUrl(history, url);
+    const pagePicks = picksForSession(history, url, sessionId);
     await pushTrayToTab(tabId, pagePicks);
   }
   return stored;
@@ -140,11 +172,14 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
     case "GET_PICK_HISTORY":
       void (async () => {
         try {
-          const data = await chrome.storage.local.get(HISTORY_KEY);
-          const history = (data[HISTORY_KEY] as StoredPick[]) ?? [];
           const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
           const url = tabs[0]?.url ?? "";
-          sendResponse({ history: picksForUrl(history, url), all: history });
+          const history = await sessionPicksForUrl(url);
+          const data = await chrome.storage.local.get(HISTORY_KEY);
+          sendResponse({
+            history,
+            all: (data[HISTORY_KEY] as StoredPick[]) ?? [],
+          });
         } catch {
           try {
             sendResponse({ history: [], all: [] });
@@ -180,7 +215,9 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
             (data[HISTORY_KEY] as StoredPick[]) ?? [],
             url,
           );
+          const sessionId = newSessionId();
           await chrome.storage.local.set({ [HISTORY_KEY]: history });
+          await chrome.storage.session.set({ [SESSION_KEY]: sessionId });
           await chrome.storage.session.remove("lastPick");
           if (tab?.id) await pushTrayToTab(tab.id, []);
           sendResponse({ ok: true, history: [] });
@@ -227,9 +264,7 @@ chrome.tabs.onActivated.addListener(() => {
   void chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
     const tab = tabs[0];
     if (!tab?.id || !isInspectableUrl(tab.url)) return;
-    const data = await chrome.storage.local.get(HISTORY_KEY);
-    const history = (data[HISTORY_KEY] as StoredPick[]) ?? [];
-    const pagePicks = picksForUrl(history, tab.url ?? "");
+    const pagePicks = await sessionPicksForUrl(tab.url ?? "");
     await pushTrayToTab(tab.id, pagePicks);
   });
 });

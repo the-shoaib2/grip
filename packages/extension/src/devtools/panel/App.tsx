@@ -3,6 +3,7 @@ import { useGripStore } from "@/stores";
 import {
   checkChromeDebugPort,
   formatMcpPrompt,
+  picksForSession,
   type LogMessagePayload,
   type PickerElementPayload,
   type StoredPick,
@@ -67,20 +68,13 @@ export function App() {
         useGripStore.setState({ logs: changes.logs.newValue as LogMessagePayload[] });
       }
       if (area === "local" && changes.pickHistory?.newValue) {
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-          const url = tabs[0]?.url ?? "";
-          const all = changes.pickHistory!.newValue as StoredPick[];
-          setHistory(
-            all.filter((h) => {
-              try {
-                const u = new URL(url);
-                const hu = new URL(h.url);
-                return hu.origin + hu.pathname === u.origin + u.pathname;
-              } catch {
-                return h.url === url;
-              }
-            }),
-          );
+        void chrome.storage.session.get("pickSessionId").then((sessionData) => {
+          chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            const url = tabs[0]?.url ?? "";
+            const sessionId = sessionData.pickSessionId as string | undefined;
+            const all = changes.pickHistory!.newValue as StoredPick[];
+            setHistory(sessionId ? picksForSession(all, url, sessionId) : []);
+          });
         });
       }
     };
@@ -148,7 +142,12 @@ export function App() {
 
       {lastPick && (
         <>
-          <CommentField value={lastPick.comment ?? ""} onChange={persistComment} />
+          <CommentField
+            value={lastPick.comment ?? ""}
+            onChange={persistComment}
+            tagName={lastPick.tagName}
+            role={lastPick.role}
+          />
           <div className="flex items-end gap-2">
             <SelectDropdown
               label="Copy as"

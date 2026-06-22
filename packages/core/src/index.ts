@@ -11,7 +11,9 @@ export {
 export {
   appendPickHistory,
   clearPicksForUrl,
+  newSessionId,
   pickLabel,
+  picksForSession,
   picksForUrl,
   toStoredPick,
 } from "./pick-history.js";
@@ -40,5 +42,6 @@ export type {
   LogMessagePayload,
   NetworkMessagePayload,
   PickerElementPayload,
+  PickerStartPayload,
   StoredPick,
 } from "./types/messages.js";

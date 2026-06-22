@@ -1,5 +1,6 @@
 import { formatAllMcpPrompts, formatMcpPrompt, type StoredPick } from "@grip/core";
 import { CopyButton } from "./CopyButton";
+import { ElementTagBadge } from "./ElementTagBadge";
 import { Tooltip } from "./Tooltip";
 
 interface PickHistoryListProps {
@@ -26,7 +27,9 @@ export function PickHistoryList({
   return (
     <section className="grip-pick-section">
       <div className="mb-2 flex items-center justify-between gap-2">
-        <span className="grip-label grip-label-plain">Saved</span>
+        <span className="grip-label grip-label-plain">
+          Session{history.length > 0 ? ` · ${history.length}` : ""}
+        </span>
         <CopyButton
           label="Copy all"
           text={allText}
@@ -41,8 +44,9 @@ export function PickHistoryList({
 
           return (
             <li key={pick.id} className={`grip-pick-row ${selected ? "grip-pick-row-active" : ""}`}>
+              <ElementTagBadge tagName={pick.tagName} role={pick.role} className="shrink-0" />
               <Tooltip
-                text={`Go to ${pick.label}`}
+                text={pick.comment?.trim() || `Go to ${pick.label}`}
                 position="top"
                 wide
                 className="min-w-0 flex-1"
@@ -53,7 +57,10 @@ export function PickHistoryList({
                   aria-label={`Go to ${pick.label} — ${pick.css}`}
                   onClick={() => onSelect(pick)}
                 >
-                  {pick.label}
+                  <span className="grip-pick-item-label">{pick.label}</span>
+                  {pick.comment?.trim() ? (
+                    <span className="grip-pick-item-comment">{pick.comment.trim()}</span>
+                  ) : null}
                 </button>
               </Tooltip>
               <CopyButton

@@ -19,14 +19,14 @@ describe("pick-history", () => {
   });
 
   it("stores picks with id", () => {
-    const stored = toStoredPick(base, "https://x.com", "Page");
+    const stored = toStoredPick(base, "https://x.com", "Page", "sess-1");
     expect(stored.id).toBeTruthy();
     expect(stored.label).toContain("span");
   });
 
   it("dedupes by css and url", () => {
-    const a = toStoredPick(base, "https://x.com", "P");
-    const b = toStoredPick({ ...base, innerText: "Hi" }, "https://x.com", "P");
+    const a = toStoredPick(base, "https://x.com", "P", "sess-1");
+    const b = toStoredPick({ ...base, innerText: "Hi" }, "https://x.com", "P", "sess-1");
     const next = appendPickHistory([a], b);
     expect(next).toHaveLength(1);
     expect(next[0].innerText).toBe("Hi");

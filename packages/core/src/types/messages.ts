@@ -26,8 +26,16 @@ export interface PickerElementPayload {
   comment?: string;
 }
 
+/** Sent with START_PICKER so the content script knows the active chat session. */
+export interface PickerStartPayload {
+  sessionId: string;
+  sessionPickCount: number;
+}
+
 export interface StoredPick extends PickerElementPayload {
   id: string;
+  /** Groups picks saved during one chat session on a page. */
+  sessionId: string;
   url: string;
   pageTitle: string;
   timestamp: number;

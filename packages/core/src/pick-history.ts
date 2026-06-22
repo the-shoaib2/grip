@@ -2,6 +2,10 @@ import type { PickerElementPayload, StoredPick } from "./types/messages.js";
 
 const MAX_HISTORY = 80;
 
+export function newSessionId(): string {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
 export function pickLabel(pick: PickerElementPayload): string {
   const text = pick.innerText.trim().slice(0, 24);
   const id = pick.css.match(/#([a-zA-Z][\w-]*)/)?.[1];
@@ -15,10 +19,12 @@ export function toStoredPick(
   pick: PickerElementPayload,
   url: string,
   pageTitle: string,
+  sessionId: string,
 ): StoredPick {
   return {
     ...pick,
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    sessionId,
     url,
     pageTitle,
     timestamp: Date.now(),
@@ -66,4 +72,15 @@ export function picksForUrl(history: StoredPick[], url: string): StoredPick[] {
   } catch {
     return history.filter((h) => h.url === url);
   }
+}
+
+/** Picks saved in the current chat session on this page. */
+export function picksForSession(
+  history: StoredPick[],
+  url: string,
+  sessionId: string,
+): StoredPick[] {
+  return picksForUrl(history, url)
+    .filter((h) => h.sessionId === sessionId)
+    .sort((a, b) => a.timestamp - b.timestamp);
 }

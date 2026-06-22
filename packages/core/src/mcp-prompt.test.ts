@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatMcpPrompt } from "./mcp-prompt.js";
+import { formatAllMcpPrompts, formatMcpPrompt } from "./mcp-prompt.js";
 
 describe("formatMcpPrompt", () => {
   it("includes element details and MCP workflow", () => {
@@ -33,5 +33,24 @@ describe("formatMcpPrompt", () => {
       comment: "Submit the login form",
     });
     expect(out).toContain("Context: Submit the login form");
+  });
+});
+
+describe("formatAllMcpPrompts", () => {
+  const pick = {
+    tagName: "button",
+    css: "#go",
+    xpath: "//button[1]",
+    role: "button",
+    name: "Go",
+    innerText: "Click me",
+    rect: { top: 0, left: 0, width: 100, height: 40 },
+    shadowDOM: false,
+    iframe: "none",
+  };
+
+  it("includes session header for multiple picks", () => {
+    const out = formatAllMcpPrompts([pick, pick]);
+    expect(out).toContain("## Grip session · 2 elements");
   });
 });

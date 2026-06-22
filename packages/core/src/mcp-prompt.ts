@@ -34,17 +34,22 @@ export function formatMcpPrompt(pick: PickerElementDetails): string {
   return lines.join("\n");
 }
 
-/** Join MCP prompts for every saved pick on the page. */
+/** Join MCP prompts for every pick in a chat session (oldest first). */
 export function formatAllMcpPrompts(
   picks: (PickerElementDetails & { label?: string })[],
 ): string {
   if (!picks.length) return "";
-  return picks
+  const header =
+    picks.length === 1
+      ? "## Grip session · 1 element"
+      : `## Grip session · ${picks.length} elements`;
+  const body = picks
     .map((pick, i) => {
       const name = pick.label ?? pick.tagName;
       return `### ${i + 1}. ${name}\n\n${formatMcpPrompt(pick)}`;
     })
     .join("\n\n---\n\n");
+  return `${header}\n\n${body}`;
 }
 
 export const GRIP_MCP_DEFAULT_PORT = 9222;

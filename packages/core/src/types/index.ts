@@ -14,5 +14,6 @@ export type {
   LogMessagePayload,
   NetworkMessagePayload,
   PickerElementPayload,
+  PickerStartPayload,
   StoredPick,
 } from "./messages.js";

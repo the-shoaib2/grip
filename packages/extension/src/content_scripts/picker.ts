@@ -3,9 +3,8 @@ import {
   describeElement,
   elementFromComposedEvent,
   elementsAtPoint,
-  pickLabel,
 } from "@grip/core";
-import type { PickerElementPayload } from "@grip/core";
+import type { PickerStartPayload } from "@grip/core";
 import { isExtensionContextValid, safeSendMessage } from "@/lib";
 
 const TRAY_ID = "__grip_tray__";
@@ -25,10 +24,14 @@ let lastX = 0;
 let lastY = 0;
 let stackSize = 1;
 let selectedElement: Element | null = null;
-
-function pickLabelFor(el: Element): string {
-  return pickLabel({ ...describeElement(el) } as PickerElementPayload);
-}
+let sessionPickCount = 0;
+let panelManuallyPlaced = false;
+let panelDrag: {
+  startX: number;
+  startY: number;
+  originLeft: number;
+  originTop: number;
+} | null = null;
 
 function cleanup(): void {
   document.getElementById(HOVER_ID)?.remove();
@@ -41,6 +44,8 @@ function cleanup(): void {
   phase = "idle";
   cycleIndex = 0;
   selectedElement = null;
+  panelManuallyPlaced = false;
+  panelDrag = null;
 }
 
 function stackAt(x: number, y: number): Element[] {
@@ -69,8 +74,8 @@ function cycleSelection(dir: 1 | -1): void {
     selectedElement = el;
     highlight(el);
     const panel = document.getElementById(COMMENT_ID);
-    if (panel) positionCommentPanel(panel, el);
-    updateCommentLabel(el);
+    if (panel && !panelManuallyPlaced) positionCommentPanel(panel, el);
+    updateCommentBadges(el);
   } else {
     highlight(el);
   }
@@ -113,6 +118,95 @@ function ensureStyle(): void {
     #${HOVER_ID},#${HINT_ID}{pointer-events:none!important}
     #${COMMENT_ID}{pointer-events:auto!important}
     #${COMMENT_ID} *{cursor:auto!important}
+    .grip-picker-panel{
+      width:min(320px,calc(100vw - 16px));
+      padding:10px 12px;
+      border-radius:16px;
+      background:#18181b;
+      border:1px solid #3f3f46;
+      box-shadow:0 12px 40px rgba(0,0,0,.45);
+      font:12px system-ui,sans-serif;
+      color:#fafafa;
+    }
+    .grip-picker-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      margin-bottom:8px;
+      cursor:grab;
+      user-select:none;
+      touch-action:none;
+    }
+    .grip-picker-header.grip-picker-dragging{cursor:grabbing}
+    .grip-picker-session{
+      font-size:11px;
+      font-weight:600;
+      color:#e4e4e7;
+    }
+    .grip-picker-hint{
+      font-size:10px;
+      color:#71717a;
+      white-space:nowrap;
+    }
+    .grip-context-field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      margin-bottom:8px;
+    }
+    .grip-context-badges{
+      display:flex;
+      flex-wrap:wrap;
+      gap:4px;
+      align-items:center;
+    }
+    .grip-el-badge{
+      display:inline-flex;
+      align-items:center;
+      border:none;
+      border-radius:9999px;
+      padding:2px 8px;
+      font-size:10px;
+      font-weight:500;
+      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+      text-transform:lowercase;
+      line-height:1.3;
+      background:transparent;
+      color:#a1a1aa;
+    }
+    .grip-context-input{
+      width:100%;
+      box-sizing:border-box;
+      min-height:44px;
+      max-height:120px;
+      overflow-y:auto;
+      resize:none;
+      border:none;
+      border-radius:12px;
+      background:#09090b;
+      color:#fafafa;
+      padding:8px 12px;
+      font:12px/1.45 system-ui,sans-serif;
+      outline:none;
+    }
+    .grip-context-input:focus{outline:none}
+    .grip-context-input::placeholder{color:#71717a}
+    .grip-picker-actions{
+      display:flex;
+      gap:6px;
+      justify-content:flex-end;
+      flex-wrap:wrap;
+    }
+    .grip-picker-actions button{
+      border-radius:9999px;
+      border:none;
+      padding:6px 12px;
+      font-size:11px;
+      cursor:pointer;
+    }
+    #__grip_comment_done__,#__grip_comment_skip__{background:#27272a;color:#d4d4d8}
+    #__grip_comment_save__{background:#2563eb;color:#fff}
     #${HOVER_ID}{
       position:fixed;
       z-index:2147483646;
@@ -192,7 +286,7 @@ function onMove(e: MouseEvent): void {
     cleanup();
     return;
   }
-  if (phase !== "hover") return;
+  if (phase !== "hover" && phase !== "comment") return;
   if (isGripChrome(e.target)) return;
   updateHover(e.clientX, e.clientY);
 }
@@ -202,7 +296,9 @@ function sendPick(el: Element, comment: string): void {
   safeSendMessage({ type: "PICKER_ELEMENT_SELECTED", payload });
 }
 
-function positionCommentPanel(panel: HTMLElement, el: Element): void {
+function positionCommentPanel(panel: HTMLElement, el: Element, force = false): void {
+  if (panelManuallyPlaced && !force) return;
+
   const anchor = el.getBoundingClientRect();
   const vw = window.innerWidth;
   const vh = window.innerHeight;
@@ -236,11 +332,25 @@ function positionCommentPanel(panel: HTMLElement, el: Element): void {
   panel.style.visibility = "visible";
 }
 
-function updateCommentLabel(el: Element): void {
-  const label = document.getElementById("__grip_comment_label__");
-  if (!label) return;
+function updateCommentBadges(el: Element): void {
+  const badges = document.getElementById("__grip_comment_badges__");
+  const sessionLabel = document.getElementById("__grip_session_label__");
+  if (!badges) return;
+
+  const desc = describeElement(el);
+  const tag = desc.tagName.toLowerCase();
+  const role = desc.role?.toLowerCase() ?? "";
   const cycle = stackSize > 1 ? ` · ${cycleIndex + 1}/${stackSize}` : "";
-  label.textContent = `${pickLabelFor(el)}${cycle}`;
+
+  let html = `<span class="grip-el-badge">${tag}</span>`;
+  if (role && role !== tag) {
+    html += `<span class="grip-el-badge">${role}</span>`;
+  }
+  badges.innerHTML = html;
+
+  if (sessionLabel) {
+    sessionLabel.textContent = `Pick ${sessionPickCount + 1} in session${cycle}`;
+  }
 }
 
 function ensureCommentPanel(): HTMLElement {
@@ -249,15 +359,21 @@ function ensureCommentPanel(): HTMLElement {
 
   panel = document.createElement("div");
   panel.id = COMMENT_ID;
-  panel.style.cssText =
-    "position:fixed;z-index:2147483647;display:none;width:min(300px,calc(100vw - 16px));padding:10px 12px;border-radius:16px;background:#18181b;border:1px solid #3f3f46;box-shadow:0 12px 40px rgba(0,0,0,.45);font:12px system-ui,sans-serif;color:#fafafa;";
+  panel.className = "grip-picker-panel";
+  panel.style.cssText = "position:fixed;z-index:2147483647;display:none;";
   panel.innerHTML = `
-    <div id="__grip_comment_label__" style="margin-bottom:8px;font-size:11px;color:#a1a1aa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
-    <input id="__grip_comment_input__" type="text" placeholder="Context (optional)" style="width:100%;box-sizing:border-box;border-radius:9999px;border:1px solid #3f3f46;background:#09090b;color:#fafafa;padding:8px 12px;font-size:12px;outline:none" />
-    <div style="display:flex;gap:6px;margin-top:8px;justify-content:flex-end;flex-wrap:wrap">
-      <button type="button" id="__grip_comment_done__" style="border-radius:9999px;border:none;background:#27272a;color:#d4d4d8;padding:6px 12px;font-size:11px;cursor:pointer">Done</button>
-      <button type="button" id="__grip_comment_skip__" style="border-radius:9999px;border:none;background:#27272a;color:#d4d4d8;padding:6px 12px;font-size:11px;cursor:pointer">Skip</button>
-      <button type="button" id="__grip_comment_save__" style="border-radius:9999px;border:none;background:#2563eb;color:#fff;padding:6px 12px;font-size:11px;cursor:pointer">Save</button>
+    <div class="grip-picker-header">
+      <span id="__grip_session_label__" class="grip-picker-session">Pick 1 in session</span>
+      <span class="grip-picker-hint">[ ] cycle · Ctrl+Enter save</span>
+    </div>
+    <div class="grip-context-field">
+      <div id="__grip_comment_badges__" class="grip-context-badges"></div>
+      <textarea id="__grip_comment_input__" class="grip-context-input" placeholder="Add context for this element…" rows="2"></textarea>
+    </div>
+    <div class="grip-picker-actions">
+      <button type="button" id="__grip_comment_done__">Done</button>
+      <button type="button" id="__grip_comment_skip__">Skip</button>
+      <button type="button" id="__grip_comment_save__">Save</button>
     </div>
   `;
   document.documentElement.appendChild(panel);
@@ -278,6 +394,7 @@ function finishPick(comment: string, continueSession: boolean): void {
   if (!selectedElement) return;
   sendPick(selectedElement, comment);
   safeSendMessage({ type: "SHOW_TRAY" });
+  sessionPickCount += 1;
 
   if (continueSession) {
     resumeHover();
@@ -294,14 +411,14 @@ function showCommentPrompt(el: Element): void {
   document.getElementById(HINT_ID)?.remove();
 
   const panel = ensureCommentPanel();
-  const input = panel.querySelector("#__grip_comment_input__") as HTMLInputElement;
+  const input = panel.querySelector("#__grip_comment_input__") as HTMLTextAreaElement;
   const save = panel.querySelector("#__grip_comment_save__") as HTMLButtonElement;
   const skip = panel.querySelector("#__grip_comment_skip__") as HTMLButtonElement;
   const done = panel.querySelector("#__grip_comment_done__") as HTMLButtonElement;
 
   input.value = "";
   highlight(el);
-  updateCommentLabel(el);
+  updateCommentBadges(el);
   positionCommentPanel(panel, el);
 
   save.onclick = (e) => {
@@ -318,7 +435,10 @@ function showCommentPrompt(el: Element): void {
   };
   input.onkeydown = (e) => {
     e.stopPropagation();
-    if (e.key === "Enter") finishPick(input.value, true);
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      finishPick(input.value, true);
+    }
     if (e.key === "Escape") resumeHover();
   };
 
@@ -363,8 +483,9 @@ function onClick(e: MouseEvent): void {
   showCommentPrompt(el);
 }
 
-function startPicker(): void {
+function startPicker(payload?: PickerStartPayload): void {
   cleanup();
+  sessionPickCount = payload?.sessionPickCount ?? 0;
   phase = "hover";
   cycleIndex = 0;
   ensureStyle();
@@ -379,7 +500,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     return;
   }
   if (msg.type === "START_PICKER") {
-    startPicker();
+    startPicker(msg.payload as PickerStartPayload | undefined);
     sendResponse({ ok: true });
     return true;
   }
