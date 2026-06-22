@@ -11,8 +11,8 @@ function gripDevBanner(): Plugin {
     configureServer(server) {
       server.httpServer?.once("listening", () => {
         const port = server.config.server.port ?? 5174;
-        console.log(`\n  Grip DevTools UI: http://localhost:${port}/devtools.html`);
-        console.log(`  Fixture page:     http://localhost:${port}/\n`);
+        console.log(`\n  Fixture page:     http://localhost:${port}/`);
+        console.log(`  DevTools UI lab:  http://localhost:${port}/devtools.html\n`);
       });
     },
   };
@@ -38,7 +38,7 @@ export default defineConfig({
   server: {
     port: 5174,
     strictPort: true,
-    open: "/devtools.html",
+    open: "/",
   },
   build: {
     outDir: "dist",

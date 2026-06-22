@@ -6,9 +6,12 @@ export interface SessionLabelProps {
 }
 
 export function SessionLabel({ pickCount, className }: SessionLabelProps) {
+  const label = formatSessionLabel(pickCount);
+  if (!label) return null;
+
   const rootClass = className
     ? `grip-label grip-label-plain ${className}`
     : "grip-label grip-label-plain";
 
-  return <span className={rootClass}>{formatSessionLabel(pickCount)}</span>;
+  return <span className={rootClass}>{label}</span>;
 }

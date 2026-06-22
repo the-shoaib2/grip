@@ -50,7 +50,7 @@ export function GripSessionToolbar({
         </button>
       </Tooltip>
       <div className="grip-popup-toolbar-trail">
-        {!historyOpen && sessionCount > 0 ? (
+        {!historyOpen ? (
           <SessionLabel pickCount={sessionCount} className="grip-session-toolbar-label" />
         ) : null}
         <div className="grip-popup-toolbar-actions">
@@ -67,7 +67,7 @@ export function GripSessionToolbar({
           <Tooltip text={historyOpen ? "Hide session picks" : "Show session picks"}>
             <button
               type="button"
-              className={`grip-btn-ghost grip-btn-toolbar grip-btn-toolbar-icon${historyOpen ? " grip-btn-toolbar-muted-active" : ""}`}
+              className={`grip-btn-ghost grip-btn-toolbar grip-btn-toolbar-icon${historyOpen && sessionCount > 0 ? " grip-btn-toolbar-muted-active" : ""}`}
               aria-label={historyOpen ? "Hide session picks" : "Show session picks"}
               aria-pressed={historyOpen ? "true" : "false"}
               onClick={onToggleHistory}

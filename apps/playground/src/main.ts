@@ -30,7 +30,7 @@ window.setTimeout(() => {
   const hint = document.createElement("div");
   hint.id = "grip-extension-hint";
   hint.textContent =
-    "Grip FAB not detected — load packages/extension/dist in Chrome and reload the extension after each build.";
+    "Grip FAB not detected — load packages/extension/dist in Chrome, or use pnpm dev:playground for the built-in floating panel.";
   Object.assign(hint.style, {
     position: "fixed",
     bottom: "16px",
