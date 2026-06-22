@@ -2,8 +2,12 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Grip — Grab anything on the web",
-  description: "Browser element selector, accessibility inspector, and AI agent browser interface",
+  title: {
+    default: "Grip — Grab anything on the web",
+    template: "%s · Grip Docs",
+  },
+  description:
+    "Browser element selector, accessibility inspector, Chrome extension, and MCP server for AI agents.",
 };
 
 export default function RootLayout({

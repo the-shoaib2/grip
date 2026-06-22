@@ -1,31 +1,35 @@
-import { Nav } from "./components/Nav";
+import Link from "next/link";
+import { SiteFooter, SiteHeader } from "@components/site/SiteChrome";
 
 export default function Home() {
   return (
-    <main className="mx-auto max-w-3xl px-6 py-16">
-      <Nav />
-      <h1 className="text-4xl font-bold tracking-tight">Grip</h1>
-      <p className="mt-2 text-lg text-zinc-400">Grab anything on the web.</p>
-      <p className="mt-6 text-zinc-300">
-        Open-source browser element selector, accessibility inspector, log reader,
-        and AI agent browser interface.
-      </p>
-      <div className="mt-10 grid gap-4 sm:grid-cols-3">
-        {[
-          { title: "@grip/core", desc: "Selectors + a11y snapshots", href: "/docs" },
-          { title: "@grip/extension", desc: "Chrome MV3 picker", href: "/extension" },
-          { title: "grip-mcp", desc: "Go MCP server", href: "/tools" },
-        ].map((c) => (
-          <a
-            key={c.href}
-            href={c.href}
-            className="rounded-lg border border-zinc-800 p-4 hover:border-zinc-600"
-          >
-            <div className="font-mono text-sm text-blue-400">{c.title}</div>
-            <div className="mt-1 text-sm text-zinc-500">{c.desc}</div>
-          </a>
-        ))}
-      </div>
-    </main>
+    <>
+      <SiteHeader />
+      <main className="landing-main">
+        <h1 className="landing-hero-title">Grip</h1>
+        <p className="landing-hero-sub">Grab anything on the web.</p>
+        <p className="landing-hero-desc">
+          Open-source browser element selector, accessibility inspector, log reader,
+          and AI agent browser interface — with a shared UI across popup, DevTools panel,
+          and floating tray, plus MCP tools for Cursor and other clients.
+        </p>
+        <Link href="/docs/getting-started/intro" className="landing-cta">
+          Read the docs
+        </Link>
+        <div className="landing-cards">
+          {[
+            { title: "@grip/core", desc: "Selectors + a11y snapshots", href: "/docs/packages/core" },
+            { title: "@grip/extension", desc: "Chrome MV3 picker", href: "/docs/extension" },
+            { title: "grip-mcp", desc: "Go MCP server", href: "/docs/packages/mcp-server" },
+          ].map((c) => (
+            <Link key={c.href} href={c.href} className="landing-card">
+              <div className="landing-card-title">{c.title}</div>
+              <div className="landing-card-desc">{c.desc}</div>
+            </Link>
+          ))}
+        </div>
+      </main>
+      <SiteFooter />
+    </>
   );
 }
