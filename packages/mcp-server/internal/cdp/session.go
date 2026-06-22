@@ -101,6 +101,7 @@ func (s *Session) Connect(ctx context.Context) error {
 
 	s.allocCtx, s.allocCancel = chromedp.NewRemoteAllocator(ctx, wsURL)
 	s.ctx, s.cancel = chromedp.NewContext(s.allocCtx)
+	s.WireListeners()
 
 	return chromedp.Run(s.ctx,
 		network.Enable(),
@@ -520,8 +521,38 @@ func (s *Session) PickElement(ctx context.Context) (map[string]interface{}, erro
 	})()`
 
 	var picked map[string]interface{}
-	err := chromedp.Run(s.ctx, chromedp.Evaluate(pickerJS, &picked))
-	return picked, err
+	if err := chromedp.Run(s.ctx, chromedp.Evaluate(pickerJS, &picked)); err != nil {
+		return nil, err
+	}
+
+	rectJSON, _ := json.Marshal(picked["rect"])
+	metaJS := fmt.Sprintf(`(() => {
+		const rect = %s;
+		const el = document.elementFromPoint(rect.left + rect.width/2, rect.top + rect.height/2);
+		if (!el) return null;
+		function xpath(e) {
+			if (e.id) return '//*[@id="'+e.id+'"]';
+			const p=[]; let c=e;
+			while(c&&c.nodeType===1){let i=1,s=c.previousElementSibling;while(s){if(s.tagName===c.tagName)i++;s=s.previousElementSibling;}p.unshift(c.tagName.toLowerCase()+'['+i+']');c=c.parentElement;}
+			return '/'+p.join('/');
+		}
+		return {
+			cssSelector: el.tagName.toLowerCase() + (el.id ? '#'+el.id : ''),
+			xpathSelector: xpath(el),
+			role: el.getAttribute('role') || el.tagName.toLowerCase(),
+			name: el.getAttribute('aria-label') || '',
+			shadowDOM: !!(el.getRootNode && el.getRootNode() instanceof ShadowRoot),
+			iframe: window!==window.top ? location.href : 'none'
+		};
+	})()`, string(rectJSON))
+
+	var meta map[string]interface{}
+	if err := chromedp.Run(s.ctx, chromedp.Evaluate(metaJS, &meta)); err == nil && meta != nil {
+		for k, v := range meta {
+			picked[k] = v
+		}
+	}
+	return picked, nil
 }
 
 var _ = cdp.Node{}

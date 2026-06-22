@@ -12,6 +12,8 @@ Grip is a Turborepo monorepo shipping three products:
 
 Docs site: [`apps/docs`](apps/docs)
 
+Full tree: [`STRUCTURE.md`](STRUCTURE.md)
+
 ## Quick start
 
 ```bash

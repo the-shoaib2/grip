@@ -1,4 +1,6 @@
 export type GripMessageType =
+  | "START_PICKER"
+  | "STOP_PICKER"
   | "PICKER_ELEMENT_SELECTED"
   | "LOG_ENTRY"
   | "NETWORK_ENTRY"

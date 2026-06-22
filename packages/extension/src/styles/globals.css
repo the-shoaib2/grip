@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.grip-panel {
+  @apply bg-zinc-950 text-zinc-100 font-mono text-xs;
+}
+
+.grip-label {
+  @apply text-zinc-500 uppercase tracking-wide text-[10px];
+}
+
+.grip-value {
+  @apply text-zinc-200 break-all;
+}
+
+.grip-log-error {
+  @apply text-red-400;
+}
+
+.grip-log-warn {
+  @apply text-amber-400;
+}

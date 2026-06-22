@@ -4,6 +4,9 @@ import manifest from "./manifest.json";
 
 export default defineConfig({
   plugins: [crx({ manifest })],
+  css: {
+    postcss: "./postcss.config.js",
+  },
   build: {
     outDir: "dist",
     emptyOutDir: true,
