@@ -6,7 +6,8 @@ export function gripUserError(message?: string): string {
   if (
     lower.includes("could not load file") ||
     lower.includes("receiving end does not exist") ||
-    lower.includes("extension context invalidated")
+    lower.includes("extension context invalidated") ||
+    lower.includes("message port closed")
   ) {
     return "Refresh this page, then try again.";
   }

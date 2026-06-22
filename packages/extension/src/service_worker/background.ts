@@ -6,60 +6,19 @@ import type {
 } from "@grip/core";
 import { appendPickHistory, clearPicksForUrl, picksForUrl, toStoredPick } from "@grip/core";
 import { gripUserError } from "@/lib/errors";
+import {
+  ensureTabReady,
+  sendToTab,
+  sendToTabWhenReady,
+} from "@/lib/tab-bridge";
 
 const MAX_LOGS = 500;
 const HISTORY_KEY = "pickHistory";
-const REFRESH_HINT = "Refresh this page, then try again.";
 const logs: LogMessagePayload[] = [];
 
 function isInspectableUrl(url?: string): boolean {
   if (!url) return false;
   return /^https?:/i.test(url);
-}
-
-function sendToTab(tabId: number, message: unknown): Promise<void> {
-  return new Promise((resolve, reject) => {
-    chrome.tabs.sendMessage(tabId, message, () => {
-      const err = chrome.runtime.lastError;
-      if (err) reject(new Error(err.message));
-      else resolve();
-    });
-  });
-}
-
-function injectScriptFile(): string | undefined {
-  return chrome.runtime.getManifest().content_scripts?.[0]?.js?.[0];
-}
-
-async function tabHasGrip(tabId: number): Promise<boolean> {
-  try {
-    await sendToTab(tabId, { type: "GRIP_PING" });
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-async function injectGripScripts(tabId: number): Promise<void> {
-  const file = injectScriptFile();
-  if (!file) throw new Error(REFRESH_HINT);
-
-  try {
-    await chrome.scripting.executeScript({
-      target: { tabId, allFrames: false },
-      files: [file],
-    });
-  } catch (err) {
-    throw new Error(gripUserError(err instanceof Error ? err.message : REFRESH_HINT));
-  }
-}
-
-async function ensureTabReady(tabId: number): Promise<void> {
-  if (await tabHasGrip(tabId)) return;
-  await injectGripScripts(tabId);
-  if (!(await tabHasGrip(tabId))) {
-    throw new Error(REFRESH_HINT);
-  }
 }
 
 async function pushTrayToTab(tabId: number, picks: StoredPick[]): Promise<void> {
@@ -77,15 +36,6 @@ async function startPickerOnTab(tabId: number, url?: string): Promise<void> {
 
   await ensureTabReady(tabId);
   await sendToTab(tabId, { type: "START_PICKER" });
-}
-
-async function sendToTabWhenReady(tabId: number, message: unknown): Promise<void> {
-  try {
-    await sendToTab(tabId, message);
-  } catch {
-    await ensureTabReady(tabId);
-    await sendToTab(tabId, message);
-  }
 }
 
 async function savePick(
@@ -172,7 +122,8 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
 
     case "NAVIGATE_TO_PICK": {
       const pick = msg.payload as StoredPick;
-      chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+      void (async () => {
+        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
         const tab = tabs[0];
         if (!tab?.id) return;
         try {
@@ -181,27 +132,32 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
           /* ignore navigation errors */
         }
         await chrome.storage.session.set({ lastPick: pick });
-      });
+      })();
       sendResponse({ ok: true });
       return;
     }
 
     case "GET_PICK_HISTORY":
-      void chrome.storage.local.get(HISTORY_KEY).then((data) => {
-        const history = (data[HISTORY_KEY] as StoredPick[]) ?? [];
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      void (async () => {
+        try {
+          const data = await chrome.storage.local.get(HISTORY_KEY);
+          const history = (data[HISTORY_KEY] as StoredPick[]) ?? [];
+          const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+          const url = tabs[0]?.url ?? "";
+          sendResponse({ history: picksForUrl(history, url), all: history });
+        } catch {
           try {
-            const url = tabs[0]?.url ?? "";
-            sendResponse({ history: picksForUrl(history, url), all: history });
+            sendResponse({ history: [], all: [] });
           } catch {
             // Receiver closed before history was read.
           }
-        });
-      });
+        }
+      })();
       return true;
 
     case "TOGGLE_GRIP_TRAY":
-      chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+      void (async () => {
+        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
         const tab = tabs[0];
         if (!tab?.id) return;
         try {
@@ -209,7 +165,7 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
         } catch {
           /* ignore tray toggle errors */
         }
-      });
+      })();
       sendResponse({ ok: true });
       return;
 
@@ -248,8 +204,9 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
     }
 
     case "PANEL_READY":
-      chrome.storage.session.get(["lastPick", "logs"], (data) => {
+      void (async () => {
         try {
+          const data = await chrome.storage.session.get(["lastPick", "logs"]);
           sendResponse({
             lastPick: data.lastPick as PickerElementPayload | undefined,
             logs: (data.logs as LogMessagePayload[]) ?? logs,
@@ -257,18 +214,35 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
         } catch {
           // Receiver closed before storage read finished.
         }
-      });
+      })();
+      return true;
+
+    case "GRIP_PING":
+      sendResponse({ ok: true });
       return true;
   }
 });
 
 chrome.tabs.onActivated.addListener(() => {
-  chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+  void chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
     const tab = tabs[0];
     if (!tab?.id || !isInspectableUrl(tab.url)) return;
     const data = await chrome.storage.local.get(HISTORY_KEY);
     const history = (data[HISTORY_KEY] as StoredPick[]) ?? [];
     const pagePicks = picksForUrl(history, tab.url ?? "");
     await pushTrayToTab(tab.id, pagePicks);
+  });
+});
+
+chrome.runtime.onInstalled.addListener(() => {
+  void chrome.tabs.query({ url: ["http://*/*", "https://*/*"] }, async (tabs) => {
+    for (const tab of tabs) {
+      if (!tab.id) continue;
+      try {
+        await ensureTabReady(tab.id);
+      } catch {
+        /* tab may be restricted */
+      }
+    }
   });
 });

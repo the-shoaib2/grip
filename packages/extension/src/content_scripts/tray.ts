@@ -177,15 +177,27 @@ export function showTray(): void {
   updateTray();
 }
 
-chrome.runtime.onMessage.addListener((msg) => {
-  if (msg.type === "TOGGLE_GRIP_TRAY") toggleTray();
+chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+  if (msg.type === "TOGGLE_GRIP_TRAY") {
+    toggleTray();
+    sendResponse({ ok: true });
+    return true;
+  }
   if (msg.type === "NAVIGATE_TO_PICK" && msg.payload?.css) {
     navigateToSelector(msg.payload.css);
+    sendResponse({ ok: true });
+    return true;
   }
   if (msg.type === "UPDATE_TRAY_PICKS") {
     setTrayPicks(msg.payload ?? []);
+    sendResponse({ ok: true });
+    return true;
   }
-  if (msg.type === "SHOW_TRAY") showTray();
+  if (msg.type === "SHOW_TRAY") {
+    showTray();
+    sendResponse({ ok: true });
+    return true;
+  }
 });
 
 if (/^https?:/i.test(location.href)) {

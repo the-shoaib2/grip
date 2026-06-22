@@ -373,11 +373,19 @@ function startPicker(): void {
   document.addEventListener("keydown", onKey, true);
 }
 
-chrome.runtime.onMessage.addListener((msg) => {
+chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (!isExtensionContextValid()) {
     cleanup();
     return;
   }
-  if (msg.type === "START_PICKER") startPicker();
-  if (msg.type === "STOP_PICKER") cleanup();
+  if (msg.type === "START_PICKER") {
+    startPicker();
+    sendResponse({ ok: true });
+    return true;
+  }
+  if (msg.type === "STOP_PICKER") {
+    cleanup();
+    sendResponse({ ok: true });
+    return true;
+  }
 });
