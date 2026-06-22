@@ -12,18 +12,27 @@ const HOVER_ID = "__grip_picker_hover__";
 const STYLE_ID = "__grip_picker_style__";
 const COMMENT_ID = "__grip_picker_comment__";
 const HINT_ID = "__grip_picker_hint__";
+const SELECTED_ID = "__grip_picker_selected__";
 
 const VIEWPORT_PAD = 8;
 const PANEL_GAP = 8;
 
 type PickerPhase = "idle" | "hover" | "comment";
 
+interface PendingPick {
+  el: Element;
+  css: string;
+  tag: string;
+  role: string;
+}
+
 let phase: PickerPhase = "idle";
 let cycleIndex = 0;
 let lastX = 0;
 let lastY = 0;
 let stackSize = 1;
-let selectedElement: Element | null = null;
+let pendingElements: PendingPick[] = [];
+let activePendingIndex = 0;
 let sessionPickCount = 0;
 let panelManuallyPlaced = false;
 let panelDrag: {
@@ -38,12 +47,14 @@ function cleanup(): void {
   document.getElementById(STYLE_ID)?.remove();
   document.getElementById(COMMENT_ID)?.remove();
   document.getElementById(HINT_ID)?.remove();
+  document.getElementById(SELECTED_ID)?.remove();
   document.removeEventListener("mousemove", onMove, true);
   document.removeEventListener("click", onClick, true);
   document.removeEventListener("keydown", onKey, true);
   phase = "idle";
   cycleIndex = 0;
-  selectedElement = null;
+  pendingElements = [];
+  activePendingIndex = 0;
   panelManuallyPlaced = false;
   panelDrag = null;
 }
@@ -71,14 +82,10 @@ function cycleSelection(dir: 1 | -1): void {
   const el = targetAt(lastX, lastY, cycleIndex);
   if (!el) return;
   if (phase === "comment") {
-    selectedElement = el;
     highlight(el);
-    const panel = document.getElementById(COMMENT_ID);
-    if (panel && !panelManuallyPlaced) positionCommentPanel(panel, el);
-    updateCommentBadges(el);
-  } else {
-    highlight(el);
+    return;
   }
+  highlight(el);
 }
 
 function onKey(e: KeyboardEvent): void {
@@ -160,7 +167,36 @@ function ensureStyle(): void {
       flex-wrap:wrap;
       gap:4px;
       align-items:center;
+      max-height:72px;
+      overflow-y:auto;
     }
+    .grip-pending-chip{
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      border:none;
+      border-radius:9999px;
+      padding:2px 4px 2px 8px;
+      font-size:10px;
+      font-weight:500;
+      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+      text-transform:lowercase;
+      line-height:1.3;
+      background:transparent;
+      color:#a1a1aa;
+      cursor:pointer;
+    }
+    .grip-pending-chip-active{color:#fafafa;background:#27272a}
+    .grip-pending-remove{
+      border:none;
+      background:transparent;
+      color:#71717a;
+      font-size:12px;
+      line-height:1;
+      padding:0 4px;
+      cursor:pointer;
+    }
+    .grip-pending-remove:hover{color:#fafafa}
     .grip-el-badge{
       display:inline-flex;
       align-items:center;
@@ -207,6 +243,25 @@ function ensureStyle(): void {
     }
     #__grip_comment_done__,#__grip_comment_skip__{background:#27272a;color:#d4d4d8}
     #__grip_comment_save__{background:#2563eb;color:#fff}
+    #${SELECTED_ID}{pointer-events:none!important}
+    #${SELECTED_ID} .grip-selected{
+      position:fixed;
+      z-index:2147483645;
+      box-sizing:border-box;
+      border:2px dashed rgba(59,130,246,0.45);
+      border-radius:0;
+      background:rgba(59,130,246,0.04);
+      pointer-events:none;
+    }
+    #${SELECTED_ID} .grip-selected-active{
+      position:fixed;
+      z-index:2147483646;
+      box-sizing:border-box;
+      border:2px dashed #3b82f6;
+      border-radius:0;
+      background:rgba(59,130,246,0.08);
+      pointer-events:none;
+    }
     #${HOVER_ID}{
       position:fixed;
       z-index:2147483646;
@@ -332,24 +387,152 @@ function positionCommentPanel(panel: HTMLElement, el: Element, force = false): v
   panel.style.visibility = "visible";
 }
 
-function updateCommentBadges(el: Element): void {
+function setupPanelDrag(panel: HTMLElement): void {
+  const header = panel.querySelector(".grip-picker-header") as HTMLElement | null;
+  if (!header || header.dataset.dragBound === "1") return;
+  header.dataset.dragBound = "1";
+
+  header.addEventListener("mousedown", (e) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    const rect = panel.getBoundingClientRect();
+    panelDrag = {
+      startX: e.clientX,
+      startY: e.clientY,
+      originLeft: rect.left,
+      originTop: rect.top,
+    };
+    panelManuallyPlaced = true;
+    header.classList.add("grip-picker-dragging");
+
+    const onDrag = (ev: MouseEvent) => {
+      if (!panelDrag) return;
+      const dx = ev.clientX - panelDrag.startX;
+      const dy = ev.clientY - panelDrag.startY;
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const w = panel.offsetWidth;
+      const h = panel.offsetHeight;
+      panel.style.left = `${clamp(panelDrag.originLeft + dx, VIEWPORT_PAD, vw - VIEWPORT_PAD - w)}px`;
+      panel.style.top = `${clamp(panelDrag.originTop + dy, VIEWPORT_PAD, vh - VIEWPORT_PAD - h)}px`;
+    };
+
+    const onDragEnd = () => {
+      panelDrag = null;
+      header.classList.remove("grip-picker-dragging");
+      document.removeEventListener("mousemove", onDrag, true);
+      document.removeEventListener("mouseup", onDragEnd, true);
+    };
+
+    document.addEventListener("mousemove", onDrag, true);
+    document.addEventListener("mouseup", onDragEnd, true);
+  });
+}
+
+function toPending(el: Element): PendingPick {
+  const desc = describeElement(el);
+  return {
+    el,
+    css: desc.css,
+    tag: desc.tagName.toLowerCase(),
+    role: desc.role?.toLowerCase() ?? "",
+  };
+}
+
+function ensureSelectedLayer(): HTMLElement {
+  let layer = document.getElementById(SELECTED_ID);
+  if (!layer) {
+    layer = document.createElement("div");
+    layer.id = SELECTED_ID;
+    document.documentElement.appendChild(layer);
+  }
+  return layer;
+}
+
+function updatePendingHighlights(): void {
+  ensureStyle();
+  const layer = ensureSelectedLayer();
+  layer.innerHTML = "";
+
+  const min = 3;
+  pendingElements.forEach((item, index) => {
+    const r = item.el.getBoundingClientRect();
+    const box = document.createElement("div");
+    box.className = index === activePendingIndex ? "grip-selected-active" : "grip-selected";
+    box.style.top = `${r.top}px`;
+    box.style.left = `${r.left}px`;
+    box.style.width = `${Math.max(r.width, min)}px`;
+    box.style.height = `${Math.max(r.height, min)}px`;
+    layer.appendChild(box);
+  });
+}
+
+function updatePendingUI(): void {
   const badges = document.getElementById("__grip_comment_badges__");
   const sessionLabel = document.getElementById("__grip_session_label__");
   if (!badges) return;
 
-  const desc = describeElement(el);
-  const tag = desc.tagName.toLowerCase();
-  const role = desc.role?.toLowerCase() ?? "";
   const cycle = stackSize > 1 ? ` · ${cycleIndex + 1}/${stackSize}` : "";
-
-  let html = `<span class="grip-el-badge">${tag}</span>`;
-  if (role && role !== tag) {
-    html += `<span class="grip-el-badge">${role}</span>`;
-  }
-  badges.innerHTML = html;
+  badges.innerHTML = pendingElements
+    .map((item, index) => {
+      const active = index === activePendingIndex ? " grip-pending-chip-active" : "";
+      return `<button type="button" class="grip-pending-chip${active}" data-index="${index}">
+        <span>${escapeHtml(item.tag)}</span>
+        <span class="grip-pending-remove" data-remove="${index}" aria-label="Remove">×</span>
+      </button>`;
+    })
+    .join("");
 
   if (sessionLabel) {
-    sessionLabel.textContent = `Pick ${sessionPickCount + 1} in session${cycle}`;
+    const count = pendingElements.length;
+    const label =
+      count === 1
+        ? `1 selected${cycle}`
+        : `${count} selected${cycle}`;
+    sessionLabel.textContent = label;
+  }
+
+  updatePendingHighlights();
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function removePendingAt(index: number): void {
+  if (index < 0 || index >= pendingElements.length) return;
+  pendingElements.splice(index, 1);
+  if (!pendingElements.length) {
+    resumeHover();
+    return;
+  }
+  activePendingIndex = Math.min(activePendingIndex, pendingElements.length - 1);
+  highlight(pendingElements[activePendingIndex]?.el);
+  updatePendingUI();
+}
+
+function addToPending(el: Element): void {
+  const next = toPending(el);
+  const existingIndex = pendingElements.findIndex((item) => item.css === next.css);
+  if (existingIndex >= 0) {
+    activePendingIndex = existingIndex;
+  } else {
+    pendingElements.push(next);
+    activePendingIndex = pendingElements.length - 1;
+  }
+
+  highlight(el);
+  updatePendingUI();
+
+  const panel = document.getElementById(COMMENT_ID);
+  if (panel && !panelManuallyPlaced) {
+    positionCommentPanel(panel, el);
   }
 }
 
@@ -362,39 +545,70 @@ function ensureCommentPanel(): HTMLElement {
   panel.className = "grip-picker-panel";
   panel.style.cssText = "position:fixed;z-index:2147483647;display:none;";
   panel.innerHTML = `
-    <div class="grip-picker-header">
+    <div class="grip-picker-header" title="Drag to move">
       <span id="__grip_session_label__" class="grip-picker-session">Pick 1 in session</span>
-      <span class="grip-picker-hint">[ ] cycle · Ctrl+Enter save</span>
+      <span class="grip-picker-hint">click add · drag · [ ]</span>
     </div>
     <div class="grip-context-field">
       <div id="__grip_comment_badges__" class="grip-context-badges"></div>
-      <textarea id="__grip_comment_input__" class="grip-context-input" placeholder="Add context for this element…" rows="2"></textarea>
+      <textarea id="__grip_comment_input__" class="grip-context-input" placeholder="Add context for selected elements…" rows="2"></textarea>
     </div>
     <div class="grip-picker-actions">
       <button type="button" id="__grip_comment_done__">Done</button>
       <button type="button" id="__grip_comment_skip__">Skip</button>
-      <button type="button" id="__grip_comment_save__">Save</button>
+      <button type="button" id="__grip_comment_save__">Save all</button>
     </div>
   `;
   document.documentElement.appendChild(panel);
+  setupPanelDrag(panel);
   return panel;
+}
+
+function bindBadgeEvents(panel: HTMLElement): void {
+  const badges = panel.querySelector("#__grip_comment_badges__");
+  if (!badges || badges.getAttribute("data-bound") === "1") return;
+  badges.setAttribute("data-bound", "1");
+  badges.addEventListener("click", (e) => {
+    const target = e.target as HTMLElement;
+    const removeBtn = target.closest<HTMLElement>("[data-remove]");
+    if (removeBtn) {
+      e.stopPropagation();
+      const index = Number(removeBtn.dataset.remove);
+      if (!Number.isNaN(index)) removePendingAt(index);
+      return;
+    }
+    const chip = target.closest<HTMLElement>("[data-index]");
+    if (!chip) return;
+    const index = Number(chip.dataset.index);
+    if (Number.isNaN(index) || !pendingElements[index]) return;
+    activePendingIndex = index;
+    highlight(pendingElements[index].el);
+    updatePendingUI();
+  });
 }
 
 function resumeHover(): void {
   document.getElementById(COMMENT_ID)?.remove();
   document.getElementById(HINT_ID)?.remove();
-  selectedElement = null;
+  document.getElementById(SELECTED_ID)?.remove();
+  pendingElements = [];
+  activePendingIndex = 0;
+  panelManuallyPlaced = false;
+  panelDrag = null;
   phase = "hover";
-  document.addEventListener("mousemove", onMove, true);
-  document.addEventListener("click", onClick, true);
   updateHover(lastX, lastY);
 }
 
 function finishPick(comment: string, continueSession: boolean): void {
-  if (!selectedElement) return;
-  sendPick(selectedElement, comment);
+  if (!pendingElements.length) return;
+  const trimmed = comment.trim();
+  for (const item of pendingElements) {
+    sendPick(item.el, trimmed);
+  }
   safeSendMessage({ type: "SHOW_TRAY" });
-  sessionPickCount += 1;
+  sessionPickCount += pendingElements.length;
+  pendingElements = [];
+  activePendingIndex = 0;
 
   if (continueSession) {
     resumeHover();
@@ -404,55 +618,74 @@ function finishPick(comment: string, continueSession: boolean): void {
 }
 
 function showCommentPrompt(el: Element): void {
-  selectedElement = el;
-  phase = "comment";
-  document.removeEventListener("mousemove", onMove, true);
-  document.removeEventListener("click", onClick, true);
-  document.getElementById(HINT_ID)?.remove();
+  const panel = document.getElementById(COMMENT_ID) ?? ensureCommentPanel();
+  const isNewPanel = phase !== "comment";
 
-  const panel = ensureCommentPanel();
+  if (isNewPanel) {
+    panelManuallyPlaced = false;
+    panelDrag = null;
+    phase = "comment";
+    document.getElementById(HINT_ID)?.remove();
+  }
+
   const input = panel.querySelector("#__grip_comment_input__") as HTMLTextAreaElement;
   const save = panel.querySelector("#__grip_comment_save__") as HTMLButtonElement;
   const skip = panel.querySelector("#__grip_comment_skip__") as HTMLButtonElement;
   const done = panel.querySelector("#__grip_comment_done__") as HTMLButtonElement;
 
-  input.value = "";
-  highlight(el);
-  updateCommentBadges(el);
-  positionCommentPanel(panel, el);
+  if (isNewPanel) {
+    pendingElements = [];
+    activePendingIndex = 0;
+    input.value = "";
+  }
 
-  save.onclick = (e) => {
-    e.stopPropagation();
-    finishPick(input.value, true);
-  };
-  skip.onclick = (e) => {
-    e.stopPropagation();
-    finishPick("", true);
-  };
-  done.onclick = (e) => {
-    e.stopPropagation();
-    cleanup();
-  };
-  input.onkeydown = (e) => {
-    e.stopPropagation();
-    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-      e.preventDefault();
+  addToPending(el);
+  panel.style.display = "block";
+
+  if (save.dataset.bound !== "1") {
+    save.dataset.bound = "1";
+    bindBadgeEvents(panel);
+    save.onclick = (e) => {
+      e.stopPropagation();
       finishPick(input.value, true);
-    }
-    if (e.key === "Escape") resumeHover();
-  };
+    };
+    skip.onclick = (e) => {
+      e.stopPropagation();
+      finishPick("", true);
+    };
+    done.onclick = (e) => {
+      e.stopPropagation();
+      cleanup();
+    };
+    input.onkeydown = (e) => {
+      e.stopPropagation();
+      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        finishPick(input.value, true);
+      }
+      if (e.key === "Escape") resumeHover();
+    };
 
-  panel.onmousedown = (e) => e.stopPropagation();
-  panel.onclick = (e) => e.stopPropagation();
+    panel.addEventListener("mousedown", (e) => e.stopPropagation());
+    panel.addEventListener("click", (e) => e.stopPropagation());
+  }
 
-  const reposition = () => {
-    if (phase === "comment" && selectedElement) {
-      highlight(selectedElement);
-      positionCommentPanel(panel, selectedElement);
-    }
-  };
-  window.addEventListener("resize", reposition, { once: true });
-  window.addEventListener("scroll", reposition, { once: true, capture: true });
+  if (!panelManuallyPlaced) {
+    positionCommentPanel(panel, el, true);
+  }
+
+  if (isNewPanel) {
+    const reposition = () => {
+      const active = pendingElements[activePendingIndex]?.el;
+      if (phase === "comment" && active && !panelManuallyPlaced) {
+        highlight(active);
+        updatePendingHighlights();
+        positionCommentPanel(panel, active);
+      }
+    };
+    window.addEventListener("resize", reposition, { once: true });
+    window.addEventListener("scroll", reposition, { once: true, capture: true });
+  }
 
   input.focus();
 }
@@ -462,7 +695,7 @@ function onClick(e: MouseEvent): void {
     cleanup();
     return;
   }
-  if (phase !== "hover") return;
+  if (phase !== "hover" && phase !== "comment") return;
   if (isGripChrome(e.target)) return;
 
   e.preventDefault();
@@ -477,9 +710,17 @@ function onClick(e: MouseEvent): void {
 
   const el = targetFromClick(e);
   if (!el) {
-    cleanup();
+    if (phase === "hover") cleanup();
     return;
   }
+
+  if (phase === "comment") {
+    addToPending(el);
+    const input = document.querySelector("#__grip_comment_input__") as HTMLTextAreaElement | null;
+    input?.focus();
+    return;
+  }
+
   showCommentPrompt(el);
 }
 
