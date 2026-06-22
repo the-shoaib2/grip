@@ -28,7 +28,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["src/content_scripts/picker.ts", "src/content_scripts/tray.ts", "src/content_scripts/log-injector.ts"],
+      "js": ["src/content_scripts/inject.ts"],
       "run_at": "document_start",
       "all_frames": true
     }
