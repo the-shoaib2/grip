@@ -1,3 +1,5 @@
+import { useEffect, useRef } from "preact/hooks";
+
 interface CommentFieldProps {
   value: string;
   onChange: (value: string) => void;
@@ -6,6 +8,13 @@ interface CommentFieldProps {
   role?: string;
   tags?: string[];
   maxHeight?: number;
+}
+
+function syncGrow(input: HTMLTextAreaElement, grow: HTMLElement): void {
+  const mirror = input.value.length > 0 ? input.value : input.placeholder;
+  grow.setAttribute("data-value", mirror);
+  input.style.height = "auto";
+  input.style.height = `${Math.min(input.scrollHeight, 96)}px`;
 }
 
 export function CommentField({
@@ -17,11 +26,20 @@ export function CommentField({
   tags,
   maxHeight = 160,
 }: CommentFieldProps) {
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const growRef = useRef<HTMLSpanElement>(null);
+
   const chipTags = tags?.length
     ? tags
     : tagName
       ? [tagName.toLowerCase(), ...(role && role !== tagName.toLowerCase() ? [role] : [])]
       : [];
+
+  useEffect(() => {
+    if (inputRef.current && growRef.current) {
+      syncGrow(inputRef.current, growRef.current);
+    }
+  }, [value, placeholder, chipTags.length]);
 
   return (
     <div className="grip-context-field">
@@ -31,8 +49,7 @@ export function CommentField({
         onMouseDown={(e) => {
           const target = e.target as HTMLElement;
           if (target.closest(".grip-pending-chip, .grip-el-badge")) return;
-          const input = (e.currentTarget as HTMLElement).querySelector("textarea");
-          input?.focus();
+          inputRef.current?.focus();
         }}
       >
         <div className="grip-context-inline">
@@ -45,13 +62,24 @@ export function CommentField({
               ))}
             </div>
           ) : null}
-          <textarea
-            className="grip-textarea grip-context-input"
-            value={value}
-            placeholder={chipTags.length ? "" : placeholder}
-            rows={1}
-            onInput={(e) => onChange((e.target as HTMLTextAreaElement).value)}
-          />
+          <span
+            ref={growRef}
+            className="grip-input-grow"
+            data-value={value || (chipTags.length ? "" : placeholder)}
+          >
+            <textarea
+              ref={inputRef}
+              className="grip-textarea grip-context-input"
+              value={value}
+              placeholder={chipTags.length ? "" : placeholder}
+              rows={1}
+              onInput={(e) => {
+                const input = e.target as HTMLTextAreaElement;
+                if (growRef.current) syncGrow(input, growRef.current);
+                onChange(input.value);
+              }}
+            />
+          </span>
         </div>
       </div>
     </div>

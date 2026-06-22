@@ -162,28 +162,21 @@ function ensureStyle(): void {
       margin-bottom:8px;
     }
     .grip-context-composer{
-      min-height:52px;
+      min-height:40px;
       max-height:160px;
       overflow-y:auto;
       border-radius:12px;
       background:#09090b;
       padding:8px 10px;
       cursor:text;
-    }
-    .grip-context-composer:focus-within{
-      outline:1px solid rgba(37,99,235,0.45);
-      outline-offset:0;
+      line-height:1.45;
     }
     .grip-context-inline{
-      display:flex;
-      flex-wrap:wrap;
-      align-items:center;
-      align-content:flex-start;
-      gap:4px;
-      min-height:28px;
+      line-height:1.45;
+      word-break:break-word;
     }
     .grip-context-badges{
-      display:contents;
+      display:inline;
     }
     .grip-context-badges:empty{
       display:none;
@@ -191,64 +184,67 @@ function ensureStyle(): void {
     .grip-pending-chip{
       display:inline-flex;
       align-items:center;
-      gap:4px;
-      flex-shrink:0;
+      gap:3px;
+      vertical-align:baseline;
+      margin:0 4px 2px 0;
       border:none;
       border-radius:9999px;
-      padding:2px 4px 2px 8px;
+      padding:1px 4px 1px 8px;
       font-size:10px;
       font-weight:500;
       font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
       text-transform:lowercase;
-      line-height:1.3;
+      line-height:1.35;
       background:transparent;
       color:#a1a1aa;
       cursor:pointer;
     }
-    .grip-pending-chip-active{color:#fafafa;background:#27272a}
+    .grip-pending-chip-active{color:#fafafa}
     .grip-pending-remove{
       border:none;
       background:transparent;
       color:#71717a;
-      font-size:12px;
+      font-size:11px;
       line-height:1;
-      padding:0 4px;
+      padding:0 2px;
       cursor:pointer;
     }
     .grip-pending-remove:hover{color:#fafafa}
-    .grip-el-badge{
-      display:inline-flex;
-      align-items:center;
-      border:none;
-      border-radius:9999px;
-      padding:2px 8px;
-      font-size:10px;
-      font-weight:500;
-      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
-      text-transform:lowercase;
-      line-height:1.3;
-      background:transparent;
-      color:#a1a1aa;
+    .grip-input-grow{
+      display:inline-grid;
+      vertical-align:baseline;
+      min-width:72px;
+      max-width:100%;
+      margin:0 0 2px 0;
     }
-    .grip-context-input{
-      flex:1 1 8rem;
-      min-width:8rem;
-      width:auto;
-      box-sizing:border-box;
-      min-height:22px;
-      max-height:none;
+    .grip-input-grow::after{
+      content:attr(data-value);
+      white-space:pre-wrap;
+      visibility:hidden;
+      grid-area:1/1;
+      font:12px/1.45 system-ui,sans-serif;
+      padding:1px 0;
+      min-height:1.35em;
+    }
+    .grip-input-grow textarea.grip-context-input{
+      grid-area:1/1;
+      width:100%;
+      min-width:72px;
+      min-height:1.35em;
+      max-height:96px;
       overflow:hidden;
       resize:none;
       border:none;
       border-radius:0;
       background:transparent;
       color:#fafafa;
-      padding:2px 0;
+      padding:1px 0;
+      margin:0;
       font:12px/1.45 system-ui,sans-serif;
       outline:none;
-      vertical-align:middle;
+      vertical-align:baseline;
+      field-sizing:content;
     }
-    .grip-context-input:focus{outline:none}
     .grip-context-input::placeholder{color:#71717a}
     .grip-picker-actions{
       display:flex;
@@ -279,9 +275,9 @@ function ensureStyle(): void {
       position:fixed;
       z-index:2147483646;
       box-sizing:border-box;
-      border:2px dashed #3b82f6;
+      border:2px dashed rgba(59,130,246,0.45);
       border-radius:0;
-      background:rgba(59,130,246,0.08);
+      background:rgba(59,130,246,0.04);
       pointer-events:none;
     }
     #${HOVER_ID}{
@@ -512,6 +508,7 @@ function updatePendingUI(): void {
 
   updateComposerPlaceholder();
   updatePendingHighlights();
+  syncComposerInput();
 }
 
 function formatPickerIndexLabel(): string {
@@ -553,9 +550,7 @@ function escapeHtml(value: string): string {
 
 function handleComposerBackspace(input: HTMLTextAreaElement): boolean {
   if (!pendingElements.length) return false;
-
-  const atStart = input.selectionStart === 0 && input.selectionEnd === 0;
-  if (input.value.length > 0 && !atStart) return false;
+  if (input.value.length > 0) return false;
 
   const index =
     activePendingIndex >= 0 && activePendingIndex < pendingElements.length
@@ -566,6 +561,18 @@ function handleComposerBackspace(input: HTMLTextAreaElement): boolean {
     focusComposerInput();
   }
   return true;
+}
+
+function syncComposerInput(input?: HTMLTextAreaElement | null): void {
+  const el =
+    input ?? (document.getElementById("__grip_comment_input__") as HTMLTextAreaElement | null);
+  const grow = document.getElementById("__grip_input_grow__");
+  if (!el || !grow) return;
+
+  const mirror = el.value.length > 0 ? el.value : el.placeholder;
+  grow.setAttribute("data-value", mirror);
+  el.style.height = "auto";
+  el.style.height = `${Math.min(el.scrollHeight, 96)}px`;
 }
 
 function addToPending(el: Element): void {
@@ -603,8 +610,7 @@ function ensureCommentPanel(): HTMLElement {
     <div class="grip-context-field">
       <div id="__grip_comment_composer__" class="grip-context-composer">
         <div class="grip-context-inline">
-          <div id="__grip_comment_badges__" class="grip-context-badges"></div>
-          <textarea id="__grip_comment_input__" class="grip-context-input" placeholder="Select elements on the page, then describe what you need…" rows="1"></textarea>
+          <div id="__grip_comment_badges__" class="grip-context-badges"></div><span class="grip-input-grow" id="__grip_input_grow__" data-value=""><textarea id="__grip_comment_input__" class="grip-context-input" placeholder="Select elements on the page, then describe what you need…" rows="1"></textarea></span>
         </div>
       </div>
     </div>
@@ -737,6 +743,7 @@ function showCommentPrompt(el: Element): void {
       }
       if (e.key === "Escape") resumeHover();
     };
+    input.addEventListener("input", () => syncComposerInput(input));
 
     panel.addEventListener("mousedown", (e) => e.stopPropagation());
     panel.addEventListener("click", (e) => e.stopPropagation());
@@ -769,6 +776,7 @@ function showCommentPrompt(el: Element): void {
   if (isNewPanel) {
     focusComposerInput();
   }
+  syncComposerInput(input);
 }
 
 function onClick(e: MouseEvent): void {
