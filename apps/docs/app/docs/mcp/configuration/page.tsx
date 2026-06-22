@@ -3,20 +3,15 @@ import { CodeBlock } from "@components/docs/CodeBlock";
 import { DocH2, DocH3 } from "@components/docs/DocHeading";
 import { DocPage } from "@components/docs/DocPage";
 import { DocTip } from "@components/docs/DocTip";
-import { McpClientSetup } from "@components/docs/McpClientSetup";
-import {
-  gripMcpReference,
-  mcpCliClients,
-  mcpIdeClients,
-} from "@lib/mcp-clients";
+import { McpClientTabs } from "@components/docs/McpClientTabs";
+import { gripMcpReference } from "@lib/mcp-clients";
 
 const toc = [
   { id: "overview", title: "How it works", level: 2 as const },
   { id: "chrome", title: "Step 1 — Launch Chrome", level: 2 as const },
   { id: "build-mcp", title: "Step 2 — Build grip-mcp", level: 2 as const },
   { id: "reference", title: "Step 3 — Server config", level: 2 as const },
-  { id: "ides", title: "IDEs & editors", level: 2 as const },
-  { id: "cli-tools", title: "CLI & terminal agents", level: 2 as const },
+  { id: "clients", title: "Pick your client", level: 2 as const },
   { id: "env", title: "Environment variables", level: 2 as const },
   { id: "ui-badge", title: "MCP badge in Grip UI", level: 2 as const },
   { id: "troubleshooting", title: "Troubleshooting", level: 2 as const },
@@ -67,22 +62,16 @@ export default function McpConfigurationPage() {
       </p>
       <CodeBlock>{gripMcpReference}</CodeBlock>
       <p>
-        Then find your tool below and use the right file + root key. You can also pass{" "}
-        <code>--port 9222</code> as a CLI arg instead of <code>GRIP_CHROME_PORT</code> where your
-        client supports <code>args</code>.
+        Then pick your tool below. You can also pass <code>--port 9222</code> as a CLI arg instead
+        of <code>GRIP_CHROME_PORT</code> where your client supports <code>args</code>.
       </p>
 
-      <DocH2 id="ides">IDEs &amp; editors</DocH2>
-      <p>Pick your editor — each section shows where to put the config and an example snippet.</p>
-      {mcpIdeClients.map((client) => (
-        <McpClientSetup key={client.id} client={client} />
-      ))}
-
-      <DocH2 id="cli-tools">CLI &amp; terminal agents</DocH2>
-      <p>Same server binary, different config files. Find your CLI below:</p>
-      {mcpCliClients.map((client) => (
-        <McpClientSetup key={client.id} client={client} />
-      ))}
+      <DocH2 id="clients">Pick your client</DocH2>
+      <p>
+        Choose <strong>IDEs &amp; editors</strong> or <strong>CLI &amp; terminal</strong>, then
+        select your app to see the exact config file, root key, and copy-paste snippet.
+      </p>
+      <McpClientTabs />
 
       <DocH2 id="env">Environment variables</DocH2>
       <table className="doc-table">
@@ -140,7 +129,7 @@ export default function McpConfigurationPage() {
       <p>
         Config copied from the wrong app is the most common issue. VS Code wants{" "}
         <code>servers</code>, Zed wants <code>context_servers</code>, OpenCode wants{" "}
-        <code>mcp</code> — check the root key for your tool above.
+        <code>mcp</code> — check the root key in the client tab above.
       </p>
     </DocPage>
   );

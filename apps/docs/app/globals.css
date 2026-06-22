@@ -61,31 +61,35 @@ body::-webkit-scrollbar-thumb:hover {
 /* Custom thin scrollbars */
 .doc-scrollbar,
 .docs-sidebar-aside,
-.docs-toc,
-.doc-code {
+.docs-toc-aside,
+.doc-code,
+.doc-code-shiki pre.shiki {
   scrollbar-width: thin;
   scrollbar-color: var(--doc-scrollbar-thumb) transparent;
 }
 
 .doc-scrollbar::-webkit-scrollbar,
 .docs-sidebar-aside::-webkit-scrollbar,
-.docs-toc::-webkit-scrollbar,
-.doc-code::-webkit-scrollbar {
+.docs-toc-aside::-webkit-scrollbar,
+.doc-code::-webkit-scrollbar,
+.doc-code-shiki pre.shiki::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 .doc-scrollbar::-webkit-scrollbar-track,
 .docs-sidebar-aside::-webkit-scrollbar-track,
-.docs-toc::-webkit-scrollbar-track,
-.doc-code::-webkit-scrollbar-track {
+.docs-toc-aside::-webkit-scrollbar-track,
+.doc-code::-webkit-scrollbar-track,
+.doc-code-shiki pre.shiki::-webkit-scrollbar-track {
   background: transparent;
 }
 
 .doc-scrollbar::-webkit-scrollbar-thumb,
 .docs-sidebar-aside::-webkit-scrollbar-thumb,
-.docs-toc::-webkit-scrollbar-thumb,
-.doc-code::-webkit-scrollbar-thumb {
+.docs-toc-aside::-webkit-scrollbar-thumb,
+.doc-code::-webkit-scrollbar-thumb,
+.doc-code-shiki pre.shiki::-webkit-scrollbar-thumb {
   background-color: var(--doc-scrollbar-thumb);
   border-radius: 9999px;
   border: 1px solid transparent;
@@ -94,8 +98,9 @@ body::-webkit-scrollbar-thumb:hover {
 
 .doc-scrollbar::-webkit-scrollbar-thumb:hover,
 .docs-sidebar-aside::-webkit-scrollbar-thumb:hover,
-.docs-toc::-webkit-scrollbar-thumb:hover,
-.doc-code::-webkit-scrollbar-thumb:hover {
+.docs-toc-aside::-webkit-scrollbar-thumb:hover,
+.doc-code::-webkit-scrollbar-thumb:hover,
+.doc-code-shiki pre.shiki::-webkit-scrollbar-thumb:hover {
   background-color: var(--doc-scrollbar-thumb-hover);
 }
 
@@ -350,6 +355,7 @@ button {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
+  padding-right: 0.25rem;
 }
 
 @media (min-width: 1280px) {
@@ -385,7 +391,7 @@ button {
 .docs-sidebar-link {
   display: block;
   padding: 0.375rem 0.75rem;
-  border-radius: 9999px;
+  border-radius: 0.375rem;
   font-size: 0.875rem;
   font-weight: 400;
   color: var(--doc-fg);
@@ -427,18 +433,18 @@ button {
 
 .docs-toc-label {
   margin: 0 0 0.75rem;
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--doc-muted);
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--doc-fg);
 }
 
 .docs-toc-list {
   list-style: none;
   margin: 0;
-  padding: 0;
-  border-left: 1px solid var(--doc-border);
+  padding: 0 0 0 0.125rem;
+  border-left: 1px solid var(--doc-border-subtle);
 }
 
 .docs-toc-item {
@@ -450,15 +456,14 @@ button {
 }
 
 .docs-toc-link {
+  position: relative;
   display: block;
-  padding: 0.25rem 0 0.25rem 0.875rem;
-  margin-left: -1px;
-  border-left: 2px solid transparent;
+  padding: 0.3125rem 0 0.3125rem 0.875rem;
   font-size: 0.8125rem;
   line-height: 1.4;
   color: var(--doc-muted);
   text-decoration: none;
-  transition: color 0.12s ease, border-color 0.12s ease;
+  transition: color 0.12s ease;
 }
 
 .docs-toc-link:hover {
@@ -467,8 +472,18 @@ button {
 
 .docs-toc-link-active {
   color: var(--doc-accent);
-  border-left-color: var(--doc-accent);
   font-weight: 500;
+}
+
+.docs-toc-link-active::before {
+  content: "";
+  position: absolute;
+  left: -0.1875rem;
+  top: 0.3125rem;
+  bottom: 0.3125rem;
+  width: 3px;
+  border-radius: 9999px;
+  background: var(--doc-accent);
 }
 
 /* ── Article prose ── */
@@ -560,15 +575,92 @@ button {
   overflow-x: auto;
   border-radius: 0.5rem;
   border: 1px solid var(--doc-border);
-  background: var(--doc-bg-elevated);
+  background: #1e1e1e;
   font-size: 0.8125rem;
   line-height: 1.6;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
 }
 
 .doc-code code {
   padding: 0;
   background: transparent;
-  color: #e4e4e7;
+  color: #d4d4d4;
+}
+
+/* Code block wrapper — VS Code-style toolbar + Shiki colors */
+
+.doc-code-wrap {
+  position: relative;
+  margin: 1rem 0 0;
+}
+
+.doc-code-wrap .doc-code-fallback {
+  margin: 0;
+  padding: 2.25rem 1rem 1rem;
+}
+
+.doc-code-copy {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #3c3c3c;
+  border-radius: 0.375rem;
+  background: #252526;
+  color: #cccccc;
+  font: inherit;
+  font-size: 0.75rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 0.15s ease,
+    background 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.doc-code-wrap:hover .doc-code-copy,
+.doc-code-copy:focus-visible {
+  opacity: 1;
+}
+
+.doc-code-copy:hover {
+  background: #2d2d2d;
+  border-color: #4a4a4a;
+  color: #e4e4e4;
+}
+
+.doc-code-copy:focus-visible {
+  outline: 2px solid var(--doc-accent);
+  outline-offset: 1px;
+}
+
+.doc-code-shiki {
+  overflow: hidden;
+  border-radius: 0.5rem;
+  border: 1px solid var(--doc-border);
+}
+
+.doc-code-shiki pre.shiki {
+  margin: 0;
+  padding: 2.25rem 1rem 1rem;
+  overflow-x: auto;
+  background-color: #1e1e1e !important;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+}
+
+.doc-code-shiki pre.shiki code {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
 }
 
 .doc-table {
@@ -705,6 +797,121 @@ button {
 
 .doc-mcp-client .doc-code {
   margin-top: 0.625rem;
+}
+
+.doc-mcp-client-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.doc-mcp-client-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin-bottom: 0.25rem;
+}
+
+.doc-mcp-client-panel-title {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.doc-mcp-client-icon {
+  flex-shrink: 0;
+  display: block;
+  object-fit: contain;
+}
+
+.doc-mcp-client-icon-mono {
+  filter: brightness(0) invert(1);
+  opacity: 0.92;
+}
+
+/* MCP client tabs */
+
+.doc-mcp-tabs {
+  margin-top: 1rem;
+}
+
+.doc-mcp-tabs-category {
+  display: flex;
+  gap: 0.25rem;
+  padding-bottom: 0.5rem;
+}
+
+.doc-mcp-tabs-clients {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.5rem 0;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  border-bottom: 1px solid var(--doc-border-subtle);
+}
+
+.doc-mcp-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4375rem;
+  border: none;
+  border-radius: 0.375rem;
+  background: transparent;
+  color: var(--doc-muted);
+  font: inherit;
+  font-size: 0.8125rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.12s ease, background 0.12s ease;
+}
+
+.doc-mcp-tab:hover {
+  color: var(--doc-fg);
+}
+
+.doc-mcp-tab-category {
+  padding: 0.375rem 0.625rem;
+  font-weight: 500;
+}
+
+.doc-mcp-tab-client {
+  padding: 0.375rem 0.625rem;
+}
+
+.doc-mcp-tab-active.doc-mcp-tab-category,
+.doc-mcp-tab-active.doc-mcp-tab-client {
+  color: var(--doc-fg);
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.doc-mcp-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.125rem;
+  height: 1.125rem;
+  padding: 0 0.3125rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #d4d4d8;
+}
+
+.doc-mcp-tab-active .doc-mcp-tab-count {
+  color: var(--doc-fg);
+}
+
+.doc-mcp-tabs-panel {
+  padding: 1rem 0 0;
+}
+
+.doc-mcp-tabs-panel .doc-mcp-client {
+  margin-top: 0;
+  padding-top: 0;
 }
 
 .doc-tip {
