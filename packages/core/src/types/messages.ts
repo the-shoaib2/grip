@@ -7,6 +7,7 @@ export type GripMessageType =
   | "PANEL_READY";
 
 export interface PickerElementPayload {
+  tagName: string;
   css: string;
   xpath: string;
   role: string;

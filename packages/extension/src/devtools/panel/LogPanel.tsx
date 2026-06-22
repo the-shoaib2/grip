@@ -9,11 +9,7 @@ export function LogPanel() {
     <section className="mt-4 border-t border-zinc-800 pt-3">
       <div className="mb-2 flex items-center justify-between">
         <h2 className="grip-label">Console ({logs.length})</h2>
-        <button
-          type="button"
-          className="text-[10px] text-blue-400 hover:underline"
-          onClick={clearLogs}
-        >
+        <button type="button" className="grip-btn-ghost" onClick={clearLogs}>
           Clear
         </button>
       </div>

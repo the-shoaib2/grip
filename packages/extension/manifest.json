@@ -4,7 +4,7 @@
   "description": "Grab anything on the web — element picker, a11y inspector, log reader",
   "version": "0.1.0",
   "permissions": ["activeTab", "debugger", "storage", "scripting"],
-  "host_permissions": ["<all_urls>"],
+  "host_permissions": ["<all_urls>", "http://127.0.0.1:9222/*"],
   "background": {
     "service_worker": "src/service_worker/background.ts",
     "type": "module"
