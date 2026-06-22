@@ -117,15 +117,20 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  width: 20rem;
-  min-height: 18rem;
-  max-width: 100%;
   overflow-x: hidden;
   overflow-y: visible;
   background: var(--grip-bg);
   color: var(--grip-fg);
   padding: 0.75rem;
   box-sizing: border-box;
+}
+
+.grip-popup:not(.grip-shell-devtools):not(.grip-shell-floating) {
+  width: 20rem;
+  min-width: 20rem;
+  max-width: 20rem;
+  min-height: 19rem;
+  flex-shrink: 0;
 }
 
 .grip-shell-floating {
@@ -174,7 +179,7 @@ body {
 .grip-popup-toolbar-actions {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.0625rem;
   flex-shrink: 0;
 }
 
@@ -446,8 +451,8 @@ body {
 }
 
 .grip-btn-toolbar-icon {
-  width: 2rem;
-  padding-inline: 0.5rem;
+  width: 1.75rem;
+  padding-inline: 0.375rem;
 }
 
 .grip-btn-toolbar-active {
@@ -614,12 +619,12 @@ button.grip-chip-warn:hover {
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: 0.375rem;
-  min-height: 2.375rem;
+  gap: 0.25rem;
+  min-height: 2rem;
   border: none;
   border-radius: 0.5rem;
   background: var(--grip-surface);
-  padding: 0.3125rem 0.3125rem 0.3125rem 0.75rem;
+  padding: 0.25rem 0.25rem 0.25rem 0.625rem;
   transition: background 0.15s ease;
 }
 
@@ -645,10 +650,10 @@ button.grip-chip-warn:hover {
   overflow: hidden;
   border: 0;
   background: transparent;
-  padding: 0.3125rem 0;
+  padding: 0.125rem 0;
   text-align: left;
   font-size: 12px;
-  line-height: 1.3;
+  line-height: 1.25;
   color: var(--grip-fg);
   transition: color 0.15s ease;
 }

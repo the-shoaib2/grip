@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { detectCodeLang, type DocCodeLang } from "@lib/detect-code-lang";
-import { highlightCode } from "@lib/shiki";
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -78,9 +77,14 @@ export function CodeBlock({
 
   useEffect(() => {
     let active = true;
-    void highlightCode(children, resolvedLang).then((result) => {
-      if (active) setHtml(result);
-    });
+    void import("@lib/shiki")
+      .then((mod) => mod.highlightCode(children, resolvedLang))
+      .then((result) => {
+        if (active) setHtml(result);
+      })
+      .catch(() => {
+        if (active) setHtml(null);
+      });
     return () => {
       active = false;
     };

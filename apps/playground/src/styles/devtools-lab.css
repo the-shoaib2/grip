@@ -77,6 +77,8 @@
 
 .lab-preview-popup {
   width: 20rem;
+  min-width: 20rem;
+  max-width: 20rem;
 }
 
 .lab-preview-panel {

@@ -918,8 +918,8 @@ button {
   margin: 1rem 0 0;
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
-  border-left: 3px solid var(--doc-accent);
-  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid var(--doc-border-subtle);
+  background: var(--doc-bg-elevated);
   font-size: 0.875rem;
   line-height: 1.55;
   color: #d4d4d8;

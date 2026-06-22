@@ -18,14 +18,14 @@ export function GripSessionToolbar({
 }: GripSessionToolbarProps) {
   if (variant === "compact") {
     return (
-      <Tooltip text="New session — clear current session picks for this page">
+      <Tooltip text="New session">
         <button
           type="button"
-          className="grip-btn-ghost grip-btn-toolbar"
+          className="grip-btn-ghost grip-btn-toolbar grip-btn-toolbar-icon"
+          aria-label="New session"
           onClick={onNewSession}
         >
           <PlusIcon size={16} />
-          <span>New</span>
         </button>
       </Tooltip>
     );
@@ -45,14 +45,14 @@ export function GripSessionToolbar({
         </button>
       </Tooltip>
       <div className="grip-popup-toolbar-actions">
-        <Tooltip text="New session — clear current session picks for this page">
+        <Tooltip text="New session">
           <button
             type="button"
-            className="grip-btn-ghost grip-btn-toolbar"
+            className="grip-btn-ghost grip-btn-toolbar grip-btn-toolbar-icon"
+            aria-label="New session"
             onClick={onNewSession}
           >
             <PlusIcon size={16} />
-            <span>New</span>
           </button>
         </Tooltip>
         {onOpenPanel && (
