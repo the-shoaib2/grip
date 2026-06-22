@@ -16,10 +16,6 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     sendResponse({ ok: true });
     return true;
   }
-  if (msg.type === "UPDATE_TRAY_PICKS") {
-    sendResponse({ ok: true });
-    return true;
-  }
   if (msg.type === "SHOW_TRAY") {
     controller.setOpen(true);
     sendResponse({ ok: true });

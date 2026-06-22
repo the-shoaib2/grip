@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { appendPickHistory, pickLabel, toStoredPick } from "./pick-history.js";
+import {
+  appendPickHistory,
+  clearPicksForSession,
+  pickLabel,
+  picksForSession,
+  toStoredPick,
+  updatePickInHistory,
+} from "./pick-history.js";
 
 describe("pick-history", () => {
   const base = {
@@ -30,5 +37,22 @@ describe("pick-history", () => {
     const next = appendPickHistory([a], b);
     expect(next).toHaveLength(1);
     expect(next[0].innerText).toBe("Hi");
+  });
+
+  it("clearPicksForSession keeps other sessions on same page", () => {
+    const url = "https://x.com/page";
+    const a = toStoredPick(base, url, "P", "sess-1");
+    const b = toStoredPick({ ...base, css: "div > button" }, url, "P", "sess-2");
+    const history = [a, b];
+    const next = clearPicksForSession(history, url, "sess-1");
+    expect(next).toHaveLength(1);
+    expect(next[0].sessionId).toBe("sess-2");
+    expect(picksForSession(next, url, "sess-1")).toHaveLength(0);
+  });
+
+  it("updatePickInHistory patches comment by id", () => {
+    const stored = toStoredPick(base, "https://x.com", "P", "sess-1");
+    const next = updatePickInHistory([stored], stored.id, { comment: "note" });
+    expect(next[0].comment).toBe("note");
   });
 });

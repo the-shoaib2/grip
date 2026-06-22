@@ -84,3 +84,31 @@ export function picksForSession(
     .filter((h) => h.sessionId === sessionId)
     .sort((a, b) => a.timestamp - b.timestamp);
 }
+
+/** Remove picks for one session on a page; keep other sessions on the same page. */
+export function clearPicksForSession(
+  history: StoredPick[],
+  url: string,
+  sessionId: string,
+): StoredPick[] {
+  const sessionPicks = new Set(
+    picksForSession(history, url, sessionId).map((p) => p.id),
+  );
+  if (sessionPicks.size === 0) return history;
+  return history.filter((h) => !sessionPicks.has(h.id));
+}
+
+/** Patch a stored pick by id (e.g. comment edits). */
+export function updatePickInHistory(
+  history: StoredPick[],
+  pickId: string,
+  patch: Partial<Pick<StoredPick, "comment">>,
+): StoredPick[] {
+  let changed = false;
+  const next = history.map((h) => {
+    if (h.id !== pickId) return h;
+    changed = true;
+    return { ...h, ...patch };
+  });
+  return changed ? next : history;
+}

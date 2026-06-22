@@ -4,7 +4,14 @@ import type {
   PickerElementPayload,
   StoredPick,
 } from "@grip/core";
-import { appendPickHistory, clearPicksForUrl, newSessionId, picksForSession, toStoredPick } from "@grip/core";
+import {
+  appendPickHistory,
+  clearPicksForSession,
+  newSessionId,
+  picksForSession,
+  toStoredPick,
+  updatePickInHistory,
+} from "@grip/core";
 import { gripUserError } from "@/lib/errors";
 import {
   ensureTabReady,
@@ -42,12 +49,22 @@ function isInspectableUrl(url?: string): boolean {
   return /^https?:/i.test(url);
 }
 
-async function pushTrayToTab(tabId: number, picks: StoredPick[]): Promise<void> {
-  try {
-    await sendToTab(tabId, { type: "UPDATE_TRAY_PICKS", payload: picks });
-  } catch {
-    /* tab may not have scripts yet */
+async function resolveTargetTab(
+  sender: chrome.runtime.MessageSender,
+  msg: GripMessage,
+): Promise<chrome.tabs.Tab | undefined> {
+  if (sender.tab?.id) return sender.tab;
+
+  if (typeof msg.tabId === "number") {
+    try {
+      return await chrome.tabs.get(msg.tabId);
+    } catch {
+      /* fall through */
+    }
   }
+
+  const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+  return tabs[0];
 }
 
 async function startPickerOnTab(tabId: number, url?: string): Promise<void> {
@@ -89,9 +106,12 @@ async function savePick(
   await chrome.storage.local.set({ [HISTORY_KEY]: history });
   await chrome.storage.session.set({ lastPick: stored });
 
-  if (tabId && url) {
-    const pagePicks = picksForSession(history, url, sessionId);
-    await pushTrayToTab(tabId, pagePicks);
+  if (tabId) {
+    try {
+      await sendToTabWhenReady(tabId, { type: "SHOW_TRAY" });
+    } catch {
+      /* tab may not have floating mount yet */
+    }
   }
   return stored;
 }
@@ -115,8 +135,7 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
     case "START_PICKER":
       void (async () => {
         try {
-          const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-          const tab = tabs[0];
+          const tab = await resolveTargetTab(sender, msg);
           if (!tab?.id) {
             sendResponse({ ok: false, error: "No active tab" });
             return;
@@ -155,8 +174,7 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
     case "NAVIGATE_TO_PICK": {
       const pick = msg.payload as StoredPick;
       void (async () => {
-        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-        const tab = tabs[0];
+        const tab = await resolveTargetTab(sender, msg);
         if (!tab?.id) return;
         try {
           await sendToTabWhenReady(tab.id, { type: "NAVIGATE_TO_PICK", payload: pick });
@@ -172,8 +190,8 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
     case "GET_PICK_HISTORY":
       void (async () => {
         try {
-          const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-          const url = tabs[0]?.url ?? "";
+          const tab = await resolveTargetTab(sender, msg);
+          const url = tab?.url ?? "";
           const history = await sessionPicksForUrl(url);
           const data = await chrome.storage.local.get(HISTORY_KEY);
           sendResponse({
@@ -192,8 +210,7 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
 
     case "TOGGLE_GRIP_TRAY":
       void (async () => {
-        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-        const tab = tabs[0];
+        const tab = await resolveTargetTab(sender, msg);
         if (!tab?.id) return;
         try {
           await sendToTabWhenReady(tab.id, { type: "TOGGLE_GRIP_TRAY" });
@@ -204,28 +221,74 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
       sendResponse({ ok: true });
       return;
 
+    case "SHOW_TRAY":
+      void (async () => {
+        const tab = await resolveTargetTab(sender, msg);
+        if (!tab?.id) return;
+        try {
+          await sendToTabWhenReady(tab.id, { type: "SHOW_TRAY" });
+        } catch {
+          /* ignore tray show errors */
+        }
+      })();
+      sendResponse({ ok: true });
+      return;
+
     case "NEW_SESSION":
       void (async () => {
         try {
-          const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-          const tab = tabs[0];
+          const tab = await resolveTargetTab(sender, msg);
           const url = tab?.url ?? "";
+          const sessionData = await chrome.storage.session.get(SESSION_KEY);
+          const currentSessionId = sessionData[SESSION_KEY] as string | undefined;
           const data = await chrome.storage.local.get(HISTORY_KEY);
-          const history = clearPicksForUrl(
-            (data[HISTORY_KEY] as StoredPick[]) ?? [],
-            url,
-          );
+          const history = currentSessionId
+            ? clearPicksForSession(
+                (data[HISTORY_KEY] as StoredPick[]) ?? [],
+                url,
+                currentSessionId,
+              )
+            : ((data[HISTORY_KEY] as StoredPick[]) ?? []);
           const sessionId = newSessionId();
           await chrome.storage.local.set({ [HISTORY_KEY]: history });
           await chrome.storage.session.set({ [SESSION_KEY]: sessionId });
           await chrome.storage.session.remove("lastPick");
-          if (tab?.id) await pushTrayToTab(tab.id, []);
           sendResponse({ ok: true, history: [] });
         } catch {
           try {
             sendResponse({ ok: false, history: [] });
           } catch {
             // Receiver closed before session was cleared.
+          }
+        }
+      })();
+      return true;
+
+    case "UPDATE_PICK_COMMENT":
+      void (async () => {
+        try {
+          const payload = msg.payload as { pickId: string; comment?: string };
+          const data = await chrome.storage.local.get(HISTORY_KEY);
+          const history = updatePickInHistory(
+            (data[HISTORY_KEY] as StoredPick[]) ?? [],
+            payload.pickId,
+            { comment: payload.comment?.trim() || undefined },
+          );
+          await chrome.storage.local.set({ [HISTORY_KEY]: history });
+          const updated = history.find((h) => h.id === payload.pickId);
+          if (updated) {
+            const sessionData = await chrome.storage.session.get("lastPick");
+            const lastPick = sessionData.lastPick as StoredPick | undefined;
+            if (lastPick?.id === payload.pickId) {
+              await chrome.storage.session.set({ lastPick: updated });
+            }
+          }
+          sendResponse({ ok: true, pick: updated });
+        } catch {
+          try {
+            sendResponse({ ok: false });
+          } catch {
+            /* receiver closed */
           }
         }
       })();
@@ -258,15 +321,6 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
       sendResponse({ ok: true });
       return true;
   }
-});
-
-chrome.tabs.onActivated.addListener(() => {
-  void chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
-    const tab = tabs[0];
-    if (!tab?.id || !isInspectableUrl(tab.url)) return;
-    const pagePicks = await sessionPicksForUrl(tab.url ?? "");
-    await pushTrayToTab(tab.id, pagePicks);
-  });
 });
 
 chrome.runtime.onInstalled.addListener(() => {

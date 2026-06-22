@@ -10,6 +10,7 @@ export type GripMessageType =
   | "TOGGLE_GRIP_TRAY"
   | "NEW_SESSION"
   | "SHOW_TRAY"
+  | "UPDATE_PICK_COMMENT"
   | "GRIP_PING";
 
 export interface PickerElementPayload {
@@ -44,7 +45,9 @@ export interface StoredPick extends PickerElementPayload {
 
 export interface GripMessage<T = unknown> {
   type: GripMessageType;
-  payload: T;
+  payload?: T;
+  /** Target browser tab (DevTools / explicit routing). */
+  tabId?: number;
 }
 
 export interface LogMessagePayload {

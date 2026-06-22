@@ -677,6 +677,8 @@ body {
   font-size: 0.75rem;
   color: var(--grip-fg);
   caret-color: var(--grip-fg);
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .grip-inline-editor:empty::before {
@@ -699,7 +701,8 @@ body {
   font-weight: 500;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   line-height: 1.35;
-  user-select: none;
+  user-select: all;
+  -webkit-user-select: all;
   cursor: default;
   white-space: nowrap;
 }

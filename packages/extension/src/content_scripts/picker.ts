@@ -111,6 +111,14 @@ function cycleSelection(dir: 1 | -1): void {
   highlight(el);
 }
 
+function isEventInComposer(e: KeyboardEvent): boolean {
+  const editor = document.getElementById("__grip_comment_editor__");
+  if (!editor) return false;
+  return e.composedPath().some(
+    (node) => node === editor || (node instanceof Node && editor.contains(node)),
+  );
+}
+
 function onKey(e: KeyboardEvent): void {
   if (!isExtensionContextValid()) {
     cleanup();
@@ -119,6 +127,7 @@ function onKey(e: KeyboardEvent): void {
 
   if (e.key === "Escape") {
     if (phase === "comment") {
+      if (isEventInComposer(e)) return;
       e.preventDefault();
       resumeHover();
       return;
@@ -126,6 +135,8 @@ function onKey(e: KeyboardEvent): void {
     cleanup();
     return;
   }
+
+  if (phase === "comment" && isEventInComposer(e)) return;
 
   if (phase === "idle") return;
 
@@ -207,6 +218,8 @@ function ensureStyle(): void {
       font:12px/1.45 system-ui,sans-serif;
       color:#fafafa;
       caret-color:#fafafa;
+      user-select:text;
+      -webkit-user-select:text;
     }
     .grip-inline-editor:empty::before{
       content:attr(data-placeholder);
@@ -227,7 +240,7 @@ function ensureStyle(): void {
       font-weight:500;
       font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
       line-height:1.35;
-      user-select:none;
+      user-select:all;
       cursor:default;
       white-space:nowrap;
     }

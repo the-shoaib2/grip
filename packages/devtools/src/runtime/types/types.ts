@@ -3,6 +3,7 @@ import type { GripMessageType } from "@grip/core";
 export type RuntimeMessage = {
   type: GripMessageType | string;
   payload?: unknown;
+  tabId?: number;
 };
 
 export type StorageChangeHandler = (
