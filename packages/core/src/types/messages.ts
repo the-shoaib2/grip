@@ -2,9 +2,12 @@ export type GripMessageType =
   | "START_PICKER"
   | "STOP_PICKER"
   | "PICKER_ELEMENT_SELECTED"
+  | "NAVIGATE_TO_PICK"
+  | "GET_PICK_HISTORY"
   | "LOG_ENTRY"
   | "NETWORK_ENTRY"
-  | "PANEL_READY";
+  | "PANEL_READY"
+  | "TOGGLE_GRIP_TRAY";
 
 export interface PickerElementPayload {
   tagName: string;

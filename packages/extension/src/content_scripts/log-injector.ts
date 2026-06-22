@@ -1,10 +1,12 @@
+import { safeSendMessage } from "../lib/runtime";
+
 const levels = ["log", "info", "warn", "error", "debug"] as const;
 
 function forward(level: string, args: unknown[]): void {
   const message = args
     .map((a) => (typeof a === "string" ? a : JSON.stringify(a)))
     .join(" ");
-  chrome.runtime.sendMessage({
+  safeSendMessage({
     type: "LOG_ENTRY",
     payload: { level, message, timestamp: Date.now() },
   });

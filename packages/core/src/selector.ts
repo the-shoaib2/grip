@@ -26,12 +26,85 @@ export function deepElementFromPoint(x: number, y: number): Element | null {
   return el;
 }
 
-/** Prefer composedPath for accurate target including shadow DOM. */
-export function elementFromComposedEvent(e: MouseEvent): Element | null {
-  for (const node of e.composedPath()) {
-    if (node instanceof Element) return node;
+/** Collect every element at x/y, piercing open shadow roots. Smallest first. */
+export function elementsAtPoint(x: number, y: number): Element[] {
+  const seen = new Set<Element>();
+  const out: Element[] = [];
+
+  function walk(root: Document | ShadowRoot): void {
+    const list =
+      typeof root.elementsFromPoint === "function"
+        ? root.elementsFromPoint(x, y)
+        : [root.elementFromPoint(x, y)];
+
+    for (const node of list) {
+      if (!(node instanceof Element) || seen.has(node)) continue;
+      if (isGripUi(node)) continue;
+      seen.add(node);
+      out.push(node);
+      if (node.shadowRoot) walk(node.shadowRoot);
+    }
   }
-  return deepElementFromPoint(e.clientX, e.clientY);
+
+  walk(document);
+
+  return out
+    .filter((el) => containsPoint(el, x, y))
+    .filter((el) => isPickable(el))
+    .sort((a, b) => elementArea(a) - elementArea(b));
+}
+
+/** Pick target at point; index cycles through stacked elements (smallest first). */
+export function pickTargetAtPoint(
+  x: number,
+  y: number,
+  index = 0,
+): Element | null {
+  const stack = elementsAtPoint(x, y);
+  if (stack.length) return stack[index % stack.length] ?? null;
+  return deepElementFromPoint(x, y);
+}
+
+const GRIP_PREFIX = "__grip_";
+
+function isGripUi(el: Element): boolean {
+  if (el.id?.startsWith(GRIP_PREFIX)) return true;
+  return Boolean(el.closest(`[id^="${GRIP_PREFIX}"]`));
+}
+
+function containsPoint(el: Element, x: number, y: number): boolean {
+  const r = el.getBoundingClientRect();
+  return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+}
+
+function elementArea(el: Element): number {
+  const r = el.getBoundingClientRect();
+  return Math.max(r.width, 1) * Math.max(r.height, 1);
+}
+
+function isPickable(el: Element): boolean {
+  const tag = el.tagName;
+  if (tag === "HTML" || tag === "BODY") return false;
+  const style = getComputedStyle(el);
+  if (style.display === "none" || style.visibility === "hidden") return false;
+  if (style.pointerEvents === "none") return false;
+  return true;
+}
+
+/** Prefer composed path target when it is a valid pickable leaf. */
+export function elementFromComposedEvent(
+  e: MouseEvent,
+  cycleIndex = 0,
+): Element | null {
+  const path = e.composedPath();
+  for (const node of path) {
+    if (node instanceof Element && isPickable(node) && !isGripUi(node)) {
+      const stack = elementsAtPoint(e.clientX, e.clientY);
+      if (stack.length) return stack[cycleIndex % stack.length] ?? node;
+      return node;
+    }
+  }
+  return pickTargetAtPoint(e.clientX, e.clientY, cycleIndex);
 }
 
 export function generateXPath(el: Element): string {

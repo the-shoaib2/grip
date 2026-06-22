@@ -2,9 +2,12 @@ import type {
   GripMessage,
   LogMessagePayload,
   PickerElementPayload,
+  StoredPick,
 } from "@grip/core";
+import { appendPickHistory, picksForUrl, toStoredPick } from "@grip/core";
 
 const MAX_LOGS = 500;
+const HISTORY_KEY = "pickHistory";
 const logs: LogMessagePayload[] = [];
 
 function isInspectableUrl(url?: string): boolean {
@@ -32,9 +35,17 @@ async function ensureContentScripts(tabId: number): Promise<void> {
   });
 }
 
+async function pushTrayToTab(tabId: number, picks: StoredPick[]): Promise<void> {
+  try {
+    await sendToTab(tabId, { type: "UPDATE_TRAY_PICKS", payload: picks });
+  } catch {
+    /* tab may not have scripts yet */
+  }
+}
+
 async function startPickerOnTab(tabId: number, url?: string): Promise<void> {
   if (!isInspectableUrl(url)) {
-    console.warn("[Grip] Open an http(s) page first — chrome:// pages are not supported.");
+    console.warn("[Grip] Open an http(s) page first.");
     return;
   }
   try {
@@ -45,7 +56,33 @@ async function startPickerOnTab(tabId: number, url?: string): Promise<void> {
   }
 }
 
-chrome.runtime.onMessage.addListener((msg: GripMessage, _sender, sendResponse) => {
+async function savePick(
+  pick: PickerElementPayload,
+  tabId?: number,
+  url?: string,
+  title?: string,
+): Promise<StoredPick> {
+  const stored = toStoredPick(
+    pick,
+    url ?? "",
+    title ?? "",
+  );
+  const data = await chrome.storage.local.get(HISTORY_KEY);
+  const history = appendPickHistory(
+    (data[HISTORY_KEY] as StoredPick[]) ?? [],
+    stored,
+  );
+  await chrome.storage.local.set({ [HISTORY_KEY]: history });
+  await chrome.storage.session.set({ lastPick: stored });
+
+  if (tabId && url) {
+    const pagePicks = picksForUrl(history, url);
+    await pushTrayToTab(tabId, pagePicks);
+  }
+  return stored;
+}
+
+chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) => {
   switch (msg.type) {
     case "START_PICKER":
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -53,12 +90,75 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, _sender, sendResponse) =
         if (tab?.id) void startPickerOnTab(tab.id, tab.url);
       });
       sendResponse({ ok: true });
-      break;
+      return;
 
     case "PICKER_ELEMENT_SELECTED":
-      chrome.storage.session.set({ lastPick: msg.payload });
+      void (async () => {
+        try {
+          const tabId = sender.tab?.id;
+          const url = sender.tab?.url ?? (msg.payload as StoredPick).url;
+          const title = sender.tab?.title ?? (msg.payload as StoredPick).pageTitle;
+          const stored = await savePick(
+            msg.payload as PickerElementPayload,
+            tabId,
+            url,
+            title,
+          );
+          sendResponse({ ok: true, pick: stored });
+        } catch {
+          try {
+            sendResponse({ ok: false });
+          } catch {
+            // Receiver closed before pick was saved.
+          }
+        }
+      })();
+      return true;
+
+    case "NAVIGATE_TO_PICK": {
+      const pick = msg.payload as StoredPick;
+      chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+        const tab = tabs[0];
+        if (!tab?.id) return;
+        try {
+          await sendToTab(tab.id, { type: "NAVIGATE_TO_PICK", payload: pick });
+        } catch {
+          await ensureContentScripts(tab.id);
+          await sendToTab(tab.id, { type: "NAVIGATE_TO_PICK", payload: pick });
+        }
+        await chrome.storage.session.set({ lastPick: pick });
+      });
       sendResponse({ ok: true });
-      break;
+      return;
+    }
+
+    case "GET_PICK_HISTORY":
+      void chrome.storage.local.get(HISTORY_KEY).then((data) => {
+        const history = (data[HISTORY_KEY] as StoredPick[]) ?? [];
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          try {
+            const url = tabs[0]?.url ?? "";
+            sendResponse({ history: picksForUrl(history, url), all: history });
+          } catch {
+            // Receiver closed before history was read.
+          }
+        });
+      });
+      return true;
+
+    case "TOGGLE_GRIP_TRAY":
+      chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+        const tab = tabs[0];
+        if (!tab?.id) return;
+        try {
+          await sendToTab(tab.id, { type: "TOGGLE_GRIP_TRAY" });
+        } catch {
+          await ensureContentScripts(tab.id);
+          await sendToTab(tab.id, { type: "TOGGLE_GRIP_TRAY" });
+        }
+      });
+      sendResponse({ ok: true });
+      return;
 
     case "LOG_ENTRY": {
       const entry = msg.payload as LogMessagePayload;
@@ -66,17 +166,31 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, _sender, sendResponse) =
       if (logs.length > MAX_LOGS) logs.shift();
       chrome.storage.session.set({ logs: [...logs] });
       sendResponse({ ok: true });
-      break;
+      return;
     }
 
     case "PANEL_READY":
       chrome.storage.session.get(["lastPick", "logs"], (data) => {
-        sendResponse({
-          lastPick: data.lastPick as PickerElementPayload | undefined,
-          logs: (data.logs as LogMessagePayload[]) ?? logs,
-        });
+        try {
+          sendResponse({
+            lastPick: data.lastPick as PickerElementPayload | undefined,
+            logs: (data.logs as LogMessagePayload[]) ?? logs,
+          });
+        } catch {
+          // Receiver closed before storage read finished.
+        }
       });
       return true;
   }
-  return true;
+});
+
+chrome.tabs.onActivated.addListener(() => {
+  chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+    const tab = tabs[0];
+    if (!tab?.id || !isInspectableUrl(tab.url)) return;
+    const data = await chrome.storage.local.get(HISTORY_KEY);
+    const history = (data[HISTORY_KEY] as StoredPick[]) ?? [];
+    const pagePicks = picksForUrl(history, tab.url ?? "");
+    await pushTrayToTab(tab.id, pagePicks);
+  });
 });
