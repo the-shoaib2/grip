@@ -3,9 +3,24 @@ import {
   describeElement,
   elementFromComposedEvent,
   elementsAtPoint,
+  formatInlineCommentForMcp,
+  newChipId,
 } from "@grip/core";
 import type { PickerStartPayload } from "@grip/core";
-import { isExtensionContextValid, safeSendMessage } from "@/lib";
+import {
+  findChipElement,
+  focusEditor,
+  handleEditorKeydown,
+  insertChipAtSelection,
+  isExtensionContextValid,
+  isEditorEmpty,
+  placeCaretAtEnd,
+  removeChipElement,
+  safeSendMessage,
+  serializeEditor,
+  setEditorFromComment,
+  updateChipActiveStates,
+} from "@/lib";
 
 const TRAY_ID = "__grip_tray__";
 const HOVER_ID = "__grip_picker_hover__";
@@ -20,6 +35,7 @@ const PANEL_GAP = 8;
 type PickerPhase = "idle" | "hover" | "comment";
 
 interface PendingPick {
+  chipId: string;
   el: Element;
   css: string;
   tag: string;
@@ -177,77 +193,44 @@ function ensureStyle(): void {
       line-height:1.45;
       word-break:break-word;
     }
-    .grip-context-badges{
-      display:inline;
+    .grip-inline-editor{
+      min-height:1.35em;
+      max-height:96px;
+      overflow-y:auto;
+      outline:none;
+      white-space:pre-wrap;
+      word-break:break-word;
+      font:12px/1.45 system-ui,sans-serif;
+      color:#fafafa;
+      caret-color:#fafafa;
     }
-    .grip-context-badges:empty{
-      display:none;
+    .grip-inline-editor:empty::before{
+      content:attr(data-placeholder);
+      color:#71717a;
+      pointer-events:none;
     }
-    .grip-pending-chip{
+    .grip-inline-chip{
       display:inline-flex;
       align-items:center;
-      gap:3px;
       vertical-align:baseline;
-      margin:0 4px 2px 0;
-      border:none;
+      margin:0 2px;
+      padding:1px 8px;
       border-radius:9999px;
-      padding:1px 4px 1px 8px;
+      border:none;
+      background:#2d3748;
+      color:#cbd5e1;
       font-size:10px;
       font-weight:500;
       font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
-      text-transform:lowercase;
       line-height:1.35;
-      background:transparent;
-      color:#a1a1aa;
-      cursor:pointer;
+      user-select:none;
+      cursor:default;
+      white-space:nowrap;
     }
-    .grip-pending-chip-active{color:#fafafa}
-    .grip-pending-remove{
-      border:none;
-      background:transparent;
-      color:#71717a;
-      font-size:11px;
-      line-height:1;
-      padding:0 2px;
-      cursor:pointer;
+    .grip-inline-chip-active{
+      background:rgba(37,99,235,0.22);
+      color:#f8fafc;
     }
-    .grip-pending-remove:hover{color:#fafafa}
-    .grip-input-grow{
-      display:inline-grid;
-      vertical-align:baseline;
-      min-width:72px;
-      max-width:100%;
-      margin:0 0 2px 0;
-    }
-    .grip-input-grow::after{
-      content:attr(data-value);
-      white-space:pre-wrap;
-      visibility:hidden;
-      grid-area:1/1;
-      font:12px/1.45 system-ui,sans-serif;
-      padding:1px 0;
-      min-height:1.35em;
-    }
-    .grip-input-grow textarea.grip-context-input{
-      grid-area:1/1;
-      width:100%;
-      min-width:72px;
-      min-height:1.35em;
-      max-height:96px;
-      overflow:hidden;
-      resize:none;
-      border:none;
-      border-radius:0;
-      background:transparent;
-      color:#fafafa;
-      padding:1px 0;
-      margin:0;
-      font:12px/1.45 system-ui,sans-serif;
-      outline:none;
-      vertical-align:baseline;
-      field-sizing:content;
-    }
-    .grip-context-input::placeholder{color:#71717a}
     .grip-picker-actions{
       display:flex;
       gap:6px;
@@ -454,6 +437,7 @@ function setupPanelDrag(panel: HTMLElement): void {
 function toPending(el: Element): PendingPick {
   const desc = describeElement(el);
   return {
+    chipId: newChipId(),
     el,
     css: desc.css,
     tag: desc.tagName.toLowerCase(),
@@ -471,79 +455,35 @@ function ensureSelectedLayer(): HTMLElement {
   return layer;
 }
 
-function getComposerInput(): HTMLTextAreaElement | null {
-  return document.getElementById("__grip_comment_input__") as HTMLTextAreaElement | null;
+function getComposerEditor(): HTMLElement | null {
+  return document.getElementById("__grip_comment_editor__");
 }
 
-function chipHtml(index: number, tag: string, active: boolean): string {
-  return `<button type="button" class="grip-pending-chip${active ? " grip-pending-chip-active" : ""}" data-index="${index}">
-    <span>${escapeHtml(tag)}</span>
-    <span class="grip-pending-remove" data-remove="${index}" aria-label="Remove">×</span>
-  </button>`;
-}
-
-function renderPendingBadges(): void {
-  const badges = document.getElementById("__grip_comment_badges__");
-  if (!badges) return;
-
-  const chips = badges.querySelectorAll<HTMLElement>("[data-index]");
-
-  if (chips.length === pendingElements.length) {
-    chips.forEach((chip, index) => {
-      const item = pendingElements[index];
-      if (!item) return;
-      chip.className = `grip-pending-chip${index === activePendingIndex ? " grip-pending-chip-active" : ""}`;
-      chip.dataset.index = String(index);
-      const label = chip.querySelector("span:first-child");
-      if (label) label.textContent = item.tag;
-      chip.querySelector<HTMLElement>("[data-remove]")?.setAttribute("data-remove", String(index));
-    });
-    return;
-  }
-
-  if (chips.length + 1 === pendingElements.length) {
-    const index = pendingElements.length - 1;
-    const item = pendingElements[index];
-    if (item) {
-      badges.insertAdjacentHTML(
-        "beforeend",
-        chipHtml(index, item.tag, index === activePendingIndex),
-      );
-    }
-    chips.forEach((chip, index) => {
-      chip.className = `grip-pending-chip${index === activePendingIndex ? " grip-pending-chip-active" : ""}`;
-    });
-    return;
-  }
-
-  badges.innerHTML = pendingElements
-    .map((item, index) => chipHtml(index, item.tag, index === activePendingIndex))
-    .join("");
-}
+const COMPOSER_PLACEHOLDER =
+  "Select elements on the page, then describe what you need…";
 
 function withComposerState(fn: () => void): void {
-  const input = getComposerInput();
-  const snapshot = input
-    ? {
-        value: input.value,
-        start: input.selectionStart,
-        end: input.selectionEnd,
-        focused: document.activeElement === input,
-      }
-    : null;
+  const editor = getComposerEditor();
+  const sel = window.getSelection();
+  const range =
+    sel?.rangeCount && editor?.contains(sel.anchorNode)
+      ? sel.getRangeAt(0).cloneRange()
+      : null;
+  const focused = document.activeElement === editor;
+  const snapshot = editor ? serializeEditor(editor) : composerPrompt;
 
   fn();
 
-  if (!input || !snapshot) return;
-  input.value = snapshot.value;
-  composerPrompt = snapshot.value;
-  if (snapshot.focused) {
-    input.focus({ preventScroll: true });
-    const start = Math.min(snapshot.start, input.value.length);
-    const end = Math.min(snapshot.end, input.value.length);
-    input.setSelectionRange(start, end);
+  if (!editor) return;
+  composerPrompt = serializeEditor(editor) || snapshot;
+  if (range && focused) {
+    try {
+      sel?.removeAllRanges();
+      sel?.addRange(range);
+    } catch {
+      placeCaretAtEnd(editor);
+    }
   }
-  syncComposerInput(input);
 }
 
 function updatePendingHighlights(): void {
@@ -566,7 +506,13 @@ function updatePendingHighlights(): void {
 
 function updatePendingUI(): void {
   withComposerState(() => {
-    renderPendingBadges();
+    const editor = getComposerEditor();
+    if (editor) {
+      updateChipActiveStates(
+        editor,
+        pendingElements[activePendingIndex]?.chipId,
+      );
+    }
     const sessionLabel = document.getElementById("__grip_session_label__");
     if (sessionLabel) {
       sessionLabel.textContent = formatPickerIndexLabel();
@@ -585,16 +531,26 @@ function formatPickerIndexLabel(): string {
 }
 
 function updateComposerPlaceholder(): void {
-  const input = document.getElementById("__grip_comment_input__") as HTMLTextAreaElement | null;
-  if (!input) return;
-  input.placeholder =
-    pendingElements.length > 0
-      ? ""
-      : "Select elements on the page, then describe what you need…";
+  const editor = getComposerEditor();
+  if (!editor) return;
+  editor.dataset.placeholder =
+    pendingElements.length > 0 ? "" : COMPOSER_PLACEHOLDER;
+}
+
+function removePendingByChipId(chipId: string): void {
+  const index = pendingElements.findIndex((item) => item.chipId === chipId);
+  if (index >= 0) removePendingAt(index);
 }
 
 function removePendingAt(index: number): void {
   if (index < 0 || index >= pendingElements.length) return;
+  const item = pendingElements[index];
+  if (!item) return;
+
+  const editor = getComposerEditor();
+  const chip = editor ? findChipElement(editor, item.chipId) : null;
+  if (chip) removeChipElement(chip);
+
   pendingElements.splice(index, 1);
   if (!pendingElements.length) {
     resumeHover();
@@ -605,55 +561,29 @@ function removePendingAt(index: number): void {
   updatePendingUI();
 }
 
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-function handleComposerBackspace(input: HTMLTextAreaElement): boolean {
-  if (!pendingElements.length) return false;
-  if (input.value.length > 0) return false;
-
-  const index =
-    activePendingIndex >= 0 && activePendingIndex < pendingElements.length
-      ? activePendingIndex
-      : pendingElements.length - 1;
-  removePendingAt(index);
-  if (phase === "comment" && pendingElements.length > 0) {
-    focusComposerInput();
-  }
-  return true;
-}
-
-function syncComposerInput(input?: HTMLTextAreaElement | null): void {
-  const el = input ?? getComposerInput();
-  const grow = document.getElementById("__grip_input_grow__");
-  if (!el || !grow) return;
-
-  composerPrompt = el.value;
-  const mirror = el.value.length > 0 ? el.value : el.placeholder;
-  grow.setAttribute("data-value", mirror);
-
-  const start = el.selectionStart;
-  const end = el.selectionEnd;
-  el.style.height = "auto";
-  el.style.height = `${Math.min(el.scrollHeight, 96)}px`;
-  if (document.activeElement === el) {
-    el.setSelectionRange(start, end);
-  }
+function syncComposerEditor(editor?: HTMLElement | null): void {
+  const el = editor ?? getComposerEditor();
+  if (!el) return;
+  composerPrompt = serializeEditor(el);
 }
 
 function addToPending(el: Element, options?: { keepTyping?: boolean }): void {
   const next = toPending(el);
   const existingIndex = pendingElements.findIndex((item) => item.css === next.css);
+  const editor = getComposerEditor();
+  let inserted = false;
+
   if (existingIndex >= 0) {
     activePendingIndex = existingIndex;
+    next.chipId = pendingElements[existingIndex]!.chipId;
   } else {
     pendingElements.push(next);
     activePendingIndex = pendingElements.length - 1;
+    if (editor) {
+      insertChipAtSelection(editor, next.chipId, next.tag, true);
+      inserted = true;
+      composerPrompt = serializeEditor(editor);
+    }
   }
 
   highlight(el);
@@ -662,6 +592,10 @@ function addToPending(el: Element, options?: { keepTyping?: boolean }): void {
   const panel = document.getElementById(COMMENT_ID);
   if (panel && !panelManuallyPlaced && !options?.keepTyping) {
     positionCommentPanel(panel, el);
+  }
+
+  if (editor && !options?.keepTyping && inserted) {
+    focusEditor(editor);
   }
 }
 
@@ -680,9 +614,14 @@ function ensureCommentPanel(): HTMLElement {
     </div>
     <div class="grip-context-field">
       <div id="__grip_comment_composer__" class="grip-context-composer">
-        <div class="grip-context-inline">
-          <div id="__grip_comment_badges__" class="grip-context-badges"></div><span class="grip-input-grow" id="__grip_input_grow__" data-value=""><textarea id="__grip_comment_input__" class="grip-context-input" placeholder="Select elements on the page, then describe what you need…" rows="1"></textarea></span>
-        </div>
+        <div
+          id="__grip_comment_editor__"
+          class="grip-inline-editor"
+          contenteditable="true"
+          role="textbox"
+          aria-multiline="true"
+          data-placeholder="${COMPOSER_PLACEHOLDER}"
+        ></div>
       </div>
     </div>
     <div class="grip-picker-actions">
@@ -695,43 +634,62 @@ function ensureCommentPanel(): HTMLElement {
   return panel;
 }
 
-function bindBadgeEvents(panel: HTMLElement): void {
+function bindComposerEvents(panel: HTMLElement): void {
   const composer = panel.querySelector("#__grip_comment_composer__");
-  if (!composer || composer.getAttribute("data-bound") === "1") return;
+  const editor = getComposerEditor();
+  if (!composer || !editor || composer.getAttribute("data-bound") === "1") return;
   composer.setAttribute("data-bound", "1");
 
   composer.addEventListener("mousedown", (e) => {
     const target = e.target as HTMLElement;
-    if (target.closest("[data-index], [data-remove]")) {
+    if (target.closest(".grip-inline-chip")) {
       e.preventDefault();
       return;
     }
-    if (!target.closest("#__grip_comment_input__")) {
-      focusComposerInput();
+    if (!target.closest("#__grip_comment_editor__")) {
+      focusComposerEditor();
     }
   });
 
   composer.addEventListener("click", (e) => {
     const target = e.target as HTMLElement;
-    const removeBtn = target.closest<HTMLElement>("[data-remove]");
-    if (removeBtn) {
-      e.stopPropagation();
-      const index = Number(removeBtn.dataset.remove);
-      if (!Number.isNaN(index)) removePendingAt(index);
-      return;
-    }
-    const chip = target.closest<HTMLElement>("[data-index]");
+    const chip = target.closest<HTMLElement>(".grip-inline-chip");
     if (!chip) return;
-    const index = Number(chip.dataset.index);
-    if (Number.isNaN(index) || !pendingElements[index]) return;
+    const chipId = chip.dataset.gripChip;
+    const index = pendingElements.findIndex((item) => item.chipId === chipId);
+    if (index < 0 || !pendingElements[index]) return;
     activePendingIndex = index;
     highlight(pendingElements[index].el);
     updatePendingUI();
   });
+
+  editor.addEventListener("input", () => {
+    syncComposerEditor(editor);
+  });
+
+  editor.addEventListener("keydown", (e) => {
+    e.stopPropagation();
+    if (
+      handleEditorKeydown(editor, e, (chipId) => {
+        removePendingByChipId(chipId);
+        syncComposerEditor(editor);
+      })
+    ) {
+      return;
+    }
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      finishPick(serializeEditor(editor), true);
+    }
+    if (e.key === "Escape") resumeHover();
+  });
 }
 
-function focusComposerInput(): void {
-  getComposerInput()?.focus({ preventScroll: true });
+function focusComposerEditor(): void {
+  const editor = getComposerEditor();
+  if (!editor) return;
+  focusEditor(editor);
+  if (isEditorEmpty(editor)) placeCaretAtEnd(editor);
 }
 
 function resumeHover(): void {
@@ -749,7 +707,13 @@ function resumeHover(): void {
 
 function finishPick(comment: string, continueSession: boolean): void {
   if (!pendingElements.length) return;
-  const trimmed = (comment || composerPrompt).trim();
+  const tagsById = Object.fromEntries(
+    pendingElements.map((item) => [item.chipId, item.tag]),
+  );
+  const trimmed = formatInlineCommentForMcp(
+    (comment || composerPrompt).trim(),
+    tagsById,
+  );
   for (const item of pendingElements) {
     sendPick(item.el, trimmed);
   }
@@ -777,8 +741,7 @@ function showCommentPrompt(el: Element): void {
     document.getElementById(HINT_ID)?.remove();
   }
 
-  const input = panel.querySelector("#__grip_comment_input__") as HTMLTextAreaElement;
-  const composer = panel.querySelector("#__grip_comment_composer__") as HTMLElement | null;
+  const editor = panel.querySelector("#__grip_comment_editor__") as HTMLElement;
   const save = panel.querySelector("#__grip_comment_save__") as HTMLButtonElement;
   const cancel = panel.querySelector("#__grip_comment_cancel__") as HTMLButtonElement;
 
@@ -786,7 +749,7 @@ function showCommentPrompt(el: Element): void {
     pendingElements = [];
     activePendingIndex = 0;
     composerPrompt = "";
-    input.value = "";
+    setEditorFromComment(editor, "", []);
   }
 
   addToPending(el);
@@ -794,31 +757,15 @@ function showCommentPrompt(el: Element): void {
 
   if (save.dataset.bound !== "1") {
     save.dataset.bound = "1";
-    bindBadgeEvents(panel);
+    bindComposerEvents(panel);
     save.onclick = (e) => {
       e.stopPropagation();
-      finishPick(input.value, true);
+      finishPick(serializeEditor(editor), true);
     };
     cancel.onclick = (e) => {
       e.stopPropagation();
       cleanup();
     };
-    input.onkeydown = (e) => {
-      e.stopPropagation();
-      if (e.key === "Backspace" && handleComposerBackspace(e.target as HTMLTextAreaElement)) {
-        e.preventDefault();
-        return;
-      }
-      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault();
-        finishPick(input.value, true);
-      }
-      if (e.key === "Escape") resumeHover();
-    };
-    input.addEventListener("input", () => {
-      composerPrompt = input.value;
-      syncComposerInput(input);
-    });
 
     panel.addEventListener("mousedown", (e) => e.stopPropagation());
     panel.addEventListener("click", (e) => e.stopPropagation());
@@ -842,9 +789,9 @@ function showCommentPrompt(el: Element): void {
   }
 
   if (isNewPanel) {
-    focusComposerInput();
+    focusComposerEditor();
   }
-  syncComposerInput(input);
+  syncComposerEditor(editor);
 }
 
 function onClick(e: MouseEvent): void {
@@ -872,8 +819,8 @@ function onClick(e: MouseEvent): void {
   }
 
   if (phase === "comment") {
-    const input = getComposerInput();
-    const keepTyping = document.activeElement === input;
+    const editor = getComposerEditor();
+    const keepTyping = document.activeElement === editor;
     addToPending(el, { keepTyping });
     return;
   }

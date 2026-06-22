@@ -25,6 +25,15 @@ export {
   formatMcpPrompt,
   GRIP_MCP_DEFAULT_PORT,
 } from "./mcp-prompt.js";
+export {
+  chipDisplayLabel,
+  formatInlineCommentForMcp,
+  gripChipToken,
+  GRIP_CHIP_TOKEN_RE,
+  newChipId,
+  parseInlineComment,
+  serializeInlineComment,
+} from "./inline-composer.js";
 export type { PickerElementDetails } from "./mcp-prompt.js";
 export type {
   A11ySnapshot,

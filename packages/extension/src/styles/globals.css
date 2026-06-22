@@ -480,6 +480,48 @@ body {
   line-height: 1.45;
 }
 
+.grip-inline-editor {
+  min-height: 1.35em;
+  max-height: 6rem;
+  overflow-y: auto;
+  outline: none;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.75rem;
+  color: var(--grip-fg);
+  caret-color: var(--grip-fg);
+}
+
+.grip-inline-editor:empty::before {
+  content: attr(data-placeholder);
+  color: var(--grip-muted);
+  pointer-events: none;
+}
+
+.grip-inline-chip {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: baseline;
+  margin: 0 0.125rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  border: none;
+  background: color-mix(in srgb, #2d3748 88%, var(--grip-surface));
+  color: #cbd5e1;
+  font-size: 10px;
+  font-weight: 500;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  line-height: 1.35;
+  user-select: none;
+  cursor: default;
+  white-space: nowrap;
+}
+
+.grip-inline-chip-active {
+  background: color-mix(in srgb, var(--grip-accent) 18%, #2d3748);
+  color: #f8fafc;
+}
+
 .grip-context-inline {
   line-height: 1.45;
   word-break: break-word;

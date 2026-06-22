@@ -1,4 +1,13 @@
-import { useEffect, useRef } from "preact/hooks";
+import { useEffect, useMemo, useRef } from "preact/hooks";
+import {
+  focusEditor,
+  handleEditorKeydown,
+  INLINE_EDITOR_CLASS,
+  isEditorEmpty,
+  serializeEditor,
+  setEditorFromComment,
+  type InlineChipRef,
+} from "@/lib";
 
 interface CommentFieldProps {
   value: string;
@@ -10,13 +19,6 @@ interface CommentFieldProps {
   maxHeight?: number;
 }
 
-function syncGrow(input: HTMLTextAreaElement, grow: HTMLElement): void {
-  const mirror = input.value.length > 0 ? input.value : input.placeholder;
-  grow.setAttribute("data-value", mirror);
-  input.style.height = "auto";
-  input.style.height = `${Math.min(input.scrollHeight, 96)}px`;
-}
-
 export function CommentField({
   value,
   onChange,
@@ -26,20 +28,55 @@ export function CommentField({
   tags,
   maxHeight = 160,
 }: CommentFieldProps) {
-  const inputRef = useRef<HTMLTextAreaElement>(null);
-  const growRef = useRef<HTMLSpanElement>(null);
+  const editorRef = useRef<HTMLDivElement>(null);
+  const lastEmitted = useRef(value);
 
-  const chipTags = tags?.length
-    ? tags
-    : tagName
-      ? [tagName.toLowerCase(), ...(role && role !== tagName.toLowerCase() ? [role] : [])]
-      : [];
+  const chipRefs = useMemo<InlineChipRef[]>(() => {
+    if (tags?.length) {
+      return tags.map((tag, index) => ({ id: `static-${index}`, tag }));
+    }
+    if (tagName) {
+      const primary = tagName.toLowerCase();
+      const refs: InlineChipRef[] = [{ id: "static-0", tag: primary }];
+      if (role && role.toLowerCase() !== primary) {
+        refs.push({ id: "static-1", tag: role.toLowerCase() });
+      }
+      return refs;
+    }
+    return [];
+  }, [tagName, role, tags]);
 
   useEffect(() => {
-    if (inputRef.current && growRef.current) {
-      syncGrow(inputRef.current, growRef.current);
-    }
-  }, [value, placeholder, chipTags.length]);
+    const editor = editorRef.current;
+    if (!editor) return;
+
+    const onInput = () => {
+      const next = serializeEditor(editor);
+      lastEmitted.current = next;
+      onChange(next);
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      handleEditorKeydown(editor, e, () => {
+        onInput();
+      });
+    };
+
+    editor.addEventListener("input", onInput);
+    editor.addEventListener("keydown", onKeyDown);
+    return () => {
+      editor.removeEventListener("input", onInput);
+      editor.removeEventListener("keydown", onKeyDown);
+    };
+  }, [onChange]);
+
+  useEffect(() => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    if (value === lastEmitted.current && !isEditorEmpty(editor)) return;
+    setEditorFromComment(editor, value, chipRefs);
+    lastEmitted.current = value;
+  }, [value, chipRefs]);
 
   return (
     <div className="grip-context-field">
@@ -48,39 +85,21 @@ export function CommentField({
         style={{ maxHeight: `${maxHeight}px` }}
         onMouseDown={(e) => {
           const target = e.target as HTMLElement;
-          if (target.closest(".grip-pending-chip, .grip-el-badge")) return;
-          inputRef.current?.focus();
+          if (target.closest(".grip-inline-chip")) {
+            e.preventDefault();
+            return;
+          }
+          focusEditor(editorRef.current!);
         }}
       >
-        <div className="grip-context-inline">
-          {chipTags.length > 0 ? (
-            <div className="grip-context-badges">
-              {chipTags.map((tag) => (
-                <span key={tag} className="grip-el-badge">
-                  {tag}
-                </span>
-              ))}
-            </div>
-          ) : null}
-          <span
-            ref={growRef}
-            className="grip-input-grow"
-            data-value={value || (chipTags.length ? "" : placeholder)}
-          >
-            <textarea
-              ref={inputRef}
-              className="grip-textarea grip-context-input"
-              value={value}
-              placeholder={chipTags.length ? "" : placeholder}
-              rows={1}
-              onInput={(e) => {
-                const input = e.target as HTMLTextAreaElement;
-                if (growRef.current) syncGrow(input, growRef.current);
-                onChange(input.value);
-              }}
-            />
-          </span>
-        </div>
+        <div
+          ref={editorRef}
+          className={INLINE_EDITOR_CLASS}
+          contentEditable
+          role="textbox"
+          aria-multiline="true"
+          data-placeholder={placeholder}
+        />
       </div>
     </div>
   );

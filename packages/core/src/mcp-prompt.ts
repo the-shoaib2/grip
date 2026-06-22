@@ -1,3 +1,4 @@
+import { formatInlineCommentForMcp, GRIP_CHIP_TOKEN_RE } from "./inline-composer.js";
 import type { PickerElementPayload } from "./types/messages.js";
 
 export interface PickerElementDetails extends PickerElementPayload {
@@ -9,7 +10,13 @@ export function formatMcpPrompt(pick: PickerElementDetails): string {
   const lines: string[] = [];
 
   if (pick.comment?.trim()) {
-    lines.push(`Context: ${pick.comment.trim()}`, "");
+    const raw = pick.comment.trim();
+    const context = GRIP_CHIP_TOKEN_RE.test(raw)
+      ? formatInlineCommentForMcp(raw, {
+          [`static-0`]: pick.tagName.toLowerCase(),
+        })
+      : raw;
+    lines.push(`Context: ${context}`, "");
   }
 
   lines.push(
