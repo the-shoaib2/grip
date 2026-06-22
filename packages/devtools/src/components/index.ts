@@ -8,5 +8,6 @@ export { GripSessionToolbar } from "./GripSessionToolbar";
 export { PickErrorBanner } from "./PickErrorBanner";
 export { HistoryIcon, McpIcon, MinusIcon, MousePointerClickIcon, PlusIcon } from "./icons";
 export { PickHistoryList } from "./PickHistoryList";
+export { SessionLabel } from "./SessionLabel";
 export { SelectDropdown } from "./SelectDropdown";
 export { Tooltip } from "./Tooltip";

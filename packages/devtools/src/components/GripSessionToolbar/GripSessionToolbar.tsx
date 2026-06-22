@@ -1,10 +1,12 @@
 import { HistoryIcon, MousePointerClickIcon, PlusIcon } from "../icons";
+import { SessionLabel } from "../SessionLabel";
 import { Tooltip } from "../Tooltip";
 
 export interface GripSessionToolbarProps {
   variant: "popup" | "compact";
   pickActive?: boolean;
   historyOpen?: boolean;
+  sessionCount?: number;
   onPick: () => void;
   onToggleHistory: () => void;
   onNewSession: () => void;
@@ -14,6 +16,7 @@ export function GripSessionToolbar({
   variant,
   pickActive = false,
   historyOpen = true,
+  sessionCount = 0,
   onPick,
   onToggleHistory,
   onNewSession,
@@ -46,28 +49,33 @@ export function GripSessionToolbar({
           <span>Pick</span>
         </button>
       </Tooltip>
-      <div className="grip-popup-toolbar-actions">
-        <Tooltip text="New session">
-          <button
-            type="button"
-            className="grip-btn-ghost grip-btn-toolbar grip-btn-toolbar-icon"
-            aria-label="New session"
-            onClick={onNewSession}
-          >
-            <PlusIcon size={16} />
-          </button>
-        </Tooltip>
-        <Tooltip text={historyOpen ? "Hide session picks" : "Show session picks"}>
-          <button
-            type="button"
-            className={`grip-btn-ghost grip-btn-toolbar grip-btn-toolbar-icon${historyOpen ? " grip-btn-toolbar-muted-active" : ""}`}
-            aria-label={historyOpen ? "Hide session picks" : "Show session picks"}
-            aria-pressed={historyOpen ? "true" : "false"}
-            onClick={onToggleHistory}
-          >
-            <HistoryIcon size={16} />
-          </button>
-        </Tooltip>
+      <div className="grip-popup-toolbar-trail">
+        {!historyOpen && sessionCount > 0 ? (
+          <SessionLabel pickCount={sessionCount} className="grip-session-toolbar-label" />
+        ) : null}
+        <div className="grip-popup-toolbar-actions">
+          <Tooltip text="New session">
+            <button
+              type="button"
+              className="grip-btn-ghost grip-btn-toolbar grip-btn-toolbar-icon"
+              aria-label="New session"
+              onClick={onNewSession}
+            >
+              <PlusIcon size={16} />
+            </button>
+          </Tooltip>
+          <Tooltip text={historyOpen ? "Hide session picks" : "Show session picks"}>
+            <button
+              type="button"
+              className={`grip-btn-ghost grip-btn-toolbar grip-btn-toolbar-icon${historyOpen ? " grip-btn-toolbar-muted-active" : ""}`}
+              aria-label={historyOpen ? "Hide session picks" : "Show session picks"}
+              aria-pressed={historyOpen ? "true" : "false"}
+              onClick={onToggleHistory}
+            >
+              <HistoryIcon size={16} />
+            </button>
+          </Tooltip>
+        </div>
       </div>
     </div>
   );

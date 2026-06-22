@@ -1,6 +1,7 @@
 import { formatAllMcpPrompts, formatMcpPrompt, type StoredPick } from "@grip/core";
 import { CopyButton } from "../CopyButton";
 import { ElementTagBadge } from "../ElementTagBadge";
+import { SessionLabel } from "../SessionLabel";
 import { Tooltip } from "../Tooltip";
 
 interface PickHistoryListProps {
@@ -23,9 +24,7 @@ export function PickHistoryList({
   return (
     <section className="grip-pick-section">
       <div className="grip-pick-section-header">
-        <span className="grip-label grip-label-plain">
-          Session{history.length > 0 ? ` · ${history.length}` : ""}
-        </span>
+        <SessionLabel pickCount={history.length} />
         <CopyButton
           label="Copy all"
           text={allText}
