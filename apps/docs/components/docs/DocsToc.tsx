@@ -2,28 +2,31 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { TocItem } from "@lib/types";
+import { useDocsToc } from "@components/docs/DocsTocContext";
 
-function getScrollOffset(): number {
-  const header = document.querySelector(".docs-header");
-  return (header?.getBoundingClientRect().height ?? 56) + 24;
+const SCROLL_OFFSET = 24;
+
+function getScrollRoot(): HTMLElement | null {
+  return document.querySelector(".docs-main-scroll");
 }
 
-function resolveActiveId(items: TocItem[]): string {
+function resolveActiveId(items: TocItem[], scrollRoot: HTMLElement): string {
   if (!items.length) return "";
 
-  const offset = getScrollOffset();
+  const rootRect = scrollRoot.getBoundingClientRect();
   let current = items[0].id;
 
   for (const item of items) {
     const el = document.getElementById(item.id);
     if (!el) continue;
-    if (el.getBoundingClientRect().top <= offset) {
+    const top = el.getBoundingClientRect().top - rootRect.top;
+    if (top <= SCROLL_OFFSET) {
       current = item.id;
     }
   }
 
-  const doc = document.documentElement;
-  const atBottom = window.scrollY + window.innerHeight >= doc.scrollHeight - 48;
+  const atBottom =
+    scrollRoot.scrollTop + scrollRoot.clientHeight >= scrollRoot.scrollHeight - 48;
   if (atBottom) {
     current = items[items.length - 1].id;
   }
@@ -31,9 +34,10 @@ function resolveActiveId(items: TocItem[]): string {
   return current;
 }
 
-export function DocsToc({ items }: { items: TocItem[] }) {
+export function DocsToc() {
+  const { items } = useDocsToc();
   const [activeId, setActiveId] = useState<string>(() => items[0]?.id ?? "");
-  const tocRef = useRef<HTMLElement>(null);
+  const tocRef = useRef<HTMLDivElement>(null);
   const linkRefs = useRef(new Map<string, HTMLAnchorElement>());
   const scrollingToRef = useRef(false);
   const scrollEndTimerRef = useRef<number | null>(null);
@@ -45,7 +49,9 @@ export function DocsToc({ items }: { items: TocItem[] }) {
 
   const syncActive = useCallback(() => {
     if (!items.length || scrollingToRef.current) return;
-    const next = resolveActiveId(items);
+    const scrollRoot = getScrollRoot();
+    if (!scrollRoot) return;
+    const next = resolveActiveId(items, scrollRoot);
     setActiveId((prev) => (prev === next ? prev : next));
   }, [items]);
 
@@ -64,30 +70,30 @@ export function DocsToc({ items }: { items: TocItem[] }) {
     }
   }, []);
 
-  const scrollToHeading = useCallback(
-    (id: string, smooth = true) => {
-      const el = document.getElementById(id);
-      if (!el) return;
+  const scrollToHeading = useCallback((id: string, smooth = true) => {
+    const scrollRoot = getScrollRoot();
+    const el = document.getElementById(id);
+    if (!scrollRoot || !el) return;
 
-      scrollingToRef.current = true;
-      setActiveId(id);
+    scrollingToRef.current = true;
+    setActiveId(id);
 
-      const top = el.getBoundingClientRect().top + window.scrollY - getScrollOffset();
-      window.scrollTo({ top: Math.max(0, top), behavior: smooth ? "smooth" : "auto" });
-      window.history.replaceState(null, "", `#${id}`);
+    const rootRect = scrollRoot.getBoundingClientRect();
+    const elRect = el.getBoundingClientRect();
+    const top = scrollRoot.scrollTop + (elRect.top - rootRect.top) - SCROLL_OFFSET;
+    scrollRoot.scrollTo({ top: Math.max(0, top), behavior: smooth ? "smooth" : "auto" });
+    window.history.replaceState(null, "", `#${id}`);
 
-      if (scrollEndTimerRef.current !== null) {
-        window.clearTimeout(scrollEndTimerRef.current);
-      }
-      scrollEndTimerRef.current = window.setTimeout(
-        () => {
-          scrollingToRef.current = false;
-        },
-        smooth ? 500 : 50,
-      );
-    },
-    [],
-  );
+    if (scrollEndTimerRef.current !== null) {
+      window.clearTimeout(scrollEndTimerRef.current);
+    }
+    scrollEndTimerRef.current = window.setTimeout(
+      () => {
+        scrollingToRef.current = false;
+      },
+      smooth ? 500 : 50,
+    );
+  }, []);
 
   useEffect(() => {
     scrollTocToActive(activeId);
@@ -97,6 +103,9 @@ export function DocsToc({ items }: { items: TocItem[] }) {
     if (!items.length) return;
 
     setActiveId(items[0].id);
+
+    const scrollRoot = getScrollRoot();
+    if (!scrollRoot) return;
 
     let raf = 0;
     const onScroll = () => {
@@ -111,8 +120,8 @@ export function DocsToc({ items }: { items: TocItem[] }) {
     const observer =
       headingEls.length > 0
         ? new IntersectionObserver(() => syncActive(), {
-            root: null,
-            rootMargin: `-${getScrollOffset()}px 0px -45% 0px`,
+            root: scrollRoot,
+            rootMargin: `-${SCROLL_OFFSET}px 0px -45% 0px`,
             threshold: [0, 0.1, 0.5, 1],
           })
         : null;
@@ -120,8 +129,7 @@ export function DocsToc({ items }: { items: TocItem[] }) {
     for (const el of headingEls) observer?.observe(el);
 
     syncActive();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    document.addEventListener("scroll", onScroll, { passive: true, capture: true });
+    scrollRoot.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
 
     const hash = window.location.hash.slice(1);
@@ -131,8 +139,7 @@ export function DocsToc({ items }: { items: TocItem[] }) {
 
     return () => {
       observer?.disconnect();
-      window.removeEventListener("scroll", onScroll);
-      document.removeEventListener("scroll", onScroll, true);
+      scrollRoot.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
       cancelAnimationFrame(raf);
       if (scrollEndTimerRef.current !== null) {
@@ -144,7 +151,7 @@ export function DocsToc({ items }: { items: TocItem[] }) {
   if (!items.length) return null;
 
   return (
-    <aside ref={tocRef} className="docs-toc doc-scrollbar" aria-label="On this page">
+    <div ref={tocRef} className="docs-toc-inner">
       <p className="docs-toc-label">On this page</p>
       <ul className="docs-toc-list">
         {items.map((item) => (
@@ -166,6 +173,6 @@ export function DocsToc({ items }: { items: TocItem[] }) {
           </li>
         ))}
       </ul>
-    </aside>
+    </div>
   );
 }

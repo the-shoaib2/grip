@@ -26,6 +26,11 @@ html {
   scroll-behavior: smooth;
 }
 
+body:has(.docs-shell) {
+  overflow: hidden;
+  height: 100dvh;
+}
+
 body {
   @apply bg-[var(--doc-bg)] text-[var(--doc-fg)] antialiased;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -174,14 +179,14 @@ button {
 /* ── Docs shell ── */
 
 .docs-shell {
-  min-height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
 .docs-header {
-  position: sticky;
-  top: 0;
+  flex-shrink: 0;
   z-index: 50;
   background: color-mix(in srgb, var(--doc-bg) 90%, transparent);
   backdrop-filter: blur(10px);
@@ -291,32 +296,64 @@ button {
 
 .docs-layout {
   flex: 1;
+  min-height: 0;
   width: 100%;
   max-width: var(--doc-layout-max);
   margin: 0 auto;
   padding: 0 var(--doc-layout-pad);
+  overflow: hidden;
 }
 
 .docs-body {
-  display: flex;
-  flex: 1;
-  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+@media (min-width: 1024px) {
+  .docs-body {
+    grid-template-columns: var(--doc-sidebar-w) minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .docs-body {
+    grid-template-columns: var(--doc-sidebar-w) minmax(0, 1fr) var(--doc-toc-w);
+  }
 }
 
 .docs-sidebar-aside {
   display: none;
-  width: var(--doc-sidebar-w);
-  flex-shrink: 0;
-  position: sticky;
-  top: var(--doc-header-h);
-  height: calc(100vh - var(--doc-header-h));
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  background: transparent;
 }
 
 @media (min-width: 1024px) {
   .docs-sidebar-aside {
+    display: block;
+  }
+}
+
+.docs-main-scroll {
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100%;
+}
+
+.docs-toc-aside {
+  display: none;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+@media (min-width: 1280px) {
+  .docs-toc-aside {
     display: block;
   }
 }
@@ -366,49 +403,26 @@ button {
 }
 
 .docs-main {
-  flex: 1;
   min-width: 0;
-  padding: 2rem 0 3rem;
+  max-width: var(--doc-content-max);
+  margin: 0 auto;
+  padding: 2rem 0 2rem;
 }
 
 @media (min-width: 768px) {
   .docs-main {
-    padding: 2.5rem 0 4rem;
+    padding: 2.5rem 0 2.5rem;
   }
 }
 
-.docs-page-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2rem;
-  max-width: calc(var(--doc-content-max) + var(--doc-toc-w) + 3rem);
-  margin: 0 auto;
-}
-
-@media (min-width: 1280px) {
-  .docs-page-grid {
-    grid-template-columns: minmax(0, var(--doc-content-max)) var(--doc-toc-w);
-    gap: 3rem;
-  }
+.doc-article {
+  width: 100%;
 }
 
 /* ── Right TOC ── */
 
-.docs-toc {
-  display: none;
-}
-
-@media (min-width: 1280px) {
-  .docs-toc {
-    display: block;
-    position: sticky;
-    top: calc(var(--doc-header-h) + 1.5rem);
-    align-self: start;
-    max-height: calc(100vh - var(--doc-header-h) - 3rem);
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding-right: 0.25rem;
-  }
+.docs-toc-inner {
+  padding: 1.25rem 0 2rem 0.75rem;
 }
 
 .docs-toc-label {
@@ -497,7 +511,7 @@ button {
   font-weight: 600;
   letter-spacing: -0.015em;
   color: var(--doc-fg);
-  scroll-margin-top: calc(var(--doc-header-h) + 1rem);
+  scroll-margin-top: 1.5rem;
 }
 
 .doc-h3 {
@@ -505,7 +519,7 @@ button {
   font-size: 1.0625rem;
   font-weight: 600;
   color: var(--doc-fg);
-  scroll-margin-top: calc(var(--doc-header-h) + 1rem);
+  scroll-margin-top: 1.5rem;
 }
 
 .doc-prose a {
@@ -659,10 +673,55 @@ button {
   color: var(--doc-muted);
 }
 
+.doc-tool-when {
+  margin-top: 0.375rem !important;
+  font-size: 0.75rem !important;
+  color: #71717a !important;
+}
+
+/* MCP client setup blocks */
+
+.doc-mcp-client {
+  margin-top: 1.75rem;
+  padding-top: 0.25rem;
+}
+
+.doc-mcp-client-meta {
+  margin: 0.375rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--doc-muted);
+}
+
+.doc-mcp-client-meta code {
+  font-size: 0.75rem;
+}
+
+.doc-mcp-client-note {
+  margin: 0.375rem 0 0;
+  font-size: 0.8125rem;
+  color: #a1a1aa;
+}
+
+.doc-mcp-client .doc-code {
+  margin-top: 0.625rem;
+}
+
+.doc-tip {
+  margin: 1rem 0 0;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border-left: 3px solid var(--doc-accent);
+  background: rgba(59, 130, 246, 0.08);
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: #d4d4d8;
+}
+
 /* Footer */
 
 .docs-footer {
-  margin-top: auto;
+  flex-shrink: 0;
   border-top: 1px solid var(--doc-border);
   background: var(--doc-bg-sidebar);
 }

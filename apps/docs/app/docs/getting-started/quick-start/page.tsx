@@ -1,14 +1,16 @@
+import Link from "next/link";
 import { CodeBlock } from "@components/docs/CodeBlock";
 import { DocH2, DocH3 } from "@components/docs/DocHeading";
 import { DocPage } from "@components/docs/DocPage";
+import { DocTip } from "@components/docs/DocTip";
 
 const toc = [
-  { id: "prerequisites", title: "Prerequisites", level: 2 as const },
+  { id: "prerequisites", title: "Before you start", level: 2 as const },
   { id: "install", title: "Install & build", level: 2 as const },
   { id: "chrome", title: "Launch Chrome", level: 2 as const },
   { id: "extension", title: "Load the extension", level: 2 as const },
-  { id: "mcp", title: "Configure MCP", level: 2 as const },
-  { id: "verify", title: "Verify setup", level: 2 as const },
+  { id: "mcp", title: "Connect MCP", level: 2 as const },
+  { id: "verify", title: "Check it works", level: 2 as const },
   { id: "mcp-badge", title: "MCP badge", level: 3 as const },
   { id: "pick-test", title: "Pick an element", level: 3 as const },
 ];
@@ -17,46 +19,72 @@ export default function QuickStartPage() {
   return (
     <DocPage
       title="Quick start"
-      description="Get Grip running locally — monorepo build, Chrome remote debugging, extension load, and MCP connection."
+      description="Get Grip running locally in a few steps — build the repo, open Chrome with debugging, load the extension, and connect your AI tool."
       toc={toc}
     >
-      <DocH2 id="prerequisites">Prerequisites</DocH2>
+      <DocH2 id="prerequisites">Before you start</DocH2>
+      <p>Make sure you have:</p>
       <ul>
-        <li>Node.js 20+ and pnpm</li>
-        <li>Google Chrome (for extension and CDP)</li>
-        <li>Go 1.22+ (or let <code>build:mcp</code> bootstrap a local toolchain)</li>
+        <li>
+          <strong>Node.js 20+</strong> and <strong>pnpm</strong>
+        </li>
+        <li>
+          <strong>Google Chrome</strong> — for the extension and browser automation
+        </li>
+        <li>
+          <strong>Go 1.22+</strong> — or let <code>pnpm run build:mcp</code> install a local Go
+          toolchain for you
+        </li>
       </ul>
 
       <DocH2 id="install">Install &amp; build</DocH2>
+      <p>Clone the repo and build all packages plus the MCP server:</p>
       <CodeBlock>{`git clone <repo-url> grip
 cd grip
 pnpm install
 pnpm turbo build
 pnpm run build:mcp`}</CodeBlock>
       <p>
-        This builds <code>@grip/core</code>, <code>@grip/devtools</code>, <code>@grip/extension</code>,
-        and compiles <code>grip-mcp</code> to <code>bin/grip-mcp</code>.
+        When this finishes, you should have <code>bin/grip-mcp</code> ready and the extension build
+        in <code>packages/extension/dist</code>.
       </p>
 
       <DocH2 id="chrome">Launch Chrome</DocH2>
       <p>
-        Grip MCP connects over Chrome&apos;s remote debugging port (default <code>9222</code>):
+        Grip talks to Chrome over the remote debugging port (default <code>9222</code>). Use the
+        helper script so you don&apos;t have to remember flags:
       </p>
       <CodeBlock>{`./scripts/launch-chrome.sh 9222`}</CodeBlock>
+      <DocTip>
+        Keep this Chrome window open while you use Grip or MCP. Closing it breaks the connection.
+      </DocTip>
 
       <DocH2 id="extension">Load the extension</DocH2>
-      <CodeBlock>{`pnpm --filter @grip/extension build
-# chrome://extensions → Developer mode → Load unpacked
-# Select packages/extension/dist`}</CodeBlock>
-      <p>For development with hot reload:</p>
+      <p>Build and load the unpacked extension in Chrome:</p>
+      <CodeBlock>{`pnpm --filter @grip/extension build`}</CodeBlock>
+      <p>Then in Chrome:</p>
+      <ol>
+        <li>
+          Open <code>chrome://extensions</code>
+        </li>
+        <li>
+          Turn on <strong>Developer mode</strong>
+        </li>
+        <li>
+          Click <strong>Load unpacked</strong> and choose <code>packages/extension/dist</code>
+        </li>
+      </ol>
+      <p>For day-to-day development with reload on save:</p>
       <CodeBlock>{`pnpm --filter @grip/extension dev`}</CodeBlock>
 
-      <DocH2 id="mcp">Configure MCP</DocH2>
+      <DocH2 id="mcp">Connect MCP</DocH2>
       <p>
-        Add <code>grip-mcp</code> to your editor. See the full{" "}
-        <a href="/docs/mcp/configuration">MCP configuration</a> guide for Cursor, env vars, and
-        troubleshooting.
+        Add <code>grip-mcp</code> to your editor or CLI. The exact file depends on your tool — see
+        the full{" "}
+        <Link href="/docs/mcp/configuration">MCP configuration guide</Link> for Cursor, VS Code,
+        Claude Code, Gemini CLI, OpenCode, and others.
       </p>
+      <p>Here is a minimal example (works in Cursor and most <code>mcpServers</code> clients):</p>
       <CodeBlock>{`{
   "mcpServers": {
     "grip": {
@@ -68,18 +96,33 @@ pnpm run build:mcp`}</CodeBlock>
     }
   }
 }`}</CodeBlock>
+      <DocTip>
+        Use an absolute path to <code>grip-mcp</code> if your tool&apos;s working directory is not
+        the repo root.
+      </DocTip>
 
-      <DocH2 id="verify">Verify setup</DocH2>
+      <DocH2 id="verify">Check it works</DocH2>
       <DocH3 id="mcp-badge">MCP badge</DocH3>
       <p>
-        Open the Grip popup, DevTools panel, or floating tray. The <strong>MCP</strong> chip turns{" "}
-        <span className="doc-inline-ok">green</span> when <code>grip-mcp</code> can reach Chrome on
-        the configured port. Yellow means MCP is not configured — click the chip for setup docs.
+        Open Grip from the extension icon, DevTools panel, or floating tray. Look at the{" "}
+        <strong>MCP</strong> chip in the header:
       </p>
+      <ul>
+        <li>
+          <span className="doc-inline-ok">Green</span> — Chrome is reachable on port 9222. You&apos;re
+          good to go.
+        </li>
+        <li>
+          <span className="doc-inline-warn">Yellow</span> — not connected yet. Click the chip for
+          setup help, or follow the{" "}
+          <Link href="/docs/mcp/configuration">MCP configuration guide</Link>.
+        </li>
+      </ul>
       <DocH3 id="pick-test">Pick an element</DocH3>
       <p>
-        Click <strong>Pick</strong> in any Grip UI surface, select an element on the page, and
-        confirm it appears in pick history with CSS, XPath, and role metadata.
+        Click <strong>Pick</strong>, then click anything on the page. You should see it in pick
+        history with tag, role, CSS, XPath, and optional comment — that confirms the full loop is
+        working.
       </p>
     </DocPage>
   );

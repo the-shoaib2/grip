@@ -1,6 +1,8 @@
+"use client";
+
 import type { ReactNode } from "react";
 import type { TocItem } from "@lib/types";
-import { DocsToc } from "@components/docs/DocsToc";
+import { DocsTocRegistration } from "@components/docs/DocsTocContext";
 
 export interface DocPageProps {
   title: string;
@@ -11,7 +13,8 @@ export interface DocPageProps {
 
 export function DocPage({ title, description, toc = [], children }: DocPageProps) {
   return (
-    <div className="docs-page-grid">
+    <>
+      <DocsTocRegistration items={toc} />
       <article className="doc-article">
         <header className="doc-article-header">
           <h1 className="doc-title">{title}</h1>
@@ -19,7 +22,6 @@ export function DocPage({ title, description, toc = [], children }: DocPageProps
         </header>
         <div className="doc-prose">{children}</div>
       </article>
-      <DocsToc items={toc} />
-    </div>
+    </>
   );
 }
