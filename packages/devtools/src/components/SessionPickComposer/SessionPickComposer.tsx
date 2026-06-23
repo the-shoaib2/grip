@@ -9,7 +9,7 @@ import { CommentField } from "../CommentField";
 import { CopyButton } from "../CopyButton";
 import { GripShellDialog } from "../GripShellDialog";
 import { Tooltip } from "../Tooltip";
-import { UndoIcon } from "../icons";
+import { TrashIcon, UndoIcon } from "../icons";
 
 export interface SessionPickComposerProps {
   pick: StoredPick;
@@ -17,6 +17,7 @@ export interface SessionPickComposerProps {
   pickCount: number;
   onCommentChange?: (comment: string) => void | Promise<void>;
   onNavigate?: (pick: StoredPick) => void;
+  onDeletePick?: () => void;
   /** After confirm dialog — open the page-level picker comment panel. */
   onEditRequest?: (
     pick: StoredPick,
@@ -31,6 +32,7 @@ export function SessionPickComposer({
   onCommentChange,
   onNavigate,
   onEditRequest,
+  onDeletePick,
 }: SessionPickComposerProps) {
   const baseline = useRef("");
   const chipsRef = useRef(composerStateForStoredPick(pick).chips);
@@ -75,6 +77,21 @@ export function SessionPickComposer({
       <div className="grip-picker-panel grip-session-panel" aria-label="Current pick">
         <div className="grip-picker-header">
           <span className="grip-picker-session">{headerLabel}</span>
+          {onDeletePick ? (
+            <Tooltip text="Delete pick">
+              <button
+                type="button"
+                className="grip-btn-icon grip-pick-delete"
+                aria-label={`Delete pick ${pickIndex} of ${pickCount}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeletePick();
+                }}
+              >
+                <TrashIcon size={12} />
+              </button>
+            </Tooltip>
+          ) : null}
         </div>
 
         <div className="grip-session-context-wrap">

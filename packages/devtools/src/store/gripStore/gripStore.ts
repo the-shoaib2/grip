@@ -4,7 +4,7 @@ import type { LogMessagePayload, PickerElementPayload } from "@grip/core";
 interface GripState {
   lastPick: PickerElementPayload | null;
   logs: LogMessagePayload[];
-  setLastPick: (pick: PickerElementPayload) => void;
+  setLastPick: (pick: PickerElementPayload | null) => void;
   setPickComment: (comment: string) => void;
   addLog: (entry: LogMessagePayload) => void;
   clearLogs: () => void;

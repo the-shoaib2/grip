@@ -87,6 +87,7 @@ function PickHistoryLabDemo({
     activePick,
     selectPick,
     savePickComment,
+    deletePick,
     deleteSession,
     switchSession,
   } = usePickHistory();
@@ -129,6 +130,7 @@ function PickHistoryLabDemo({
               onCommentChange={(comment) => savePickComment(activePick.id, comment)}
               onNavigate={selectPick}
               onEditRequest={onContextEditRequest}
+              onDeletePick={() => void deletePick(activePick.id)}
             />
           ) : (
             <p class="grip-empty-state">No picks yet</p>
@@ -138,6 +140,7 @@ function PickHistoryLabDemo({
             activeId={activePick?.id}
             activeSessionId={activeSessionId}
             onSelect={selectPick}
+            onDeletePick={(pick) => void deletePick(pick.id)}
             compact
           />
         </div>

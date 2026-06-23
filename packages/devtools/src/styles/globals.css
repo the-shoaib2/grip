@@ -350,6 +350,10 @@ body {
   color: var(--grip-fg);
 }
 
+.grip-session-panel .grip-picker-header .grip-pick-delete {
+  flex-shrink: 0;
+}
+
 .grip-picker-hint {
   flex-shrink: 1;
   min-width: 0;
@@ -576,6 +580,26 @@ body {
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+.grip-pick-switcher-item {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.grip-pick-switcher-item .grip-pick-delete {
+  height: 1.75rem;
+  width: 1.75rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.grip-pick-switcher-item:hover .grip-pick-delete,
+.grip-pick-switcher-item:focus-within .grip-pick-delete {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .grip-pick-switcher-btn {

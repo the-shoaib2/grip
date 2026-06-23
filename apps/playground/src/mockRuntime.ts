@@ -1,6 +1,7 @@
 import {
   appendPickHistory,
   newSessionId,
+  lastPickInSession,
   removePickFromHistory,
   clearPicksForSession,
   toStoredPick,
@@ -216,10 +217,10 @@ export const playgroundRuntime: GripRuntime = {
       }
       case "DELETE_PICK": {
         const payload = m.payload as { pickId: string };
+        const deleted = pickHistory.find((p) => p.id === payload.pickId);
         pickHistory = removePickFromHistory(pickHistory, payload.pickId);
-        if (lastPick?.id === payload.pickId) {
-          const sessionPicks = pickHistory.filter((p) => p.sessionId === sessionId);
-          lastPick = sessionPicks[sessionPicks.length - 1];
+        if (lastPick?.id === payload.pickId && deleted) {
+          lastPick = lastPickInSession(pickHistory, deleted.url, deleted.sessionId);
         }
         emitStorage("local", {
           pickHistory: { newValue: [...pickHistory], oldValue: undefined },

@@ -144,6 +144,16 @@ export function updatePickInHistory(
   return changed ? next : history;
 }
 
+/** Most recent pick in a session on a page (by timestamp order). */
+export function lastPickInSession(
+  history: StoredPick[],
+  url: string,
+  sessionId: string,
+): StoredPick | undefined {
+  const sessionPicks = picksForSession(history, url, sessionId);
+  return sessionPicks[sessionPicks.length - 1];
+}
+
 /** Remove a single stored pick by id. */
 export function removePickFromHistory(
   history: StoredPick[],

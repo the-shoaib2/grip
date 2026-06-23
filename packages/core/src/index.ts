@@ -18,6 +18,7 @@ export {
   picksForUrl,
   groupPicksBySession,
   type SessionPickGroup,
+  lastPickInSession,
   toStoredPick,
   updatePickInHistory,
   removePickFromHistory,

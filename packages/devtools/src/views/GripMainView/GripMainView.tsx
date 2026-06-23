@@ -51,6 +51,7 @@ export function GripMainView({
     switchSession,
     selectPick,
     savePickComment,
+    deletePick,
     deleteSession,
   } = usePickHistory();
   const isPickerActive = usePickerActive(runtime);
@@ -83,8 +84,10 @@ export function GripMainView({
       changes: Record<string, chrome.storage.StorageChange>,
       area: string,
     ) => {
-      if (area === "session" && changes.lastPick?.newValue) {
-        setLastPick(changes.lastPick.newValue as PickerElementPayload);
+      if (area === "session" && changes.lastPick) {
+        setLastPick(
+          (changes.lastPick.newValue as PickerElementPayload | undefined) ?? null,
+        );
       }
       if (area === "session" && changes.logs?.newValue) {
         useGripStore.setState({ logs: changes.logs.newValue as LogMessagePayload[] });
@@ -147,12 +150,14 @@ export function GripMainView({
             onCommentChange={(comment) => savePickComment(activePick.id, comment)}
             onNavigate={selectPick}
             onEditRequest={onContextEditRequest}
+            onDeletePick={() => void deletePick(activePick.id)}
           />
           <PickHistoryList
             history={history}
             activeId={activePick.id}
             activeSessionId={activeSessionId}
             onSelect={selectPick}
+            onDeletePick={(pick) => void deletePick(pick.id)}
             compact
           />
         </div>

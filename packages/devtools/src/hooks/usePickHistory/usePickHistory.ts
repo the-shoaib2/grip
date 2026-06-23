@@ -36,6 +36,7 @@ export interface UsePickHistoryResult {
   switchSession: (sessionId: string) => Promise<void>;
   selectPick: (pick: StoredPick) => void;
   savePickComment: (pickId: string, comment: string) => Promise<void>;
+  deletePick: (pickId: string) => Promise<void>;
   deleteSession: (sessionId: string) => Promise<void>;
 }
 
@@ -112,10 +113,9 @@ export function usePickHistoryState(runtime: GripRuntime): UsePickHistoryResult 
 
   useEffect(() => {
     const unsub = runtime.onStorageChanged((changes, area) => {
-      if (area === "session" && changes.lastPick?.newValue) {
+      if (area === "session" && changes.lastPick) {
         const pick = changes.lastPick.newValue as StoredPick | undefined;
-        if (!pick) return;
-        setActivePick(pick);
+        setActivePick(pick ?? null);
       }
       if (area === "local" && changes.pickHistory?.newValue) {
         void refresh();
@@ -194,6 +194,35 @@ export function usePickHistoryState(runtime: GripRuntime): UsePickHistoryResult 
     [runtime],
   );
 
+  const deletePick = useCallback(
+    async (pickId: string) => {
+      try {
+        const res = await runtime.sendMessage<{ ok?: boolean }>({
+          type: "DELETE_PICK",
+          payload: { pickId },
+        });
+        if (res?.ok === false) return;
+
+        setHistory((prev) => {
+          const next = prev.filter((pick) => pick.id !== pickId);
+          setActivePick((current) => {
+            if (current?.id !== pickId) return current;
+            return next[next.length - 1] ?? null;
+          });
+          return next;
+        });
+        setAllHistory((prev) => {
+          const next = prev.filter((pick) => pick.id !== pickId);
+          setSessionGroups(groupPicksBySession(next, pageUrl));
+          return next;
+        });
+      } catch {
+        /* ignore */
+      }
+    },
+    [runtime, pageUrl],
+  );
+
   const deleteSession = useCallback(
     async (sessionId: string) => {
       try {
@@ -224,6 +253,7 @@ export function usePickHistoryState(runtime: GripRuntime): UsePickHistoryResult 
     switchSession,
     selectPick,
     savePickComment,
+    deletePick,
     deleteSession,
   };
 }

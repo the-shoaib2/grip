@@ -6,6 +6,7 @@ import {
   pickLabel,
   picksForSession,
   removePickFromHistory,
+  lastPickInSession,
   toStoredPick,
   updatePickInHistory,
 } from "./pick-history.js";
@@ -64,6 +65,19 @@ describe("pick-history", () => {
     const next = removePickFromHistory([a, b], a.id);
     expect(next).toHaveLength(1);
     expect(next[0].id).toBe(b.id);
+  });
+
+  it("lastPickInSession returns newest pick in session on page", () => {
+    const url = "https://x.com/page";
+    const a = { ...toStoredPick(base, url, "P", "sess-1"), timestamp: 1000 };
+    const b = {
+      ...toStoredPick({ ...base, css: "div > button" }, url, "P", "sess-1"),
+      timestamp: 2000,
+    };
+    const other = toStoredPick({ ...base, css: "nav" }, url, "P", "sess-2");
+    expect(lastPickInSession([a, b, other], url, "sess-1")?.id).toBe(b.id);
+    expect(lastPickInSession([a], url, "sess-1")?.id).toBe(a.id);
+    expect(lastPickInSession([a, b, other], url, "sess-2")?.id).toBe(other.id);
   });
 
   it("groupPicksBySession groups page picks newest session first", () => {

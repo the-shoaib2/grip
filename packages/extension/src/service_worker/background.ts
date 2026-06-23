@@ -8,6 +8,7 @@ import {
   appendPickHistory,
   clearPicksForSession,
   newSessionId,
+  lastPickInSession,
   picksForSession,
   toStoredPick,
   updatePickInHistory,
@@ -410,17 +411,16 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
         try {
           const payload = msg.payload as { pickId: string };
           const data = await chrome.storage.local.get(HISTORY_KEY);
-          const history = removePickFromHistory(
-            (data[HISTORY_KEY] as StoredPick[]) ?? [],
-            payload.pickId,
-          );
+          const all = (data[HISTORY_KEY] as StoredPick[]) ?? [];
+          const deleted = all.find((h) => h.id === payload.pickId);
+          const history = removePickFromHistory(all, payload.pickId);
           await chrome.storage.local.set({ [HISTORY_KEY]: history });
           const sessionData = await chrome.storage.session.get("lastPick");
           const lastPick = sessionData.lastPick as StoredPick | undefined;
-          if (lastPick?.id === payload.pickId) {
-            const remaining = history.length
-              ? history.reduce((a, b) => (a.timestamp > b.timestamp ? a : b))
-              : undefined;
+          if (lastPick?.id === payload.pickId && deleted) {
+            const tab = await resolveTargetTab(sender, msg);
+            const url = tab?.url ?? deleted.url;
+            const remaining = lastPickInSession(history, url, deleted.sessionId);
             if (remaining) {
               await chrome.storage.session.set({ lastPick: remaining });
             } else {
