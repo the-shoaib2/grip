@@ -75,7 +75,6 @@ export function SessionPickComposer({
       <div className="grip-picker-panel grip-session-panel" aria-label="Current pick">
         <div className="grip-picker-header">
           <span className="grip-picker-session">{indexLabel}</span>
-          {/* <span className="grip-picker-hint">click to edit below · chip to locate</span> */}
         </div>
 
         <div className="grip-session-context-wrap">

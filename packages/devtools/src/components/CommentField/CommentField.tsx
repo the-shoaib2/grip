@@ -32,6 +32,8 @@ interface CommentFieldProps {
   maxHeight?: number;
   onChipActivate?: () => void;
   readOnly?: boolean;
+  /** Focus the editor with the caret at the end when this key changes. */
+  autoFocusKey?: string;
 }
 
 export function CommentField({
@@ -52,6 +54,7 @@ export function CommentField({
   maxHeight = 160,
   onChipActivate,
   readOnly = false,
+  autoFocusKey,
 }: CommentFieldProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const lastEmitted = useRef(value);
@@ -113,6 +116,16 @@ export function CommentField({
   }, [onChange, readOnly]);
 
   useEffect(() => {
+    if (!autoFocusKey || readOnly) return;
+    const editor = editorRef.current;
+    if (!editor) return;
+    const frame = requestAnimationFrame(() => {
+      focusEditor(editor, { caret: "end" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [autoFocusKey, readOnly]);
+
+  useEffect(() => {
     const editor = editorRef.current;
     if (!editor) return;
     if (value === lastEmitted.current && !isEditorEmpty(editor)) return;
@@ -136,7 +149,9 @@ export function CommentField({
             return;
           }
           if (readOnly) return;
-          focusEditor(editorRef.current!);
+          const editor = editorRef.current!;
+          const clickedInEditor = editor.contains(target) && target !== editor;
+          focusEditor(editor, { caret: clickedInEditor ? "preserve" : "end" });
         }}
       >
         <div

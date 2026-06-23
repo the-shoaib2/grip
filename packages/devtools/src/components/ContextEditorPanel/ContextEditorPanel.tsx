@@ -37,6 +37,7 @@ export function ContextEditorPanel({
         chips={chips}
         value={draft}
         onChange={setDraft}
+        autoFocusKey={pick.id}
         placeholder="Select elements on the page, then describe what you need…"
         onChipActivate={() => {
           onNavigate?.(pick);

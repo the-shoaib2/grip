@@ -19,7 +19,6 @@ import {
   handleEditorKeydown,
   insertChipAtSelection,
   isExtensionContextValid,
-  isEditorEmpty,
   placeCaretAtEnd,
   removeChipElement,
   safeSendMessage,
@@ -781,9 +780,12 @@ function bindComposerEvents(panel: HTMLElement): void {
       selectChipElement(chip);
       return;
     }
-    if (!target.closest("#__grip_comment_editor__")) {
+    if (!editor.contains(target)) {
       focusComposerEditor();
+      return;
     }
+    const clickedInEditor = target !== editor;
+    focusEditor(editor, { caret: clickedInEditor ? "preserve" : "end" });
   });
 
   composer.addEventListener("click", (e) => {
@@ -849,8 +851,9 @@ function bindComposerEvents(panel: HTMLElement): void {
 function focusComposerEditor(): void {
   const editor = getComposerEditor();
   if (!editor) return;
-  focusEditor(editor);
-  if (isEditorEmpty(editor)) placeCaretAtEnd(editor);
+  requestAnimationFrame(() => {
+    focusEditor(editor, { caret: "end" });
+  });
 }
 
 function closeContextEditor(): void {
@@ -935,7 +938,7 @@ function openContextEditor(payload: OpenContextEditorPayload): void {
   const { chips, comment } = composerStateForStoredPick(pick);
   const editor = panel.querySelector("#__grip_comment_editor__") as HTMLElement;
   const inlineChips = inlineChipsFromStored(chips);
-  setEditorFromComment(editor, comment, inlineChips);
+  setEditorFromComment(editor, comment, inlineChips, undefined, { caretAtEnd: true });
   const anchor = syncPendingFromStoredChips(chips);
 
   if (anchor) {

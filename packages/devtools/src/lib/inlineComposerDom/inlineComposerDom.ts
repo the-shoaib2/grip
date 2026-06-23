@@ -116,11 +116,17 @@ export function isEditorEmpty(editor: HTMLElement): boolean {
   return text.length === 0;
 }
 
+export interface SetEditorFromCommentOptions {
+  /** Move caret to the end after rebuilding content (default false). */
+  caretAtEnd?: boolean;
+}
+
 export function setEditorFromComment(
   editor: HTMLElement,
   value: string,
   chips: InlineChipRef[],
   activeChipId?: string,
+  options?: SetEditorFromCommentOptions,
 ): void {
   editor.innerHTML = "";
   const parts = parseInlineComment(value);
@@ -128,6 +134,7 @@ export function setEditorFromComment(
   if (!parts.length && chips.length === 1) {
     editor.appendChild(createChipElement(chips[0]!, true));
     editor.appendChild(document.createTextNode(ZWSP));
+    if (options?.caretAtEnd) placeCaretAtEnd(editor);
     return;
   }
 
@@ -156,6 +163,8 @@ export function setEditorFromComment(
   if (!editor.childNodes.length) {
     editor.appendChild(document.createTextNode(""));
   }
+
+  if (options?.caretAtEnd) placeCaretAtEnd(editor);
 }
 
 export function insertChipAtSelection(
@@ -226,19 +235,43 @@ export function placeCaretAfter(node: Node): void {
   sel.addRange(range);
 }
 
+/** Place the caret at the last typable position (after chips, at end of trailing text). */
 export function placeCaretAtEnd(editor: HTMLElement): void {
   const sel = window.getSelection();
   if (!sel) return;
+
   const range = document.createRange();
-  range.selectNodeContents(editor);
-  range.collapse(false);
+  const last = editor.lastChild;
+
+  if (!last) {
+    range.setStart(editor, 0);
+    range.collapse(true);
+  } else if (last.nodeType === Node.TEXT_NODE) {
+    range.setStart(last, (last.textContent ?? "").length);
+    range.collapse(true);
+  } else {
+    range.setStartAfter(last);
+    range.collapse(true);
+  }
+
   sel.removeAllRanges();
   sel.addRange(range);
 }
 
-export function focusEditor(editor: HTMLElement): void {
+export type FocusEditorCaret = "end" | "preserve";
+
+export interface FocusEditorOptions {
+  /** Default "end" — compose flows should type after chips, not before them. */
+  caret?: FocusEditorCaret;
+}
+
+export function focusEditor(
+  editor: HTMLElement,
+  options: FocusEditorOptions = {},
+): void {
+  const caret = options.caret ?? "end";
   editor.focus({ preventScroll: true });
-  if (isEditorEmpty(editor)) placeCaretAtEnd(editor);
+  if (caret === "end") placeCaretAtEnd(editor);
 }
 
 function nodeBeforeCaret(range: Range): Node | null {
