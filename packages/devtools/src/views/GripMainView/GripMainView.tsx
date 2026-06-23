@@ -8,6 +8,7 @@ import {
   PickErrorBanner,
   PickHistoryList,
   SessionHistoryList,
+  SessionPickComposer,
   Tooltip,
 } from "../../components";
 import { usePickHistory } from "../../hooks/usePickHistory";
@@ -44,6 +45,7 @@ export function GripMainView({
     newSession,
     switchSession,
     selectPick,
+    savePickComment,
     deleteSession,
   } = usePickHistory(runtime);
   const isPickerActive = usePickerActive(runtime);
@@ -135,6 +137,27 @@ export function GripMainView({
 
       {pickError ? <PickErrorBanner message={pickError} onRetry={handlePick} /> : null}
 
+      {!historyView && activePick ? (
+        <div className="grip-session-stack">
+          <SessionPickComposer
+            pick={activePick}
+            pickIndex={history.findIndex((pick) => pick.id === activePick.id) + 1}
+            pickCount={history.length}
+            onCommentChange={(comment) => savePickComment(activePick.id, comment)}
+            onNavigate={selectPick}
+          />
+          <PickHistoryList
+            history={history}
+            activeId={activePick.id}
+            activeSessionId={activeSessionId}
+            onSelect={selectPick}
+            compact
+          />
+        </div>
+      ) : !historyView ? (
+        <p className="grip-empty-state">No picks yet</p>
+      ) : null}
+
       <div className="grip-popup-history">
         {historyView ? (
           <SessionHistoryList
@@ -146,14 +169,7 @@ export function GripMainView({
             }}
             onDeleteSession={(sessionId) => void deleteSession(sessionId)}
           />
-        ) : (
-          <PickHistoryList
-            history={history}
-            activeId={activePick?.id}
-            activeSessionId={activeSessionId}
-            onSelect={selectPick}
-          />
-        )}
+        ) : null}
       </div>
     </GripRootLayout>
   );

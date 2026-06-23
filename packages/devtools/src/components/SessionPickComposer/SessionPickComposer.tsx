@@ -1,25 +1,27 @@
-import { useEffect, useMemo, useState } from "preact/hooks";
-import type { StoredPick } from "@grip/core";
+import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import {
   composerStateForStoredPick,
   formatPickIndexLabel,
-} from "../../lib/storedPickComposer";
+  type StoredPick,
+} from "@grip/core";
 import { CommentField } from "../CommentField";
-import { ElementTagBadge } from "../ElementTagBadge";
 
 export interface SessionPickComposerProps {
   pick: StoredPick;
   pickIndex: number;
   pickCount: number;
-  onSave: (comment: string) => void | Promise<void>;
+  /** Persist prompt edits — debounced; no Save button in the panel. */
+  onCommentChange?: (comment: string) => void | Promise<void>;
   onNavigate?: (pick: StoredPick) => void;
 }
+
+const SAVE_DEBOUNCE_MS = 400;
 
 export function SessionPickComposer({
   pick,
   pickIndex,
   pickCount,
-  onSave,
+  onCommentChange,
   onNavigate,
 }: SessionPickComposerProps) {
   const { chips: initialChips, comment: initialComment } = useMemo(
@@ -27,52 +29,54 @@ export function SessionPickComposer({
     [pick],
   );
   const [comment, setComment] = useState(initialComment);
-  const [saving, setSaving] = useState(false);
+  const saveTimer = useRef<number | undefined>(undefined);
+  const latestComment = useRef(initialComment);
 
   useEffect(() => {
     setComment(initialComment);
+    latestComment.current = initialComment;
   }, [pick.id, initialComment]);
 
-  const dirty = comment !== initialComment;
+  useEffect(
+    () => () => {
+      if (saveTimer.current != null) window.clearTimeout(saveTimer.current);
+    },
+    [],
+  );
+
   const indexLabel = formatPickIndexLabel(pickIndex, pickCount);
 
-  const handleSave = async () => {
-    if (!dirty || saving) return;
-    setSaving(true);
-    try {
-      await onSave(comment);
-    } finally {
-      setSaving(false);
-    }
+  const scheduleSave = (next: string) => {
+    latestComment.current = next;
+    if (!onCommentChange || next === initialComment) return;
+    if (saveTimer.current != null) window.clearTimeout(saveTimer.current);
+    saveTimer.current = window.setTimeout(() => {
+      saveTimer.current = undefined;
+      if (latestComment.current !== initialComment) {
+        void onCommentChange(latestComment.current);
+      }
+    }, SAVE_DEBOUNCE_MS);
   };
 
   return (
-    <section className="grip-session-main" aria-label="Current pick">
-      <div className="grip-session-main-header">
-        <span className="grip-session-pick-index">{indexLabel}</span>
-        <ElementTagBadge tagName={pick.tagName} role={pick.role} />
+    <div className="grip-picker-panel grip-session-panel" aria-label="Current pick">
+      <div className="grip-picker-header">
+        <span className="grip-picker-session">{indexLabel}</span>
+        <span className="grip-picker-hint">click chip to locate</span>
       </div>
 
       <CommentField
         chips={initialChips}
         value={comment}
-        onChange={setComment}
+        onChange={(next) => {
+          setComment(next);
+          scheduleSave(next);
+        }}
         placeholder="Select elements on the page, then describe what you need…"
         onChipActivate={() => {
           onNavigate?.(pick);
         }}
       />
-
-      <div className="grip-session-main-actions">
-        <button
-          type="button"
-          className="grip-btn-secondary grip-btn-save"
-          disabled={!dirty || saving}
-          onClick={() => void handleSave()}
-        >
-          {saving ? "Saving…" : "Save"}
-        </button>
-      </div>
-    </section>
+    </div>
   );
 }

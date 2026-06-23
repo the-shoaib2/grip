@@ -22,6 +22,12 @@ export {
   updatePickInHistory,
   removePickFromHistory,
 } from "./pick-history.js";
+export {
+  composerStateForStoredPick,
+  formatPickIndexLabel,
+  storedPickToChipRef,
+  type StoredPickChipRef,
+} from "./stored-pick-composer.js";
 export { buildSnapshot, buildSnapshotForLLM } from "./snapshot.js";
 export { serializeForLLM, serializeSnapshotJson } from "./serializer.js";
 export {

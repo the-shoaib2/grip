@@ -11,6 +11,7 @@ import {
   GripRuntimeProvider,
   PickHistoryList,
   SessionHistoryList,
+  SessionPickComposer,
   SelectDropdown,
   Tooltip,
   useGripRuntime,
@@ -66,6 +67,7 @@ function PickHistoryLabDemo() {
     activeSessionId,
     activePick,
     selectPick,
+    savePickComment,
     deleteSession,
     switchSession,
   } = usePickHistory(runtime);
@@ -99,12 +101,26 @@ function PickHistoryLabDemo() {
           onDeleteSession={(id) => void deleteSession(id)}
         />
       ) : (
-        <PickHistoryList
-          history={history}
-          activeId={activePick?.id}
-          activeSessionId={activeSessionId}
-          onSelect={selectPick}
-        />
+        <div class="grip-session-stack">
+          {activePick ? (
+            <SessionPickComposer
+              pick={activePick}
+              pickIndex={history.findIndex((pick) => pick.id === activePick.id) + 1}
+              pickCount={history.length}
+              onCommentChange={(comment) => savePickComment(activePick.id, comment)}
+              onNavigate={selectPick}
+            />
+          ) : (
+            <p class="grip-empty-state">No picks yet</p>
+          )}
+          <PickHistoryList
+            history={history}
+            activeId={activePick?.id}
+            activeSessionId={activeSessionId}
+            onSelect={selectPick}
+            compact
+          />
+        </div>
       )}
     </div>
   );

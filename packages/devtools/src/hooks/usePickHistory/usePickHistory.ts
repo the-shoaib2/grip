@@ -33,6 +33,7 @@ export interface UsePickHistoryResult {
   newSession: () => Promise<void>;
   switchSession: (sessionId: string) => Promise<void>;
   selectPick: (pick: StoredPick) => void;
+  savePickComment: (pickId: string, comment: string) => Promise<void>;
   deleteSession: (sessionId: string) => Promise<void>;
 }
 
@@ -103,7 +104,13 @@ export function usePickHistory(runtime: GripRuntime): UsePickHistoryResult {
     const unsub = runtime.onStorageChanged((changes, area) => {
       if (area === "session" && changes.lastPick?.newValue) {
         const pick = changes.lastPick.newValue as StoredPick;
-        setActivePick(pick);
+        setActivePick((prev) => {
+          if (prev?.id === pick.id) {
+            return pick;
+          }
+          void runtime.sendMessage({ type: "NAVIGATE_TO_PICK", payload: pick });
+          return pick;
+        });
       }
       if (area === "local" && changes.pickHistory?.newValue) {
         void (async () => {
@@ -177,6 +184,30 @@ export function usePickHistory(runtime: GripRuntime): UsePickHistoryResult {
     [runtime],
   );
 
+  const savePickComment = useCallback(
+    async (pickId: string, comment: string) => {
+      try {
+        await runtime.sendMessage({
+          type: "UPDATE_PICK_COMMENT",
+          payload: { pickId, comment },
+        });
+        setActivePick((prev) =>
+          prev?.id === pickId ? { ...prev, comment: comment.trim() || undefined } : prev,
+        );
+        setHistory((prev) =>
+          prev.map((pick) =>
+            pick.id === pickId
+              ? { ...pick, comment: comment.trim() || undefined }
+              : pick,
+          ),
+        );
+      } catch {
+        /* ignore */
+      }
+    },
+    [runtime],
+  );
+
   const deleteSession = useCallback(
     async (sessionId: string) => {
       try {
@@ -206,6 +237,7 @@ export function usePickHistory(runtime: GripRuntime): UsePickHistoryResult {
     newSession,
     switchSession,
     selectPick,
+    savePickComment,
     deleteSession,
   };
 }

@@ -9,6 +9,8 @@ interface PickHistoryListProps {
   activeId?: string;
   activeSessionId?: string | null;
   onSelect: (pick: StoredPick) => void;
+  /** Minimal switcher rows — no session header or element badges. */
+  compact?: boolean;
 }
 
 export function PickHistoryList({
@@ -16,9 +18,35 @@ export function PickHistoryList({
   activeId,
   activeSessionId,
   onSelect,
+  compact = false,
 }: PickHistoryListProps) {
   if (!history.length) {
     return <p className="grip-empty-state">No picks yet</p>;
+  }
+
+  if (compact) {
+    if (history.length <= 1) return null;
+
+    return (
+      <ul className="grip-pick-switcher" aria-label="Session picks">
+        {history.map((pick, index) => {
+          const selected = activeId === pick.id;
+          return (
+            <li key={pick.id}>
+              <button
+                type="button"
+                className={`grip-pick-switcher-btn${selected ? " grip-pick-switcher-active" : ""}`}
+                aria-current={selected ? "true" : undefined}
+                aria-label={`Pick ${index + 1}: ${pick.label}`}
+                onClick={() => onSelect(pick)}
+              >
+                {index + 1}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    );
   }
 
   const allText = formatAllMcpPrompts(history, {

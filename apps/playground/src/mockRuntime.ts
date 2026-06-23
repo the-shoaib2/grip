@@ -149,8 +149,21 @@ export const playgroundRuntime: GripRuntime = {
         return Promise.resolve({ ok: true } as T);
       case "TOGGLE_GRIP_TRAY":
       case "SHOW_TRAY":
-      case "NAVIGATE_TO_PICK":
         return Promise.resolve({ ok: true } as T);
+      case "NAVIGATE_TO_PICK": {
+        const payload = m.payload as StoredPick;
+        const el = document.querySelector(payload.css);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+          el.classList.add("grip-nav-flash");
+          window.setTimeout(() => el.classList.remove("grip-nav-flash"), 1200);
+        }
+        lastPick = payload;
+        emitStorage("session", {
+          lastPick: { newValue: lastPick, oldValue: undefined },
+        });
+        return Promise.resolve({ ok: true } as T);
+      }
       case "UPDATE_PICK_COMMENT": {
         const payload = m.payload as { pickId: string; comment?: string };
         pickHistory = updatePickInHistory(pickHistory, payload.pickId, {

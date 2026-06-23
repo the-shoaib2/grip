@@ -1,7 +1,20 @@
-import { parseInlineComment, type StoredPick } from "@grip/core";
-import type { InlineChipRef } from "./inlineComposerDom";
+import { gripChipToken, parseInlineComment } from "./inline-composer.js";
+import type { StoredPick } from "./types/messages.js";
 
-export function storedPickToChipRef(pick: StoredPick, chipId?: string): InlineChipRef {
+export interface StoredPickChipRef {
+  id: string;
+  tag: string;
+  role?: string;
+  css?: string;
+  xpath?: string;
+  text?: string;
+  name?: string;
+  rect?: { top: number; left: number; width: number; height: number };
+  shadowDOM?: boolean;
+  iframe?: string;
+}
+
+export function storedPickToChipRef(pick: StoredPick, chipId?: string): StoredPickChipRef {
   return {
     id: chipId ?? pick.id,
     tag: pick.tagName.toLowerCase(),
@@ -16,9 +29,8 @@ export function storedPickToChipRef(pick: StoredPick, chipId?: string): InlineCh
   };
 }
 
-/** Chip metadata + comment text for the session composer. */
 export function composerStateForStoredPick(pick: StoredPick): {
-  chips: InlineChipRef[];
+  chips: StoredPickChipRef[];
   comment: string;
 } {
   const comment = pick.comment ?? "";
@@ -28,9 +40,11 @@ export function composerStateForStoredPick(pick: StoredPick): {
     .map((part) => part.id);
 
   if (!chipIds.length) {
+    const chipId = pick.id;
+    const trimmed = comment.trim();
     return {
-      chips: [storedPickToChipRef(pick, pick.id)],
-      comment,
+      chips: [storedPickToChipRef(pick, chipId)],
+      comment: trimmed ? `${gripChipToken(chipId)} ${trimmed}` : gripChipToken(chipId),
     };
   }
 
