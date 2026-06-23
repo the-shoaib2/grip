@@ -1,7 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 import type { LogMessagePayload, PickerElementPayload, StoredPick } from "@grip/core";
 import {
-  GripIcon,
+  GripBrand,
   GripMcpChip,
   GripSessionToolbar,
   MinusIcon,
@@ -106,10 +106,7 @@ export function GripMainView({
   return (
     <GripRootLayout variant={variant}>
       <header className="grip-popup-header">
-        <div className="grip-popup-brand">
-          <GripIcon size={22} />
-          <span className="grip-popup-title">Grip</span>
-        </div>
+        <GripBrand />
         <div className="grip-popup-header-actions">
           <GripMcpChip connected={mcpOk} onConfigure={() => runtime.openMcpDocs()} />
           {onMinimize ? (

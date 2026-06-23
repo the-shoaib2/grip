@@ -231,17 +231,22 @@ body {
   min-width: 0;
 }
 
-.grip-popup-brand {
+.grip-brand {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   min-width: 0;
 }
 
-.grip-popup-title {
+.grip-brand-title {
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.25;
+  letter-spacing: -0.01em;
+  background: linear-gradient(120deg, #2563eb 0%, #7c3aed 55%, #db2777 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .grip-popup-toolbar {

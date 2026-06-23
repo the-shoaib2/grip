@@ -1,20 +1,37 @@
 import { render } from "preact";
 import type { ComponentChildren } from "preact";
-import { useState } from "preact/hooks";
-import type { StoredPick } from "@grip/core";
+import { useEffect, useRef, useState } from "preact/hooks";
+import { composerStateForStoredPick, type StoredPick } from "@grip/core";
 import {
+  CommentField,
   ContextEditorPanel,
   CopyButton,
   ElementTagBadge,
   FieldRow,
+  GripBrand,
+  GripContextEditorHost,
+  GripMcpChip,
   GripPanelView,
   GripPopupView,
+  GripRootLayout,
   GripRuntimeProvider,
+  GripSessionToolbar,
+  GripShellDialog,
+  HistoryIcon,
+  LogPanel,
+  McpIcon,
+  MinusIcon,
+  MousePointerClickIcon,
+  PickErrorBanner,
   PickHistoryList,
+  PlusIcon,
   SessionHistoryList,
+  SessionLabel,
   SessionPickComposer,
   SelectDropdown,
   Tooltip,
+  UndoIcon,
+  useGripStore,
   usePageContextEditor,
   usePickHistory,
 } from "@grip/devtools";
@@ -152,6 +169,118 @@ function LabShellWorkspace({
   );
 }
 
+function LogsLabDemo() {
+  const addLog = useGripStore((s) => s.addLog);
+  const seeded = useRef(false);
+
+  useEffect(() => {
+    if (seeded.current || useGripStore.getState().logs.length > 0) return;
+    seeded.current = true;
+    const now = Date.now();
+    addLog({ level: "info", message: "Grip lab initialized", timestamp: now });
+    addLog({ level: "warn", message: "Sample warning from fixture page", timestamp: now + 1 });
+    addLog({ level: "error", message: "Sample error for styling preview", timestamp: now + 2 });
+  }, [addLog]);
+
+  return <LogPanel />;
+}
+
+function CommentFieldLabDemo() {
+  const { activePick } = usePickHistory();
+  const [value, setValue] = useState("");
+
+  useEffect(() => {
+    if (!activePick) {
+      setValue("");
+      return;
+    }
+    setValue(composerStateForStoredPick(activePick).comment);
+  }, [activePick?.id, activePick?.comment]);
+
+  if (!activePick) {
+    return <p class="grip-empty-state">Select a pick in history to preview CommentField.</p>;
+  }
+
+  const { chips } = composerStateForStoredPick(activePick);
+
+  return (
+    <CommentField
+      chips={chips}
+      value={value}
+      onChange={setValue}
+      placeholder="Describe what you need…"
+    />
+  );
+}
+
+function DialogLabDemo() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <GripRootLayout variant="popup" className="lab-dialog-preview">
+      <button type="button" class="grip-btn-secondary" onClick={() => setOpen(true)}>
+        Open confirm dialog
+      </button>
+      <GripShellDialog
+        open={open}
+        title="Edit context?"
+        cancelLabel="Cancel"
+        confirmLabel="Confirm"
+        onCancel={() => setOpen(false)}
+        onConfirm={() => setOpen(false)}
+      >
+        <p class="grip-shell-dialog-lead">
+          Open the comment panel on the page to edit this pick&apos;s context.
+        </p>
+      </GripShellDialog>
+    </GripRootLayout>
+  );
+}
+
+function ToolbarLabDemo() {
+  const [pickActive, setPickActive] = useState(false);
+  const [historyView, setHistoryView] = useState(false);
+
+  return (
+    <GripSessionToolbar
+      variant="popup"
+      pickActive={pickActive}
+      historyView={historyView}
+      onPick={() => setPickActive((active) => !active)}
+      onToggleHistoryView={() => setHistoryView((open) => !open)}
+      onNewSession={() => {
+        setHistoryView(false);
+        setPickActive(false);
+      }}
+    />
+  );
+}
+
+function ContextEditorHostLabDemo() {
+  const { activePick, history } = usePickHistory();
+
+  return (
+    <GripContextEditorHost>
+      {(openEditor) => (
+        <div class="lab-host-actions">
+          <button
+            type="button"
+            class="grip-btn-secondary"
+            disabled={!activePick}
+            onClick={() => {
+              if (!activePick) return;
+              const pickIndex = history.findIndex((pick) => pick.id === activePick.id) + 1;
+              openEditor(activePick, { pickIndex, pickCount: history.length });
+            }}
+          >
+            Open via GripContextEditorHost
+          </button>
+        </div>
+      )}
+    </GripContextEditorHost>
+  );
+}
+
 function ComponentGallery({
   editorPick,
   onContextEditRequest,
@@ -164,20 +293,65 @@ function ComponentGallery({
   ) => void;
   onCloseEditor: () => void;
 }) {
+  const [mcpConnected, setMcpConnected] = useState(true);
+  const { history } = usePickHistory();
+
   return (
     <div class="lab-gallery">
       <section class="lab-block">
-        <h3 class="lab-block-title">Pick history</h3>
+        <h3 class="lab-block-title">Brand &amp; status</h3>
+        <div class="lab-row lab-row-tight">
+          <GripBrand />
+          <SessionLabel pickCount={history.length || 1} current />
+          <GripMcpChip connected={mcpConnected} onConfigure={() => setMcpConnected(true)} />
+          <button type="button" class="lab-nav-btn" onClick={() => setMcpConnected((on) => !on)}>
+            Toggle MCP
+          </button>
+        </div>
+      </section>
+
+      <section class="lab-block">
+        <h3 class="lab-block-title">Session toolbar</h3>
+        <ToolbarLabDemo />
+      </section>
+
+      <section class="lab-block">
+        <h3 class="lab-block-title">Pick error banner</h3>
+        <PickErrorBanner message="Could not reach the page picker." onRetry={() => {}} />
+      </section>
+
+      <section class="lab-block">
+        <h3 class="lab-block-title">Confirm dialog</h3>
+        <DialogLabDemo />
+      </section>
+
+      <section class="lab-block">
+        <h3 class="lab-block-title">Session &amp; pick history</h3>
         <PickHistoryLabDemo onContextEditRequest={onContextEditRequest} />
       </section>
 
       <section class="lab-block lab-context-editor-block">
-        <h3 class="lab-block-title">Comment field</h3>
+        <h3 class="lab-block-title">Context editor panel</h3>
         <CommentFieldSection pick={editorPick} onClose={onCloseEditor} />
       </section>
 
       <section class="lab-block">
-        <h3 class="lab-block-title">Controls</h3>
+        <h3 class="lab-block-title">Comment field</h3>
+        <CommentFieldLabDemo />
+      </section>
+
+      <section class="lab-block">
+        <h3 class="lab-block-title">Context editor host</h3>
+        <ContextEditorHostLabDemo />
+      </section>
+
+      <section class="lab-block">
+        <h3 class="lab-block-title">Console log panel</h3>
+        <LogsLabDemo />
+      </section>
+
+      <section class="lab-block">
+        <h3 class="lab-block-title">Controls &amp; fields</h3>
         <div class="lab-row">
           <SelectDropdown
             label="Copy as"
@@ -189,14 +363,29 @@ function ComponentGallery({
             onChange={() => {}}
           />
           <CopyButton label="Copy" text="sample prompt" />
+          <CopyButton label="Copy" text="sample prompt" variant="ghost" size="icon" tooltip="Copy icon" />
         </div>
         <div class="lab-row lab-row-tight">
           <ElementTagBadge tagName="button" role="button" />
+          <ElementTagBadge tagName="input" role="searchbox" />
           <Tooltip text="Tooltip on hover">
             <span class="grip-chip grip-chip-ok">MCP</span>
           </Tooltip>
         </div>
         <FieldRow label="CSS" value="#grip-target" />
+        <FieldRow label="XPath" value="//button[@id='grip-target']" />
+      </section>
+
+      <section class="lab-block">
+        <h3 class="lab-block-title">Icons</h3>
+        <div class="lab-icon-grid">
+          <HistoryIcon size={16} />
+          <McpIcon size={16} />
+          <MinusIcon size={16} />
+          <MousePointerClickIcon size={16} />
+          <PlusIcon size={16} />
+          <UndoIcon size={16} />
+        </div>
       </section>
     </div>
   );

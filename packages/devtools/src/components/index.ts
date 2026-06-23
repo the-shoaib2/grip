@@ -4,6 +4,7 @@ export { CopyButton } from "./CopyButton";
 export { ElementTagBadge } from "./ElementTagBadge";
 export { FieldRow } from "./FieldRow";
 export { GripContextEditorHost, type GripContextEditorHostProps } from "./GripContextEditorHost";
+export { GripBrand, type GripBrandProps } from "./GripBrand";
 export { GripIcon } from "./GripIcon";
 export { GripMcpChip } from "./GripMcpChip";
 export { GripSessionToolbar } from "./GripSessionToolbar";
