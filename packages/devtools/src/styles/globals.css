@@ -822,13 +822,13 @@ body {
 }
 
 .grip-btn-ghost {
-  background-color: transparent;
+  background: transparent;
   color: var(--grip-muted);
   box-shadow: none;
 }
 
 .grip-btn-ghost:hover {
-  background-color: var(--grip-surface-hover);
+  background: var(--grip-surface-hover);
   color: var(--grip-fg);
 }
 
@@ -842,18 +842,19 @@ body {
   line-height: 1;
   appearance: none;
   -webkit-appearance: none;
-  background-color: transparent;
+  -moz-appearance: none;
+  background: transparent;
   font-family: inherit;
   cursor: pointer;
 }
 
 .grip-btn-ghost.grip-btn-toolbar:not(.grip-btn-toolbar-active) {
-  background-color: transparent;
+  background: transparent;
   color: var(--grip-fg);
 }
 
 .grip-btn-ghost.grip-btn-toolbar:not(.grip-btn-toolbar-active):hover {
-  background-color: var(--grip-surface-hover);
+  background: var(--grip-surface-hover);
   color: var(--grip-fg);
 }
 
@@ -866,22 +867,22 @@ body {
 }
 
 .grip-btn-toolbar-active {
-  background-color: var(--grip-accent);
+  background: var(--grip-accent);
   color: var(--grip-on-accent);
 }
 
 .grip-btn-toolbar-active:hover {
-  background-color: var(--grip-accent-hover);
+  background: var(--grip-accent-hover);
   color: var(--grip-on-accent);
 }
 
 .grip-btn-toolbar-muted-active {
-  background-color: var(--grip-accent);
+  background: var(--grip-accent);
   color: var(--grip-on-accent);
 }
 
 .grip-btn-toolbar-muted-active:hover {
-  background-color: var(--grip-accent-hover);
+  background: var(--grip-accent-hover);
   color: var(--grip-on-accent);
 }
 
