@@ -56,6 +56,7 @@
   display: none;
   width: 20rem;
   max-width: min(20rem, calc(100vw - 24px));
+  min-height: 26rem;
   max-height: min(80vh, 640px);
   overflow-x: hidden;
   overflow-y: auto;

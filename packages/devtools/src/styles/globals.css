@@ -205,7 +205,7 @@ body {
   width: 100%;
   min-width: 0;
   max-width: none;
-  min-height: 19rem;
+  min-height: 26rem;
   border-radius: 0;
   max-height: min(36rem, calc(100vh - 5rem));
   overflow-x: hidden;
@@ -255,6 +255,123 @@ body {
   justify-content: space-between;
   gap: 0.375rem;
   min-width: 0;
+}
+
+.grip-session-tab-bar {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  min-width: 0;
+  margin-bottom: 0.5rem;
+}
+
+.grip-session-tab-scroll {
+  display: flex;
+  align-items: stretch;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.grip-session-tab-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.grip-session-tab {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  flex-shrink: 0;
+  min-width: 4.5rem;
+  max-width: 7rem;
+}
+
+.grip-session-tab-main {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex: 1;
+  min-width: 0;
+  padding: 0.375rem 0.5rem;
+  border: none;
+  background: transparent;
+  color: var(--grip-muted);
+  font-size: 11px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.grip-session-tab-icon {
+  flex-shrink: 0;
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background: var(--grip-accent);
+  opacity: 0.55;
+}
+
+.grip-session-tab-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grip-session-tab-close {
+  position: absolute;
+  top: 50%;
+  right: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  padding: 0;
+  border: none;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: var(--grip-muted);
+  transform: translateY(-50%);
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.grip-session-tab-close:hover {
+  background: var(--grip-surface-hover);
+  color: var(--grip-fg);
+}
+
+.grip-session-tab:has(.grip-session-tab-close) .grip-session-tab-main {
+  padding-right: 1.625rem;
+}
+
+.grip-session-tab:hover,
+.grip-session-tab:focus-within {
+  background: var(--grip-surface-hover);
+}
+
+.grip-session-tab-active {
+  background: var(--grip-surface);
+}
+
+.grip-session-tab-active .grip-session-tab-main {
+  color: var(--grip-fg);
+}
+
+.grip-session-tab-active .grip-session-tab-icon {
+  opacity: 1;
+}
+
+.grip-session-tab-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 0.0625rem;
+  padding-left: 0.125rem;
 }
 
 .grip-popup-toolbar-trail {
@@ -348,10 +465,6 @@ body {
   font-weight: 600;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   color: var(--grip-fg);
-}
-
-.grip-session-panel .grip-picker-header .grip-pick-delete {
-  flex-shrink: 0;
 }
 
 .grip-picker-hint {
@@ -580,26 +693,6 @@ body {
   margin: 0;
   padding: 0;
   list-style: none;
-}
-
-.grip-pick-switcher-item {
-  display: flex;
-  align-items: center;
-  gap: 0.125rem;
-}
-
-.grip-pick-switcher-item .grip-pick-delete {
-  height: 1.75rem;
-  width: 1.75rem;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease;
-}
-
-.grip-pick-switcher-item:hover .grip-pick-delete,
-.grip-pick-switcher-item:focus-within .grip-pick-delete {
-  opacity: 1;
-  pointer-events: auto;
 }
 
 .grip-pick-switcher-btn {

@@ -1,4 +1,4 @@
-import { HistoryIcon, MousePointerClickIcon, PlusIcon } from "../icons";
+import { MousePointerClickIcon, PlusIcon } from "../icons";
 import { Tooltip } from "../Tooltip";
 
 export interface GripSessionToolbarProps {
@@ -13,9 +13,9 @@ export interface GripSessionToolbarProps {
 export function GripSessionToolbar({
   variant,
   pickActive = false,
-  historyView = false,
+  historyView: _historyView = false,
   onPick,
-  onToggleHistoryView,
+  onToggleHistoryView: _onToggleHistoryView,
   onNewSession,
 }: GripSessionToolbarProps) {
   if (variant === "compact") {
@@ -46,31 +46,6 @@ export function GripSessionToolbar({
           <span>Pick</span>
         </button>
       </Tooltip>
-      <div className="grip-popup-toolbar-trail">
-        <div className="grip-popup-toolbar-actions">
-          <Tooltip text="New session">
-            <button
-              type="button"
-              className="grip-btn-ghost grip-btn-toolbar grip-btn-toolbar-icon"
-              aria-label="New session"
-              onClick={onNewSession}
-            >
-              <PlusIcon size={16} />
-            </button>
-          </Tooltip>
-          <Tooltip text={historyView ? "Current session" : "All sessions"}>
-            <button
-              type="button"
-              className={`grip-btn-ghost grip-btn-toolbar grip-btn-toolbar-icon${historyView ? " grip-btn-toolbar-active" : ""}`}
-              aria-label={historyView ? "Show current session" : "Show all sessions"}
-              aria-pressed={historyView ? "true" : "false"}
-              onClick={onToggleHistoryView}
-            >
-              <HistoryIcon size={16} />
-            </button>
-          </Tooltip>
-        </div>
-      </div>
     </div>
   );
 }

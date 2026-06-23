@@ -9,6 +9,7 @@ import {
   PickHistoryList,
   SessionHistoryList,
   SessionPickComposer,
+  SessionTabBar,
   Tooltip,
 } from "../../components";
 import { usePickHistory } from "../../hooks/usePickHistory";
@@ -51,7 +52,6 @@ export function GripMainView({
     switchSession,
     selectPick,
     savePickComment,
-    deletePick,
     deleteSession,
   } = usePickHistory();
   const isPickerActive = usePickerActive(runtime);
@@ -139,6 +139,22 @@ export function GripMainView({
         }}
       />
 
+      <SessionTabBar
+        groups={sessionGroups}
+        activeSessionId={activeSessionId}
+        historyView={historyView}
+        onSelectSession={(sessionId) => {
+          setHistoryView(false);
+          void switchSession(sessionId);
+        }}
+        onCloseSession={(sessionId) => void deleteSession(sessionId)}
+        onNewSession={() => {
+          setHistoryView(false);
+          void newSession();
+        }}
+        onToggleHistoryView={() => setHistoryView((open) => !open)}
+      />
+
       {pickError ? <PickErrorBanner message={pickError} onRetry={handlePick} /> : null}
 
       {!historyView && activePick ? (
@@ -150,14 +166,12 @@ export function GripMainView({
             onCommentChange={(comment) => savePickComment(activePick.id, comment)}
             onNavigate={selectPick}
             onEditRequest={onContextEditRequest}
-            onDeletePick={() => void deletePick(activePick.id)}
           />
           <PickHistoryList
             history={history}
             activeId={activePick.id}
             activeSessionId={activeSessionId}
             onSelect={selectPick}
-            onDeletePick={(pick) => void deletePick(pick.id)}
             compact
           />
         </div>

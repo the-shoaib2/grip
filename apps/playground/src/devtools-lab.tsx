@@ -28,6 +28,7 @@ import {
   SessionHistoryList,
   SessionLabel,
   SessionPickComposer,
+  SessionTabBar,
   SelectDropdown,
   Tooltip,
   UndoIcon,
@@ -87,29 +88,28 @@ function PickHistoryLabDemo({
     activePick,
     selectPick,
     savePickComment,
-    deletePick,
     deleteSession,
     switchSession,
+    newSession,
   } = usePickHistory();
 
   return (
     <div class="lab-history-demo">
-      <div class="lab-history-demo-toggle">
-        <button
-          type="button"
-          class={`lab-nav-btn${!historyView ? " lab-nav-active" : ""}`}
-          onClick={() => setHistoryView(false)}
-        >
-          Session
-        </button>
-        <button
-          type="button"
-          class={`lab-nav-btn${historyView ? " lab-nav-active" : ""}`}
-          onClick={() => setHistoryView(true)}
-        >
-          All sessions
-        </button>
-      </div>
+      <SessionTabBar
+        groups={sessionGroups}
+        activeSessionId={activeSessionId}
+        historyView={historyView}
+        onSelectSession={(id) => {
+          setHistoryView(false);
+          void switchSession(id);
+        }}
+        onCloseSession={(id) => void deleteSession(id)}
+        onNewSession={() => {
+          setHistoryView(false);
+          void newSession();
+        }}
+        onToggleHistoryView={() => setHistoryView((open) => !open)}
+      />
       {historyView ? (
         <SessionHistoryList
           groups={sessionGroups}
@@ -130,7 +130,6 @@ function PickHistoryLabDemo({
               onCommentChange={(comment) => savePickComment(activePick.id, comment)}
               onNavigate={selectPick}
               onEditRequest={onContextEditRequest}
-              onDeletePick={() => void deletePick(activePick.id)}
             />
           ) : (
             <p class="grip-empty-state">No picks yet</p>
@@ -140,7 +139,6 @@ function PickHistoryLabDemo({
             activeId={activePick?.id}
             activeSessionId={activeSessionId}
             onSelect={selectPick}
-            onDeletePick={(pick) => void deletePick(pick.id)}
             compact
           />
         </div>

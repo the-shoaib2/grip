@@ -1,7 +1,6 @@
 import { formatAllMcpPrompts, formatMcpPrompt, type StoredPick } from "@grip/core";
 import { CopyButton } from "../CopyButton";
 import { ElementTagBadge } from "../ElementTagBadge";
-import { TrashIcon } from "../icons";
 import { SessionLabel } from "../SessionLabel";
 import { Tooltip } from "../Tooltip";
 
@@ -10,35 +9,8 @@ interface PickHistoryListProps {
   activeId?: string;
   activeSessionId?: string | null;
   onSelect: (pick: StoredPick) => void;
-  onDeletePick?: (pick: StoredPick) => void;
   /** Minimal switcher rows — no session header or element badges. */
   compact?: boolean;
-}
-
-function PickDeleteButton({
-  pick,
-  onDeletePick,
-  label,
-}: {
-  pick: StoredPick;
-  onDeletePick: (pick: StoredPick) => void;
-  label: string;
-}) {
-  return (
-    <Tooltip text="Delete pick">
-      <button
-        type="button"
-        className="grip-btn-icon grip-pick-delete"
-        aria-label={label}
-        onClick={(e) => {
-          e.stopPropagation();
-          onDeletePick(pick);
-        }}
-      >
-        <TrashIcon size={12} />
-      </button>
-    </Tooltip>
-  );
 }
 
 export function PickHistoryList({
@@ -46,7 +18,6 @@ export function PickHistoryList({
   activeId,
   activeSessionId,
   onSelect,
-  onDeletePick,
   compact = false,
 }: PickHistoryListProps) {
   if (!history.length) {
@@ -54,14 +25,14 @@ export function PickHistoryList({
   }
 
   if (compact) {
-    if (history.length <= 1 && !onDeletePick) return null;
+    if (history.length <= 1) return null;
 
     return (
       <ul className="grip-pick-switcher" aria-label="Session picks">
         {history.map((pick, index) => {
           const selected = activeId === pick.id;
           return (
-            <li key={pick.id} className="grip-pick-switcher-item">
+            <li key={pick.id}>
               <button
                 type="button"
                 className={`grip-pick-switcher-btn${selected ? " grip-pick-switcher-active" : ""}`}
@@ -71,13 +42,6 @@ export function PickHistoryList({
               >
                 {index + 1}
               </button>
-              {onDeletePick ? (
-                <PickDeleteButton
-                  pick={pick}
-                  onDeletePick={onDeletePick}
-                  label={`Delete pick ${index + 1}: ${pick.label}`}
-                />
-              ) : null}
             </li>
           );
         })}
@@ -138,13 +102,6 @@ export function PickHistoryList({
                   variant="ghost"
                   size="icon"
                 />
-                {onDeletePick ? (
-                  <PickDeleteButton
-                    pick={pick}
-                    onDeletePick={onDeletePick}
-                    label={`Delete pick ${pick.label}`}
-                  />
-                ) : null}
               </div>
             </li>
           );
