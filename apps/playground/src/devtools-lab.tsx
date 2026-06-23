@@ -141,7 +141,7 @@ function LabShellWorkspace({
     <div class="lab-shell-workspace">
       {children}
       <section
-        class={`lab-block lab-context-editor-block${editorPick ? " lab-context-editor-open" : ""}`}
+        class="lab-block lab-context-editor-block"
       >
         <h3 class="lab-block-title">Comment field</h3>
         <CommentFieldSection pick={editorPick} onClose={onCloseEditor} />
@@ -169,7 +169,7 @@ function ComponentGallery({
         <PickHistoryLabDemo onContextEditRequest={onContextEditRequest} />
       </section>
 
-      <section class={`lab-block lab-context-editor-block${editorPick ? " lab-context-editor-open" : ""}`}>
+      <section class="lab-block lab-context-editor-block">
         <h3 class="lab-block-title">Comment field</h3>
         <CommentFieldSection pick={editorPick} onClose={onCloseEditor} />
       </section>
@@ -200,7 +200,7 @@ function ComponentGallery({
   );
 }
 
-function DevToolsLab() {
+function DevToolsLabContent() {
   const [view, setView] = useState<LabView>("popup");
   const [floatingOpen, setFloatingOpen] = useState(true);
   const [editorPick, setEditorPick] = useState<StoredPick | null>(null);
@@ -211,7 +211,6 @@ function DevToolsLab() {
   };
 
   return (
-    <GripRuntimeProvider runtime={playgroundRuntime}>
       <div class="lab-shell">
         <header class="lab-header">
           <div class="lab-header-brand">
@@ -291,6 +290,13 @@ function DevToolsLab() {
           )}
         </main>
       </div>
+  );
+}
+
+function DevToolsLab() {
+  return (
+    <GripRuntimeProvider runtime={playgroundRuntime}>
+      <DevToolsLabContent />
     </GripRuntimeProvider>
   );
 }

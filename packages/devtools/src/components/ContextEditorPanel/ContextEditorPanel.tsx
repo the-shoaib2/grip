@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "preact/hooks";
+import { useEffect, useMemo, useState } from "preact/hooks";
 import { composerStateForStoredPick, type StoredPick } from "@grip/core";
 import { CommentField } from "../CommentField";
 
@@ -21,18 +21,13 @@ export function ContextEditorPanel({
     [pick.id, pick.comment],
   );
   const [draft, setDraft] = useState(initialComment);
-  const hostRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setDraft(initialComment);
   }, [pick.id, initialComment]);
 
-  useEffect(() => {
-    hostRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }, [pick.id]);
-
   return (
-    <div ref={hostRef} className="grip-context-editor-host">
+    <div className="grip-context-editor-host">
       <CommentField
         chips={chips}
         value={draft}

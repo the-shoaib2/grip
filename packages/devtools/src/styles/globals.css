@@ -494,7 +494,7 @@ body {
   width: min(100%, 17.5rem);
   padding: 0.875rem;
   border-radius: 0.875rem;
-  border: 1px solid var(--grip-border);
+  border: none;
   background: var(--grip-shell-bg);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
   box-sizing: border-box;
