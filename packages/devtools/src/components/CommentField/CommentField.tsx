@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef } from "preact/hooks";
+import type { ComponentChildren } from "preact";
 import {
   bindChipTooltipRoot,
   bindEditorClipboard,
@@ -34,6 +35,8 @@ interface CommentFieldProps {
   readOnly?: boolean;
   /** Focus the editor with the caret at the end when this key changes. */
   autoFocusKey?: string;
+  /** Overlay actions rendered inside the composer (e.g. copy on hover). */
+  composerActions?: ComponentChildren;
 }
 
 export function CommentField({
@@ -55,6 +58,7 @@ export function CommentField({
   onChipActivate,
   readOnly = false,
   autoFocusKey,
+  composerActions,
 }: CommentFieldProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const lastEmitted = useRef(value);
@@ -136,10 +140,11 @@ export function CommentField({
   return (
     <div className={`grip-context-field${readOnly ? " grip-context-readonly" : ""}`}>
       <div
-        className="grip-context-composer"
+        className={`grip-context-composer${composerActions ? " grip-context-composer-has-actions" : ""}`}
         style={{ maxHeight: `${maxHeight}px` }}
         onMouseDown={(e) => {
           const target = e.target as HTMLElement;
+          if (target.closest(".grip-context-composer-actions")) return;
           const chip = target.closest<HTMLElement>(".grip-inline-chip");
           if (chip) {
             e.preventDefault();
@@ -163,6 +168,15 @@ export function CommentField({
           aria-readonly={readOnly ? "true" : undefined}
           data-placeholder={placeholder}
         />
+        {composerActions ? (
+          <div
+            className="grip-context-composer-actions"
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {composerActions}
+          </div>
+        ) : null}
       </div>
     </div>
   );

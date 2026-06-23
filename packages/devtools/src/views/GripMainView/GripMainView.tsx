@@ -131,7 +131,6 @@ export function GripMainView({
         variant="popup"
         pickActive={isPickerActive}
         historyView={historyView}
-        sessionCount={history.length}
         onPick={handlePick}
         onToggleHistoryView={() => setHistoryView((open) => !open)}
         onNewSession={() => {

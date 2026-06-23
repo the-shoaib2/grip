@@ -72,13 +72,16 @@
 .lab-popup-workspace {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   gap: 1.5rem;
   width: min(36rem, 100vw - 2rem);
 }
 
+.lab-shell-workspace > .lab-preview,
+.lab-shell-workspace > .lab-preview-floating-stage,
 .lab-context-editor-block {
   width: 100%;
+  max-width: 100%;
 }
 
 .lab-context-editor-open {
@@ -93,17 +96,30 @@
 }
 
 .lab-preview-popup {
-  width: 20rem;
-  min-width: 20rem;
-  max-width: 20rem;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .lab-preview-popup .grip-popup:not(.grip-shell-devtools):not(.grip-shell-floating) {
-  border: none;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  border: 1px solid var(--grip-shell-border);
+}
+
+.lab-preview-panel .grip-shell-devtools {
+  border: 1px solid var(--grip-shell-border);
+}
+
+.lab-preview-floating-stage .grip-floating-menu {
+  border: 1px solid var(--grip-shell-border);
 }
 
 .lab-preview-panel {
-  width: min(28rem, 100vw - 2rem);
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   min-height: 32rem;
 }
 
@@ -113,7 +129,9 @@
 
 .lab-preview-floating-stage {
   position: relative;
-  width: min(28rem, calc(100vw - 2rem));
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   min-height: 28rem;
   border-radius: var(--grip-shell-radius);
   background: var(--grip-inset-bg);
@@ -133,6 +151,7 @@
 
 .lab-block {
   background: var(--grip-shell-bg);
+  border: 1px solid var(--grip-shell-border);
   border-radius: var(--grip-shell-radius);
   padding: 1.25rem;
   box-shadow: var(--grip-shell-shadow);

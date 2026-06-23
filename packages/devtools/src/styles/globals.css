@@ -364,12 +364,14 @@ body {
   margin-top: 0.5rem;
 }
 
-.grip-picker-actions button {
+.grip-picker-actions button,
+.grip-shell-dialog-actions button {
   border-radius: 9999px;
   border: none;
   padding: 0.375rem 0.75rem;
   font-size: 11px;
   font-weight: 500;
+  font-family: inherit;
   cursor: pointer;
 }
 
@@ -406,9 +408,21 @@ body {
 }
 
 .grip-session-panel .grip-context-composer {
-  min-height: 0;
-  padding-block: 0.375rem;
+  min-height: 2.25rem;
   line-height: 1.35;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.grip-session-panel .grip-context-composer-has-actions {
+  display: flex;
+  align-items: center;
+  padding: 0.375rem 1.75rem 0.375rem 0.625rem;
+}
+
+.grip-session-panel .grip-context-composer-has-actions .grip-inline-editor {
+  flex: 1;
+  min-width: 0;
 }
 
 .grip-session-panel .grip-inline-editor {
@@ -416,9 +430,17 @@ body {
   line-height: 1.35;
 }
 
+.grip-session-panel .grip-context-readonly .grip-inline-editor {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  column-gap: 0.125rem;
+}
+
 .grip-session-panel .grip-inline-chip {
   margin-block: 0;
   line-height: 1.35;
+  vertical-align: middle;
 }
 
 .grip-session-context-wrap {
@@ -441,28 +463,41 @@ body {
   background: var(--grip-inset-bg);
 }
 
-.grip-context-readonly .grip-context-composer {
-  cursor: default;
+.grip-context-composer-has-actions {
+  position: relative;
+  padding-right: 2rem;
 }
 
-.grip-session-context-actions {
+.grip-session-panel .grip-context-composer-actions {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.grip-context-composer-actions {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
   display: flex;
-  flex-shrink: 0;
   align-items: center;
   gap: 0.0625rem;
-}
-
-.grip-session-undo-action {
-  display: inline-flex;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.15s ease;
 }
 
-.grip-session-context-wrap:hover .grip-session-undo-action,
-.grip-session-context-wrap:focus-within .grip-session-undo-action {
+.grip-context-composer-has-actions:hover .grip-context-composer-actions,
+.grip-context-composer-has-actions:focus-within .grip-context-composer-actions {
   opacity: 1;
   pointer-events: auto;
+}
+
+.grip-context-readonly .grip-context-composer {
+  cursor: default;
+}
+
+.grip-context-readonly .grip-inline-editor {
+  max-height: none;
+  overflow: visible;
 }
 
 .grip-context-editor-host {
@@ -494,7 +529,7 @@ body {
   width: min(100%, 17.5rem);
   padding: 0.875rem;
   border-radius: 0.875rem;
-  border: none;
+  border: 1px solid var(--grip-shell-border);
   background: var(--grip-shell-bg);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
   box-sizing: border-box;

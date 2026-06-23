@@ -1,3 +1,5 @@
+import { formatPickIndexLabel } from "@grip/core";
+
 export function formatSessionLabel(
   pickCount: number,
   options?: { current?: boolean },
@@ -21,4 +23,8 @@ export function formatSessionGroupTitle(
     minute: "2-digit",
   });
   return `Session ${time} · ${count}`;
+}
+
+export function formatCurrentSessionPickLabel(index: number, total: number): string {
+  return `Current session · ${formatPickIndexLabel(index, total)}`;
 }

@@ -1,12 +1,10 @@
 import { HistoryIcon, MousePointerClickIcon, PlusIcon } from "../icons";
-import { SessionLabel } from "../SessionLabel";
 import { Tooltip } from "../Tooltip";
 
 export interface GripSessionToolbarProps {
   variant: "popup" | "compact";
   pickActive?: boolean;
   historyView?: boolean;
-  sessionCount?: number;
   onPick: () => void;
   onToggleHistoryView: () => void;
   onNewSession: () => void;
@@ -16,7 +14,6 @@ export function GripSessionToolbar({
   variant,
   pickActive = false,
   historyView = false,
-  sessionCount = 0,
   onPick,
   onToggleHistoryView,
   onNewSession,
@@ -50,9 +47,6 @@ export function GripSessionToolbar({
         </button>
       </Tooltip>
       <div className="grip-popup-toolbar-trail">
-        {!historyView ? (
-          <SessionLabel pickCount={sessionCount} current className="grip-session-toolbar-label" />
-        ) : null}
         <div className="grip-popup-toolbar-actions">
           <Tooltip text="New session">
             <button

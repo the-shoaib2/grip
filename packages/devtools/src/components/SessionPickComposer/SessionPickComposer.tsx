@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import {
   composerStateForStoredPick,
   formatMcpPrompt,
-  formatPickIndexLabel,
   type StoredPick,
 } from "@grip/core";
+import { formatCurrentSessionPickLabel } from "../../lib/sessionLabel";
 import { CommentField } from "../CommentField";
 import { CopyButton } from "../CopyButton";
 import { GripShellDialog } from "../GripShellDialog";
@@ -37,7 +37,7 @@ export function SessionPickComposer({
   const [displayComment, setDisplayComment] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  const indexLabel = formatPickIndexLabel(pickIndex, pickCount);
+  const headerLabel = formatCurrentSessionPickLabel(pickIndex, pickCount);
   const canUndo = displayComment !== baseline.current;
   const copyText = formatMcpPrompt({ ...pick, comment: displayComment });
 
@@ -74,7 +74,7 @@ export function SessionPickComposer({
     <>
       <div className="grip-picker-panel grip-session-panel" aria-label="Current pick">
         <div className="grip-picker-header">
-          <span className="grip-picker-session">{indexLabel}</span>
+          <span className="grip-picker-session">{headerLabel}</span>
         </div>
 
         <div className="grip-session-context-wrap">
@@ -84,7 +84,7 @@ export function SessionPickComposer({
             tabIndex={0}
             aria-label="Edit context prompt"
             onClick={(e) => {
-              if ((e.target as HTMLElement).closest(".grip-inline-chip, .grip-session-context-actions")) {
+              if ((e.target as HTMLElement).closest(".grip-inline-chip, .grip-context-composer-actions")) {
                 return;
               }
               requestEdit();
@@ -104,30 +104,29 @@ export function SessionPickComposer({
               onChipActivate={() => {
                 onNavigate?.(pick);
               }}
-            />
-          </div>
-
-          <div className="grip-session-context-actions">
-            {canUndo ? (
-              <span className="grip-session-undo-action">
-                <Tooltip text="Undo changes">
-                  <button
-                    type="button"
-                    className="grip-btn-icon"
-                    aria-label="Undo changes"
-                    onClick={undoToBaseline}
-                  >
-                    <UndoIcon size={12} />
-                  </button>
-                </Tooltip>
-              </span>
-            ) : null}
-            <CopyButton
-              label="Copy"
-              text={copyText}
-              tooltip="Copy prompt"
-              variant="ghost"
-              size="icon"
+              composerActions={
+                <>
+                  {canUndo ? (
+                    <Tooltip text="Undo changes">
+                      <button
+                        type="button"
+                        className="grip-btn-icon"
+                        aria-label="Undo changes"
+                        onClick={undoToBaseline}
+                      >
+                        <UndoIcon size={12} />
+                      </button>
+                    </Tooltip>
+                  ) : null}
+                  <CopyButton
+                    label="Copy"
+                    text={copyText}
+                    tooltip="Copy prompt"
+                    variant="ghost"
+                    size="icon"
+                  />
+                </>
+              }
             />
           </div>
         </div>
