@@ -27,6 +27,7 @@ import {
   updateChipActiveStates,
   type InlineChipRef,
 } from "@grip/devtools";
+import { showTrayAfterHandoff } from "./trayBridge";
 
 const TRAY_ID = "__grip_tray__";
 const HOVER_ID = "__grip_picker_hover__";
@@ -68,6 +69,7 @@ let activePendingIndex = 0;
 let onSaveCallback: ((payload: PickerElementPayload) => void) | null = null;
 let onStopCallback: (() => void) | null = null;
 let onEditSaveCallback: ((pickId: string, comment: string) => void) | null = null;
+let onEditEndCallback: (() => void) | null = null;
 let editingPickId: string | null = null;
 
 function clamp(value: number, min: number, max: number): number {
@@ -414,6 +416,36 @@ function positionCommentPanel(panel: HTMLElement, el: Element): void {
   panel.style.visibility = "visible";
 }
 
+function centerCommentPanel(panel: HTMLElement): void {
+  const pad = 8;
+  panel.style.display = "block";
+  panel.style.visibility = "hidden";
+  panel.style.left = "0";
+  panel.style.top = "0";
+
+  const panelRect = panel.getBoundingClientRect();
+  const top = clamp(
+    window.innerHeight / 2 - panelRect.height / 2,
+    pad,
+    window.innerHeight - pad - panelRect.height,
+  );
+  const left = clamp(
+    window.innerWidth / 2 - panelRect.width / 2,
+    pad,
+    window.innerWidth - pad - panelRect.width,
+  );
+
+  panel.style.top = `${top}px`;
+  panel.style.left = `${left}px`;
+  panel.style.visibility = "visible";
+}
+
+function revealCommentPanel(panel: HTMLElement): void {
+  requestAnimationFrame(() => {
+    panel.scrollIntoView({ block: "nearest", inline: "nearest" });
+  });
+}
+
 function ensureCommentPanel(): HTMLElement {
   let panel = document.getElementById(COMMENT_ID);
   if (panel) return panel;
@@ -445,6 +477,52 @@ function ensureCommentPanel(): HTMLElement {
   `;
   document.documentElement.appendChild(panel);
   return panel;
+}
+
+function bindPanelActions(panel: HTMLElement): void {
+  const save = panel.querySelector("#__grip_comment_save__") as HTMLButtonElement;
+  const cancel = panel.querySelector("#__grip_comment_cancel__") as HTMLButtonElement;
+  if (!save || !cancel) return;
+
+  if (save.dataset.bound !== "1") {
+    save.dataset.bound = "1";
+    bindComposerEvents(panel);
+    panel.addEventListener("mousedown", (e) => e.stopPropagation());
+    panel.addEventListener("click", (e) => e.stopPropagation());
+  }
+
+  const handleSave = (e: Event) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const editor = getComposerEditor();
+    const value = editor ? serializeEditor(editor) : "";
+    if (phase === "edit") {
+      finishEdit(value);
+      return;
+    }
+    finishPick(value, true);
+  };
+
+  const handleCancel = (e: Event) => {
+    e.stopPropagation();
+    if (phase === "edit") {
+      closeContextEditor();
+      return;
+    }
+    stopPlaygroundPicker();
+  };
+
+  if (save.dataset.bound !== "1") {
+    save.dataset.bound = "1";
+    bindComposerEvents(panel);
+    panel.addEventListener("mousedown", (e) => e.stopPropagation());
+    panel.addEventListener("click", (e) => e.stopPropagation());
+    save.addEventListener("click", handleSave, true);
+    cancel.addEventListener("click", handleCancel, true);
+  }
+
+  save.onclick = handleSave;
+  cancel.onclick = handleCancel;
 }
 
 function bindComposerEvents(panel: HTMLElement): void {
@@ -580,6 +658,9 @@ function finishPick(comment: string, continueSession: boolean): void {
   pendingElements = [];
   activePendingIndex = 0;
 
+  document.getElementById(COMMENT_ID)?.remove();
+  showTrayAfterHandoff(false);
+
   if (continueSession) {
     resumeHover();
     return;
@@ -588,7 +669,6 @@ function finishPick(comment: string, continueSession: boolean): void {
 }
 
 function resumeHover(): void {
-  document.getElementById(COMMENT_ID)?.remove();
   document.getElementById(HINT_ID)?.remove();
   pendingElements = [];
   activePendingIndex = 0;
@@ -598,31 +678,12 @@ function resumeHover(): void {
 
 function showCommentPrompt(el: Element): void {
   const panel = ensureCommentPanel();
-  const save = panel.querySelector("#__grip_comment_save__") as HTMLButtonElement;
-  const cancel = panel.querySelector("#__grip_comment_cancel__") as HTMLButtonElement;
-  const isNewPanel = save.dataset.bound !== "1";
-
   phase = "comment";
   addToPending(el);
-
-  if (isNewPanel) {
-    save.dataset.bound = "1";
-    bindComposerEvents(panel);
-    save.onclick = (e) => {
-      e.stopPropagation();
-      const editor = getComposerEditor();
-      finishPick(editor ? serializeEditor(editor) : "", true);
-    };
-    cancel.onclick = (e) => {
-      e.stopPropagation();
-      stopPlaygroundPicker();
-    };
-    panel.addEventListener("mousedown", (e) => e.stopPropagation());
-    panel.addEventListener("click", (e) => e.stopPropagation());
-  }
-
+  bindPanelActions(panel);
   positionCommentPanel(panel, el);
-  if (isNewPanel) focusComposerEditor();
+  revealCommentPanel(panel);
+  focusComposerEditor();
 }
 
 function isEventInComposer(e: KeyboardEvent): boolean {
@@ -642,6 +703,7 @@ function onMove(e: MouseEvent): void {
 function onClick(e: MouseEvent): void {
   if (phase !== "hover" && phase !== "comment" && phase !== "edit") return;
   if (isGripChrome(e.target)) return;
+  if (phase === "edit") return;
 
   e.preventDefault();
   e.stopPropagation();
@@ -659,7 +721,7 @@ function onClick(e: MouseEvent): void {
     return;
   }
 
-  if (phase === "comment" || phase === "edit") {
+  if (phase === "comment") {
     const editor = getComposerEditor();
     const keepTyping = document.activeElement === editor;
     addToPending(el, { keepTyping });
@@ -702,6 +764,8 @@ function closeContextEditor(): void {
   if (phase !== "edit") return;
   editingPickId = null;
   onEditSaveCallback = null;
+  onEditEndCallback?.();
+  onEditEndCallback = null;
   document.getElementById(COMMENT_ID)?.remove();
   document.getElementById(STYLE_ID)?.remove();
   document.removeEventListener("mousemove", onMove, true);
@@ -710,6 +774,7 @@ function closeContextEditor(): void {
   pendingElements = [];
   activePendingIndex = 0;
   phase = "idle";
+  showTrayAfterHandoff(false);
 }
 
 function finishEdit(comment: string): void {
@@ -725,12 +790,14 @@ function finishEdit(comment: string): void {
 export function openPlaygroundContextEditor(
   payload: OpenContextEditorPayload,
   onSave: (pickId: string, comment: string) => void,
+  onEnd?: () => void,
 ): void {
   if (phase === "hover" || phase === "comment") stopPlaygroundPicker(false);
 
   const { pick } = payload;
   editingPickId = pick.id;
   onEditSaveCallback = onSave;
+  onEditEndCallback = onEnd ?? null;
   ensureStyle();
   const panel = ensureCommentPanel();
   phase = "edit";
@@ -745,26 +812,11 @@ export function openPlaygroundContextEditor(
   if (anchor) {
     positionCommentPanel(panel, anchor);
   } else {
-    panel.style.display = "block";
-    panel.style.visibility = "visible";
+    centerCommentPanel(panel);
   }
 
-  const save = panel.querySelector("#__grip_comment_save__") as HTMLButtonElement;
-  const cancel = panel.querySelector("#__grip_comment_cancel__") as HTMLButtonElement;
-  if (save.dataset.bound !== "1") {
-    save.dataset.bound = "1";
-    bindComposerEvents(panel);
-    panel.addEventListener("mousedown", (e) => e.stopPropagation());
-    panel.addEventListener("click", (e) => e.stopPropagation());
-  }
-  save.onclick = (e) => {
-    e.stopPropagation();
-    finishEdit(serializeEditor(editor));
-  };
-  cancel.onclick = (e) => {
-    e.stopPropagation();
-    closeContextEditor();
-  };
+  bindPanelActions(panel);
+  revealCommentPanel(panel);
 
   document.addEventListener("mousemove", onMove, true);
   document.addEventListener("click", onClick, true);
@@ -787,10 +839,12 @@ export function stopPlaygroundPicker(notify = true): void {
   activePendingIndex = 0;
   editingPickId = null;
   onEditSaveCallback = null;
+  onEditEndCallback = null;
   onSaveCallback = null;
   if (notify) {
     onStopCallback?.();
     onStopCallback = null;
+    showTrayAfterHandoff(true);
   }
 }
 

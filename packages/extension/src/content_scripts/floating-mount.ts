@@ -1,9 +1,16 @@
 import { chromeRuntime, mountFloatingGrip, TRAY_ID } from "@grip/devtools-floating";
+import type { ShowTrayPayload } from "@grip/core";
 import { navigateToSelector } from "@/content_scripts/navigator";
+import {
+  hideFloatingTray,
+  registerFloatingController,
+  showFloatingTray,
+} from "@/content_scripts/tray-control";
 
 export { TRAY_ID };
 
 const controller = mountFloatingGrip(chromeRuntime);
+registerFloatingController(controller);
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.type === "TOGGLE_GRIP_TRAY") {
@@ -16,8 +23,14 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     sendResponse({ ok: true });
     return true;
   }
+  if (msg.type === "HIDE_TRAY") {
+    hideFloatingTray();
+    sendResponse({ ok: true });
+    return true;
+  }
   if (msg.type === "SHOW_TRAY") {
-    controller.setOpen(true);
+    const payload = msg.payload as ShowTrayPayload | undefined;
+    showFloatingTray({ restore: Boolean(payload?.restore) });
     sendResponse({ ok: true });
     return true;
   }

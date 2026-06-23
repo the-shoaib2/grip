@@ -1,5 +1,6 @@
 import { mountFloatingGrip, TRAY_ID } from "@grip/devtools-floating";
 import { playgroundRuntime } from "./mockRuntime";
+import { registerTrayHandler } from "./trayBridge";
 import { getEffectiveColorScheme, getColorSchemePreference, syncGripTrayColorScheme } from "./theme";
 
 function extensionTrayPresent(): boolean {
@@ -28,6 +29,10 @@ void (async () => {
   if (await waitForExtensionTray()) return;
 
   const controller = mountFloatingGrip(playgroundRuntime);
+  registerTrayHandler("fixture-fab", {
+    isOpen: () => controller.isOpen(),
+    setOpen: (open) => controller.setOpen(open),
+  });
   controller.setOpen(true);
   syncGripTrayColorScheme(getEffectiveColorScheme(getColorSchemePreference()));
 })();

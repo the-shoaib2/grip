@@ -119,6 +119,7 @@ export function mountFloatingGrip(runtime: GripRuntime): FloatingGripController 
       toggleOpen?.();
     },
     setOpen(next: boolean) {
+      openRef = next;
       setOpenExternal?.(next);
     },
     isOpen() {

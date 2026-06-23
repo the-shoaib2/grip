@@ -7,11 +7,13 @@ import {
   updatePickInHistory,
   type PickerElementPayload,
   type OpenContextEditorPayload,
+  type ShowTrayPayload,
   type StoredPick,
   GRIP_MCP_DOCS_URL,
 } from "@grip/core";
 import type { GripRuntime, RuntimeMessage, StorageChangeHandler } from "@grip/devtools";
 import { startPlaygroundPicker, stopPlaygroundPicker, openPlaygroundContextEditor } from "./playgroundPicker";
+import { hideTrayForHandoff, showTrayAfterHandoff } from "./trayBridge";
 
 const TAB_SESSIONS_KEY = "tabSessionIds";
 const HISTORY_KEY = "pickHistory";
@@ -143,14 +145,22 @@ export const playgroundRuntime: GripRuntime = {
         return Promise.resolve({ ok: true, history: [], sessionId, tabId: MOCK_TAB_ID } as T);
       }
       case "START_PICKER":
+        hideTrayForHandoff();
         startMockPicker();
         return Promise.resolve({ ok: true } as T);
       case "STOP_PICKER":
         stopMockPicker();
         return Promise.resolve({ ok: true } as T);
       case "TOGGLE_GRIP_TRAY":
-      case "SHOW_TRAY":
         return Promise.resolve({ ok: true } as T);
+      case "HIDE_TRAY":
+        hideTrayForHandoff();
+        return Promise.resolve({ ok: true } as T);
+      case "SHOW_TRAY": {
+        const payload = m.payload as ShowTrayPayload | undefined;
+        showTrayAfterHandoff(Boolean(payload?.restore));
+        return Promise.resolve({ ok: true } as T);
+      }
       case "NAVIGATE_TO_PICK": {
         const payload = m.payload as StoredPick;
         const el = document.querySelector(payload.css);
@@ -167,17 +177,26 @@ export const playgroundRuntime: GripRuntime = {
       }
       case "OPEN_CONTEXT_EDITOR": {
         const payload = m.payload as OpenContextEditorPayload;
-        openPlaygroundContextEditor(payload, (pickId, comment) => {
-          pickHistory = updatePickInHistory(pickHistory, pickId, {
-            comment: comment.trim() || undefined,
-          });
-          if (lastPick?.id === pickId) {
-            lastPick = pickHistory.find((p) => p.id === pickId);
-          }
-          emitStorage("local", {
-            pickHistory: { newValue: [...pickHistory], oldValue: undefined },
-          });
-        });
+        openPlaygroundContextEditor(
+          payload,
+          (pickId, comment) => {
+            pickHistory = updatePickInHistory(pickHistory, pickId, {
+              comment: comment.trim() || undefined,
+            });
+            if (lastPick?.id === pickId) {
+              lastPick = pickHistory.find((p) => p.id === pickId);
+            }
+            emitStorage("local", {
+              pickHistory: { newValue: [...pickHistory], oldValue: undefined },
+            });
+          },
+          () => {
+            if (pickerActive) {
+              stopPlaygroundPicker(false);
+              setPickerActive(false);
+            }
+          },
+        );
         return Promise.resolve({ ok: true } as T);
       }
       case "UPDATE_PICK_COMMENT": {

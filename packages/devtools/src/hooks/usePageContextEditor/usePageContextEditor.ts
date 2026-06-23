@@ -17,7 +17,10 @@ export function usePageContextEditor() {
         pickIndex: meta?.pickIndex,
         pickCount: meta?.pickCount,
       };
-      void runtime.sendMessage({ type: "OPEN_CONTEXT_EDITOR", payload });
+      void (async () => {
+        await runtime.sendMessage({ type: "HIDE_TRAY" });
+        await runtime.sendMessage({ type: "OPEN_CONTEXT_EDITOR", payload });
+      })();
     },
     [runtime],
   );

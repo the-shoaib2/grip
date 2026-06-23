@@ -209,6 +209,7 @@ export async function waitForBootstrap(
 const FLOATING_MESSAGE_TYPES = new Set([
   "TOGGLE_GRIP_TRAY",
   "SHOW_TRAY",
+  "HIDE_TRAY",
   "NAVIGATE_TO_PICK",
 ]);
 

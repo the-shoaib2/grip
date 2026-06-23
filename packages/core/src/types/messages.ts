@@ -10,6 +10,7 @@ export type GripMessageType =
   | "TOGGLE_GRIP_TRAY"
   | "NEW_SESSION"
   | "SHOW_TRAY"
+  | "HIDE_TRAY"
   | "UPDATE_PICK_COMMENT"
   | "OPEN_CONTEXT_EDITOR"
   | "DELETE_PICK"
@@ -47,6 +48,11 @@ export interface StoredPick extends PickerElementPayload {
   pageTitle: string;
   timestamp: number;
   label: string;
+}
+
+/** Optional payload for SHOW_TRAY — restore only reopens if the tray was open before handoff. */
+export interface ShowTrayPayload {
+  restore?: boolean;
 }
 
 /** Open the page-level picker comment panel to edit an existing pick. */

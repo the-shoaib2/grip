@@ -67,5 +67,6 @@ export type {
   OpenContextEditorPayload,
   PickerElementPayload,
   PickerStartPayload,
+  ShowTrayPayload,
   StoredPick,
 } from "./types/messages.js";

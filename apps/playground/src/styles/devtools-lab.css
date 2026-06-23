@@ -127,6 +127,20 @@
   min-height: 32rem;
 }
 
+.lab-preview-panel-collapsed {
+  min-height: 0;
+}
+
+.lab-preview-panel-collapsed .grip-shell-devtools {
+  visibility: hidden;
+  height: 0;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+}
+
 .lab-preview-floating {
   width: 22rem;
 }

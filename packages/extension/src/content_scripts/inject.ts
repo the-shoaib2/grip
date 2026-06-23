@@ -1,6 +1,6 @@
 import { isExtensionContextValid } from "@/lib/runtime";
-import "@/content_scripts/bootstrap-core";
 import "@/content_scripts/bootstrap-floating";
+import "@/content_scripts/bootstrap-core";
 
 export type BootstrapFeature = "picker" | "floating";
 

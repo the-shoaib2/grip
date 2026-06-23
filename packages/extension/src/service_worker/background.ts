@@ -100,6 +100,11 @@ async function startPickerOnTab(tabId: number, url?: string): Promise<void> {
   const sessionPicks = await sessionPicksForTab(tabId, url ?? "");
 
   await ensureTabReady(tabId);
+  try {
+    await sendToTabWhenReady(tabId, { type: "HIDE_TRAY" }, { feature: "floating" });
+  } catch {
+    /* floating tray may not be mounted */
+  }
   await waitForBootstrap(tabId, "picker");
   await sendToTab(tabId, {
     type: "START_PICKER",
@@ -295,9 +300,25 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
         const tab = await resolveTargetTab(sender, msg);
         if (!tab?.id) return;
         try {
-          await sendToTabWhenReady(tab.id, { type: "SHOW_TRAY" });
+          await sendToTabWhenReady(tab.id, {
+            type: "SHOW_TRAY",
+            payload: msg.payload,
+          });
         } catch {
           /* ignore tray show errors */
+        }
+      })();
+      sendResponse({ ok: true });
+      return;
+
+    case "HIDE_TRAY":
+      void (async () => {
+        const tab = await resolveTargetTab(sender, msg);
+        if (!tab?.id) return;
+        try {
+          await sendToTabWhenReady(tab.id, { type: "HIDE_TRAY" });
+        } catch {
+          /* ignore tray hide errors */
         }
       })();
       sendResponse({ ok: true });

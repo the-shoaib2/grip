@@ -29,6 +29,7 @@ import {
   updateChipActiveStates,
   type InlineChipRef,
 } from "@/lib";
+import { showFloatingTray } from "@/content_scripts/tray-control";
 
 const TRAY_ID = "__grip_tray__";
 const HOVER_ID = "__grip_picker_hover__";
@@ -856,6 +857,12 @@ function focusComposerEditor(): void {
   });
 }
 
+function restoreShellAfterEdit(): void {
+  void chrome.storage.session.set({ pickerActive: false });
+  showFloatingTray();
+  safeSendMessage({ type: "SHOW_TRAY" });
+}
+
 function closeContextEditor(): void {
   if (phase !== "edit") return;
   editingPickId = null;
@@ -871,6 +878,7 @@ function closeContextEditor(): void {
   panelManuallyPlaced = false;
   panelDrag = null;
   phase = "idle";
+  restoreShellAfterEdit();
 }
 
 function finishEdit(comment: string): void {
@@ -889,36 +897,54 @@ function finishEdit(comment: string): void {
   closeContextEditor();
 }
 
-function bindPanelActions(panel: HTMLElement, editor: HTMLElement): void {
+function bindPanelActions(panel: HTMLElement, _editor: HTMLElement): void {
   const save = panel.querySelector("#__grip_comment_save__") as HTMLButtonElement;
   const cancel = panel.querySelector("#__grip_comment_cancel__") as HTMLButtonElement;
+  if (!save || !cancel) return;
+
   if (save.dataset.bound !== "1") {
     save.dataset.bound = "1";
     bindComposerEvents(panel);
-    save.onclick = (e) => {
-      e.stopPropagation();
-      const value = serializeEditor(editor);
-      if (phase === "edit") {
-        finishEdit(value);
-        return;
-      }
-      finishPick(value, true);
-    };
-    cancel.onclick = (e) => {
-      e.stopPropagation();
-      if (phase === "edit") {
-        closeContextEditor();
-        return;
-      }
-      if (phase === "comment") {
-        resumeHover();
-        return;
-      }
-      cleanup();
-    };
     panel.addEventListener("mousedown", (e) => e.stopPropagation());
     panel.addEventListener("click", (e) => e.stopPropagation());
   }
+
+  const handleSave = (e: Event) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const editor = getComposerEditor();
+    const value = editor ? serializeEditor(editor) : "";
+    if (phase === "edit") {
+      finishEdit(value);
+      return;
+    }
+    finishPick(value, true);
+  };
+
+  const handleCancel = (e: Event) => {
+    e.stopPropagation();
+    if (phase === "edit") {
+      closeContextEditor();
+      return;
+    }
+    if (phase === "comment") {
+      resumeHover();
+      return;
+    }
+    cleanup();
+  };
+
+  if (save.dataset.bound !== "1") {
+    save.dataset.bound = "1";
+    bindComposerEvents(panel);
+    panel.addEventListener("mousedown", (e) => e.stopPropagation());
+    panel.addEventListener("click", (e) => e.stopPropagation());
+    save.addEventListener("click", handleSave, true);
+    cancel.addEventListener("click", handleCancel, true);
+  }
+
+  save.onclick = handleSave;
+  cancel.onclick = handleCancel;
 }
 
 function openContextEditor(payload: OpenContextEditorPayload): void {
@@ -951,6 +977,9 @@ function openContextEditor(payload: OpenContextEditorPayload): void {
   }
 
   bindPanelActions(panel, editor);
+  requestAnimationFrame(() => {
+    panel.scrollIntoView({ block: "nearest", inline: "nearest" });
+  });
   document.addEventListener("mousemove", onMove, true);
   document.addEventListener("click", onClick, true);
   document.addEventListener("keydown", onKey, true);
@@ -960,7 +989,6 @@ function openContextEditor(payload: OpenContextEditorPayload): void {
 }
 
 function resumeHover(): void {
-  document.getElementById(COMMENT_ID)?.remove();
   document.getElementById(HINT_ID)?.remove();
   document.getElementById(SELECTED_ID)?.remove();
   pendingElements = [];
@@ -984,6 +1012,8 @@ function finishPick(comment: string, continueSession: boolean): void {
   for (const item of pendingElements) {
     sendPick(item.el, trimmed);
   }
+  document.getElementById(COMMENT_ID)?.remove();
+  showFloatingTray();
   safeSendMessage({ type: "SHOW_TRAY" });
   sessionPickCount += pendingElements.length;
   pendingElements = [];
@@ -1052,6 +1082,7 @@ function onClick(e: MouseEvent): void {
   }
   if (phase !== "hover" && phase !== "comment" && phase !== "edit") return;
   if (isGripChrome(e.target)) return;
+  if (phase === "edit") return;
 
   e.preventDefault();
   e.stopPropagation();
@@ -1070,13 +1101,6 @@ function onClick(e: MouseEvent): void {
   }
 
   if (phase === "comment") {
-    const editor = getComposerEditor();
-    const keepTyping = document.activeElement === editor;
-    addToPending(el, { keepTyping });
-    return;
-  }
-
-  if (phase === "edit") {
     const editor = getComposerEditor();
     const keepTyping = document.activeElement === editor;
     addToPending(el, { keepTyping });
@@ -1110,6 +1134,8 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   }
   if (msg.type === "STOP_PICKER") {
     cleanup();
+    showFloatingTray({ restore: true });
+    safeSendMessage({ type: "SHOW_TRAY", payload: { restore: true } });
     sendResponse({ ok: true });
     return true;
   }

@@ -39,6 +39,7 @@ import { FloatingShell } from "@grip/devtools-floating";
 import "@grip/devtools-css";
 import "../../../packages/devtools/src/floating/floating.css";
 import { playgroundRuntime } from "./mockRuntime";
+import { registerTrayHandler } from "./trayBridge";
 import "./styles/devtools-lab.css";
 
 type LabView = "popup" | "panel" | "floating" | "components";
@@ -394,8 +395,30 @@ function ComponentGallery({
 function DevToolsLabContent() {
   const [view, setView] = useState<LabView>("popup");
   const [floatingOpen, setFloatingOpen] = useState(true);
+  const [panelShellOpen, setPanelShellOpen] = useState(true);
   const [editorPick, setEditorPick] = useState<StoredPick | null>(null);
+  const floatingOpenRef = useRef(floatingOpen);
+  const panelShellOpenRef = useRef(panelShellOpen);
   const openPageContextEditor = usePageContextEditor();
+
+  floatingOpenRef.current = floatingOpen;
+  panelShellOpenRef.current = panelShellOpen;
+
+  useEffect(() => {
+    if (view !== "floating") return;
+    return registerTrayHandler("lab-floating-preview", {
+      isOpen: () => floatingOpenRef.current,
+      setOpen: setFloatingOpen,
+    });
+  }, [view]);
+
+  useEffect(() => {
+    if (view !== "panel") return;
+    return registerTrayHandler("lab-panel-preview", {
+      isOpen: () => panelShellOpenRef.current,
+      setOpen: setPanelShellOpen,
+    });
+  }, [view]);
 
   const openContextEditor = (pick: StoredPick) => {
     setEditorPick(pick);
@@ -448,8 +471,10 @@ function DevToolsLabContent() {
               editorPick={editorPick}
               onCloseEditor={() => setEditorPick(null)}
             >
-              <div class="lab-preview lab-preview-panel">
-                <GripPanelView onContextEditRequest={openContextEditor} />
+              <div
+                class={`lab-preview lab-preview-panel${panelShellOpen ? "" : " lab-preview-panel-collapsed"}`}
+              >
+                <GripPanelView onContextEditRequest={openPageContextEditor} />
               </div>
             </LabShellWorkspace>
           )}
