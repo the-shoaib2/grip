@@ -115,13 +115,7 @@ export function usePickHistoryState(runtime: GripRuntime): UsePickHistoryResult 
       if (area === "session" && changes.lastPick?.newValue) {
         const pick = changes.lastPick.newValue as StoredPick | undefined;
         if (!pick) return;
-        setActivePick((prev) => {
-          if (prev?.id === pick.id) {
-            return pick;
-          }
-          void runtime.sendMessage({ type: "NAVIGATE_TO_PICK", payload: pick });
-          return pick;
-        });
+        setActivePick(pick);
       }
       if (area === "local" && changes.pickHistory?.newValue) {
         void refresh();

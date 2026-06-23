@@ -169,10 +169,12 @@ export const playgroundRuntime: GripRuntime = {
           el.classList.add("grip-nav-flash");
           window.setTimeout(() => el.classList.remove("grip-nav-flash"), 1200);
         }
-        lastPick = payload;
-        emitStorage("session", {
-          lastPick: { newValue: lastPick, oldValue: undefined },
-        });
+        if (lastPick?.id !== payload.id) {
+          lastPick = payload;
+          emitStorage("session", {
+            lastPick: { newValue: lastPick, oldValue: undefined },
+          });
+        }
         return Promise.resolve({ ok: true } as T);
       }
       case "OPEN_CONTEXT_EDITOR": {

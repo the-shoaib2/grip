@@ -897,54 +897,62 @@ function finishEdit(comment: string): void {
   closeContextEditor();
 }
 
+function commitPanelSave(): void {
+  const editor = getComposerEditor();
+  const value = editor ? serializeEditor(editor) : "";
+  if (phase === "edit") {
+    finishEdit(value);
+    return;
+  }
+  finishPick(value, true);
+}
+
+function commitPanelCancel(): void {
+  if (phase === "edit") {
+    closeContextEditor();
+    return;
+  }
+  if (phase === "comment") {
+    resumeHover();
+    return;
+  }
+  cleanup();
+}
+
 function bindPanelActions(panel: HTMLElement, _editor: HTMLElement): void {
-  const save = panel.querySelector("#__grip_comment_save__") as HTMLButtonElement;
-  const cancel = panel.querySelector("#__grip_comment_cancel__") as HTMLButtonElement;
-  if (!save || !cancel) return;
+  bindComposerEvents(panel);
 
-  if (save.dataset.bound !== "1") {
-    save.dataset.bound = "1";
-    bindComposerEvents(panel);
+  if (panel.dataset.stopBound !== "1") {
+    panel.dataset.stopBound = "1";
     panel.addEventListener("mousedown", (e) => e.stopPropagation());
     panel.addEventListener("click", (e) => e.stopPropagation());
   }
 
-  const handleSave = (e: Event) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const editor = getComposerEditor();
-    const value = editor ? serializeEditor(editor) : "";
-    if (phase === "edit") {
-      finishEdit(value);
-      return;
-    }
-    finishPick(value, true);
-  };
+  const actions = panel.querySelector(".grip-picker-actions") as
+    | (HTMLElement & { __gripActionsHandler?: (e: Event) => void })
+    | null;
+  if (!actions) return;
 
-  const handleCancel = (e: Event) => {
-    e.stopPropagation();
-    if (phase === "edit") {
-      closeContextEditor();
-      return;
-    }
-    if (phase === "comment") {
-      resumeHover();
-      return;
-    }
-    cleanup();
-  };
-
-  if (save.dataset.bound !== "1") {
-    save.dataset.bound = "1";
-    bindComposerEvents(panel);
-    panel.addEventListener("mousedown", (e) => e.stopPropagation());
-    panel.addEventListener("click", (e) => e.stopPropagation());
-    save.addEventListener("click", handleSave, true);
-    cancel.addEventListener("click", handleCancel, true);
+  if (actions.__gripActionsHandler) {
+    actions.removeEventListener("click", actions.__gripActionsHandler, true);
   }
 
-  save.onclick = handleSave;
-  cancel.onclick = handleCancel;
+  const handler = (e: Event) => {
+    const target = e.target as HTMLElement;
+    if (target.closest("#__grip_comment_save__")) {
+      e.preventDefault();
+      e.stopPropagation();
+      commitPanelSave();
+      return;
+    }
+    if (target.closest("#__grip_comment_cancel__")) {
+      e.stopPropagation();
+      commitPanelCancel();
+    }
+  };
+
+  actions.__gripActionsHandler = handler;
+  actions.addEventListener("click", handler, true);
 }
 
 function openContextEditor(payload: OpenContextEditorPayload): void {

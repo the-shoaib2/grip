@@ -72,6 +72,63 @@ let onEditSaveCallback: ((pickId: string, comment: string) => void) | null = nul
 let onEditEndCallback: (() => void) | null = null;
 let editingPickId: string | null = null;
 
+function commitPanelSave(): void {
+  const editor = getComposerEditor();
+  const value = editor ? serializeEditor(editor) : "";
+  if (phase === "edit") {
+    finishEdit(value);
+    return;
+  }
+  if (!pendingElements.length || !onSaveCallback) {
+    return;
+  }
+  finishPick(value, true);
+}
+
+function commitPanelCancel(): void {
+  if (phase === "edit") {
+    closeContextEditor();
+    return;
+  }
+  stopPlaygroundPicker();
+}
+
+function bindPanelActions(panel: HTMLElement): void {
+  bindComposerEvents(panel);
+
+  if (panel.dataset.stopBound !== "1") {
+    panel.dataset.stopBound = "1";
+    panel.addEventListener("mousedown", (e) => e.stopPropagation());
+    panel.addEventListener("click", (e) => e.stopPropagation());
+  }
+
+  const actions = panel.querySelector(".grip-picker-actions") as
+    | (HTMLElement & { __gripActionsHandler?: (e: Event) => void })
+    | null;
+  if (!actions) return;
+
+  if (actions.__gripActionsHandler) {
+    actions.removeEventListener("click", actions.__gripActionsHandler, true);
+  }
+
+  const handler = (e: Event) => {
+    const target = e.target as HTMLElement;
+    if (target.closest("#__grip_comment_save__")) {
+      e.preventDefault();
+      e.stopPropagation();
+      commitPanelSave();
+      return;
+    }
+    if (target.closest("#__grip_comment_cancel__")) {
+      e.stopPropagation();
+      commitPanelCancel();
+    }
+  };
+
+  actions.__gripActionsHandler = handler;
+  actions.addEventListener("click", handler, true);
+}
+
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(value, max));
 }
@@ -477,52 +534,6 @@ function ensureCommentPanel(): HTMLElement {
   `;
   document.documentElement.appendChild(panel);
   return panel;
-}
-
-function bindPanelActions(panel: HTMLElement): void {
-  const save = panel.querySelector("#__grip_comment_save__") as HTMLButtonElement;
-  const cancel = panel.querySelector("#__grip_comment_cancel__") as HTMLButtonElement;
-  if (!save || !cancel) return;
-
-  if (save.dataset.bound !== "1") {
-    save.dataset.bound = "1";
-    bindComposerEvents(panel);
-    panel.addEventListener("mousedown", (e) => e.stopPropagation());
-    panel.addEventListener("click", (e) => e.stopPropagation());
-  }
-
-  const handleSave = (e: Event) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const editor = getComposerEditor();
-    const value = editor ? serializeEditor(editor) : "";
-    if (phase === "edit") {
-      finishEdit(value);
-      return;
-    }
-    finishPick(value, true);
-  };
-
-  const handleCancel = (e: Event) => {
-    e.stopPropagation();
-    if (phase === "edit") {
-      closeContextEditor();
-      return;
-    }
-    stopPlaygroundPicker();
-  };
-
-  if (save.dataset.bound !== "1") {
-    save.dataset.bound = "1";
-    bindComposerEvents(panel);
-    panel.addEventListener("mousedown", (e) => e.stopPropagation());
-    panel.addEventListener("click", (e) => e.stopPropagation());
-    save.addEventListener("click", handleSave, true);
-    cancel.addEventListener("click", handleCancel, true);
-  }
-
-  save.onclick = handleSave;
-  cancel.onclick = handleCancel;
 }
 
 function bindComposerEvents(panel: HTMLElement): void {
