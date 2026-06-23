@@ -72,9 +72,11 @@ export function mountFloatingGrip(runtime: GripRuntime): FloatingGripController 
   if (!shadow.querySelector("[data-grip-styles]")) {
     const style = document.createElement("style");
     style.setAttribute("data-grip-styles", "true");
-    style.textContent = `${devtoolsCss}\n${floatingCss}`;
     shadow.appendChild(style);
   }
+
+  const styleEl = shadow.querySelector<HTMLStyleElement>("[data-grip-styles]")!;
+  styleEl.textContent = `${devtoolsCss}\n${floatingCss}`;
 
   let mountPoint = shadow.querySelector<HTMLDivElement>("[data-grip-mount]");
   if (!mountPoint) {

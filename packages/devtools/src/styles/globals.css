@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+:host,
 :root {
   color-scheme: light dark;
 
@@ -41,6 +42,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
+  :host,
   :root {
     --grip-bg: #09090b;
     --grip-fg: #fafafa;
@@ -83,6 +85,12 @@ body {
   background: var(--grip-bg);
   color: var(--grip-fg);
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+[data-grip-mount] {
+  color: var(--grip-fg);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 #app {

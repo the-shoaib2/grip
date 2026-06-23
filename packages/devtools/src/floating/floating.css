@@ -5,6 +5,7 @@
   z-index: 2147483645;
   pointer-events: none;
   font: 12px system-ui, sans-serif;
+  color-scheme: light dark;
 }
 
 .grip-floating-inner {
