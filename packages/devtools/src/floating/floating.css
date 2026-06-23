@@ -21,9 +21,10 @@
   width: 40px;
   height: 40px;
   padding: 0;
-  background: #2563eb;
+  background: var(--grip-accent);
+  color: var(--grip-on-accent);
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45);
+  box-shadow: var(--grip-shell-shadow);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -41,12 +42,12 @@
 }
 
 .grip-floating-inner .grip-tray-toggle:hover {
-  background: #1d4ed8;
-  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.5);
+  background: var(--grip-accent-hover);
 }
 
 .grip-floating-inner.grip-tray-open .grip-tray-toggle {
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  background: var(--grip-accent);
+  box-shadow: var(--grip-shell-shadow);
 }
 
 .grip-floating-menu {

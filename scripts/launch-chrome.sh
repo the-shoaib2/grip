@@ -23,6 +23,16 @@ fi
 echo "Launching $CHROME with remote debugging on port $PORT"
 echo "User data dir: $USER_DATA_DIR"
 
+# adw-gtk3-* themes on some Linux distros ship without gtk-4 assets; Chrome then
+# spams Gtk theme parser errors. Use a complete theme unless overridden.
+if [[ -z "${GTK_THEME:-}" ]]; then
+  if [[ -d /usr/share/themes/Adwaita-dark ]]; then
+    export GTK_THEME="Adwaita-dark"
+  elif [[ -d /usr/share/themes/Adwaita ]]; then
+    export GTK_THEME="Adwaita"
+  fi
+fi
+
 exec "$CHROME" \
   --remote-debugging-port="$PORT" \
   --user-data-dir="$USER_DATA_DIR" \
