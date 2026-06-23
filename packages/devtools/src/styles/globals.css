@@ -16,7 +16,7 @@
   --grip-border-strong: #d4d4d8;
   --grip-shell-bg: #ffffff;
   --grip-shell-border: #e4e4e7;
-  --grip-shell-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.1);
+  --grip-shell-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), 0 12px 28px rgba(0, 0, 0, 0.14);
   --grip-shell-radius: 0.75rem;
   --grip-focus-ring: #93c5fd;
   --grip-accent: #2563eb;
@@ -54,7 +54,7 @@
     --grip-border-strong: #52525b;
     --grip-shell-bg: #09090b;
     --grip-shell-border: #3f3f46;
-    --grip-shell-shadow: 0 1px 2px rgba(0, 0, 0, 0.28), 0 8px 24px rgba(0, 0, 0, 0.42);
+    --grip-shell-shadow: 0 4px 12px rgba(0, 0, 0, 0.42), 0 16px 36px rgba(0, 0, 0, 0.52);
     --grip-focus-ring: #1d4ed8;
     --grip-accent: #3b82f6;
     --grip-accent-hover: #60a5fa;
@@ -160,13 +160,21 @@ body {
   min-height: 19rem;
   flex-shrink: 0;
   border-radius: var(--grip-shell-radius);
+  border: 1px solid var(--grip-shell-border);
 }
 
 .grip-shell-floating {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
   min-height: 19rem;
-  border-radius: 1rem;
+  border-radius: 0;
   max-height: min(36rem, calc(100vh - 5rem));
+  overflow-x: hidden;
   overflow-y: auto;
+  box-shadow: none;
+  border: none;
+  background: transparent;
 }
 
 .grip-shell-devtools {
