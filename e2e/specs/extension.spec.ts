@@ -1,4 +1,5 @@
 import {
+  clickGripPickButton,
   expect,
   gripShadowText,
   gripTrayToggle,
@@ -58,11 +59,7 @@ test.describe("Grip picker", () => {
     const page = await extensionContext.newPage();
     await page.goto(TEST_PAGE_URL);
     await openFloatingPanel(page);
-
-    await page.locator(`#${TRAY_ID}`).evaluate((host) => {
-      const btn = host.shadowRoot?.querySelector<HTMLButtonElement>(".grip-btn-primary");
-      btn?.click();
-    });
+    await clickGripPickButton(page);
 
     await expect(page.locator("#__grip_picker_hover__")).toBeVisible({ timeout: 10_000 });
     await page.keyboard.press("Escape");
@@ -73,10 +70,7 @@ test.describe("Grip picker", () => {
     const page = await extensionContext.newPage();
     await page.goto(TEST_PAGE_URL);
     await openFloatingPanel(page);
-
-    await page.locator(`#${TRAY_ID}`).evaluate((host) => {
-      host.shadowRoot?.querySelector<HTMLButtonElement>(".grip-btn-primary")?.click();
-    });
+    await clickGripPickButton(page);
 
     await expect(page.locator("#__grip_picker_hover__")).toBeVisible({ timeout: 10_000 });
     await page.locator("#grip-target").click();
@@ -106,8 +100,8 @@ test.describe("Grip picker", () => {
 
     await page.locator(`#${TRAY_ID}`).evaluate((host) => {
       host.shadowRoot?.querySelector<HTMLButtonElement>(".grip-tray-toggle")?.click();
-      host.shadowRoot?.querySelector<HTMLButtonElement>(".grip-btn-primary")?.click();
     });
+    await clickGripPickButton(page);
 
     await expect(page.locator("#__grip_picker_hover__")).toBeVisible({ timeout: 10_000 });
     await page.locator("#grip-target").click();
@@ -141,10 +135,7 @@ test.describe("Grip session", () => {
     const page = await extensionContext.newPage();
     await page.goto(TEST_PAGE_URL);
     await openFloatingPanel(page);
-
-    await page.locator(`#${TRAY_ID}`).evaluate((host) => {
-      host.shadowRoot?.querySelector<HTMLButtonElement>(".grip-btn-primary")?.click();
-    });
+    await clickGripPickButton(page);
     await expect(page.locator("#__grip_picker_hover__")).toBeVisible({ timeout: 10_000 });
     await page.locator("#grip-target").click();
     await page.locator("#__grip_picker_comment__ button", { hasText: "Save" }).click();

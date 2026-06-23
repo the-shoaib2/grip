@@ -91,6 +91,18 @@ export async function openFloatingPanel(page) {
     .toContain("Pick");
 }
 
+export async function clickGripPickButton(page) {
+  await page.locator(`#${TRAY_ID}`).evaluate((host) => {
+    const buttons = host.shadowRoot?.querySelectorAll("button") ?? [];
+    for (const btn of buttons) {
+      if (btn.textContent?.includes("Pick")) {
+        btn.click();
+        return;
+      }
+    }
+  });
+}
+
 export async function openPopup(context, extensionId) {
   const page = await context.newPage();
   await page.goto(`chrome-extension://${extensionId}/src/popup/popup.html`);

@@ -81,6 +81,10 @@
   max-width: 20rem;
 }
 
+.lab-preview-popup .grip-popup:not(.grip-shell-devtools):not(.grip-shell-floating) {
+  border: none;
+}
+
 .lab-preview-panel {
   width: min(28rem, 100vw - 2rem);
   min-height: 32rem;

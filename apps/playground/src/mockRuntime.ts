@@ -1,5 +1,13 @@
-import { newSessionId, toStoredPick, type StoredPick, GRIP_MCP_DOCS_URL } from "@grip/core";
+import {
+  appendPickHistory,
+  newSessionId,
+  toStoredPick,
+  type PickerElementPayload,
+  type StoredPick,
+  GRIP_MCP_DOCS_URL,
+} from "@grip/core";
 import type { GripRuntime, RuntimeMessage, StorageChangeHandler } from "@grip/devtools";
+import { startPlaygroundPicker, stopPlaygroundPicker } from "./playgroundPicker";
 
 const TAB_SESSIONS_KEY = "tabSessionIds";
 const HISTORY_KEY = "pickHistory";
@@ -45,6 +53,44 @@ function withTabId(msg: RuntimeMessage): RuntimeMessage {
   return msg.tabId == null ? { ...msg, tabId: MOCK_TAB_ID } : msg;
 }
 
+function setPickerActive(active: boolean): void {
+  const oldValue = pickerActive;
+  pickerActive = active;
+  emitStorage("session", {
+    pickerActive: { newValue: active, oldValue },
+  });
+}
+
+function recordPlaygroundPick(payload: PickerElementPayload): void {
+  const stored = toStoredPick(
+    payload,
+    window.location.href,
+    document.title || "Grip Playground",
+    sessionId,
+  );
+  pickHistory = appendPickHistory(pickHistory, stored);
+  lastPick = stored;
+  emitStorage("local", {
+    pickHistory: { newValue: [...pickHistory], oldValue: undefined },
+  });
+  emitStorage("session", {
+    lastPick: { newValue: lastPick, oldValue: undefined },
+  });
+}
+
+function startMockPicker(): void {
+  startPlaygroundPicker({
+    onSave: recordPlaygroundPick,
+    onStop: () => setPickerActive(false),
+  });
+  setPickerActive(true);
+}
+
+function stopMockPicker(): void {
+  stopPlaygroundPicker(false);
+  setPickerActive(false);
+}
+
 export const playgroundRuntime: GripRuntime = {
   sendMessage<T>(msg: RuntimeMessage): Promise<T> {
     const m = withTabId(msg);
@@ -71,16 +117,10 @@ export const playgroundRuntime: GripRuntime = {
         return Promise.resolve({ ok: true, history: [], sessionId, tabId: MOCK_TAB_ID } as T);
       }
       case "START_PICKER":
-        pickerActive = true;
-        emitStorage("session", {
-          pickerActive: { newValue: true, oldValue: false },
-        });
+        startMockPicker();
         return Promise.resolve({ ok: true } as T);
       case "STOP_PICKER":
-        pickerActive = false;
-        emitStorage("session", {
-          pickerActive: { newValue: false, oldValue: true },
-        });
+        stopMockPicker();
         return Promise.resolve({ ok: true } as T);
       case "TOGGLE_GRIP_TRAY":
       case "SHOW_TRAY":

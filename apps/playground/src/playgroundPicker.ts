@@ -1,0 +1,386 @@
+import {
+  deepElementFromPoint,
+  describeElement,
+  elementFromComposedEvent,
+  elementsAtPoint,
+  type PickerElementPayload,
+} from "@grip/core";
+
+const TRAY_ID = "__grip_tray__";
+const HOVER_ID = "__grip_picker_hover__";
+const STYLE_ID = "__grip_picker_style__";
+const COMMENT_ID = "__grip_picker_comment__";
+const HINT_ID = "__grip_picker_hint__";
+
+type PickerPhase = "idle" | "hover" | "comment";
+
+export interface PlaygroundPickerOptions {
+  onSave: (payload: PickerElementPayload) => void;
+  onStop?: () => void;
+}
+
+let phase: PickerPhase = "idle";
+let cycleIndex = 0;
+let lastX = 0;
+let lastY = 0;
+let stackSize = 1;
+let pendingElement: Element | null = null;
+let onSaveCallback: ((payload: PickerElementPayload) => void) | null = null;
+let onStopCallback: (() => void) | null = null;
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(value, max));
+}
+
+function stackAt(x: number, y: number): Element[] {
+  return elementsAtPoint(x, y);
+}
+
+function targetAt(x: number, y: number, index: number): Element | null {
+  const stack = stackAt(x, y);
+  stackSize = Math.max(stack.length, 1);
+  if (stack.length) return stack[index % stack.length] ?? null;
+  return deepElementFromPoint(x, y);
+}
+
+function targetFromClick(e: MouseEvent): Element | null {
+  const fromEvent = elementFromComposedEvent(e, cycleIndex);
+  if (fromEvent) return fromEvent;
+  return targetAt(e.clientX, e.clientY, cycleIndex);
+}
+
+function isGripChrome(target: EventTarget | null): boolean {
+  const el = target instanceof Element ? target : null;
+  if (!el) return false;
+  return Boolean(
+    el.closest(`#${TRAY_ID}, #${COMMENT_ID}, #${HOVER_ID}, #${HINT_ID}`),
+  );
+}
+
+function ensureStyle(): void {
+  if (document.getElementById(STYLE_ID)) return;
+  const s = document.createElement("style");
+  s.id = STYLE_ID;
+  s.textContent = `
+    *{cursor:crosshair!important}
+    #${HOVER_ID},#${HINT_ID}{pointer-events:none!important}
+    #${COMMENT_ID}{pointer-events:auto!important}
+    #${COMMENT_ID} *{cursor:auto!important}
+    .grip-picker-panel{
+      width:min(320px,calc(100vw - 16px));
+      padding:10px 12px;
+      border-radius:16px;
+      background:#18181b;
+      border:1px solid #3f3f46;
+      box-shadow:0 12px 40px rgba(0,0,0,.45);
+      font:12px system-ui,sans-serif;
+      color:#fafafa;
+      position:fixed;
+      z-index:2147483647;
+    }
+    .grip-picker-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      margin-bottom:8px;
+    }
+    .grip-picker-hint{
+      font-size:10px;
+      color:#71717a;
+      white-space:nowrap;
+    }
+    .grip-picker-comment-input{
+      width:100%;
+      min-height:56px;
+      margin-bottom:8px;
+      border-radius:12px;
+      border:1px solid #3f3f46;
+      background:#09090b;
+      padding:8px 10px;
+      font:12px system-ui,sans-serif;
+      color:#fafafa;
+      resize:vertical;
+      box-sizing:border-box;
+    }
+    .grip-picker-actions{
+      display:flex;
+      gap:6px;
+      justify-content:flex-end;
+    }
+    .grip-picker-actions button{
+      border-radius:9999px;
+      border:none;
+      padding:6px 12px;
+      font-size:11px;
+      cursor:pointer;
+    }
+    #__grip_comment_cancel__{background:#27272a;color:#d4d4d8}
+    #__grip_comment_save__{background:#2563eb;color:#fff}
+    #${HOVER_ID}{
+      position:fixed;
+      z-index:2147483646;
+      box-sizing:border-box;
+      border:1px dashed #3b82f6;
+      border-radius:0;
+      background:rgba(59,130,246,0.06);
+      pointer-events:none;
+      transition:top 40ms,left 40ms,width 40ms,height 40ms;
+    }
+  `;
+  document.documentElement.appendChild(s);
+}
+
+function ensureHint(): HTMLElement {
+  let hint = document.getElementById(HINT_ID);
+  if (!hint) {
+    hint = document.createElement("div");
+    hint.id = HINT_ID;
+    hint.style.cssText =
+      "position:fixed;z-index:2147483647;padding:4px 8px;border-radius:9999px;background:#18181b;color:#a1a1aa;font:10px system-ui,sans-serif;border:1px solid #3f3f46;pointer-events:none;";
+    document.documentElement.appendChild(hint);
+  }
+  return hint;
+}
+
+function highlight(el: Element): void {
+  ensureStyle();
+  let hover = document.getElementById(HOVER_ID);
+  if (!hover) {
+    hover = document.createElement("div");
+    hover.id = HOVER_ID;
+    document.documentElement.appendChild(hover);
+  }
+  const r = el.getBoundingClientRect();
+  const min = 3;
+  hover.style.top = `${r.top}px`;
+  hover.style.left = `${r.left}px`;
+  hover.style.width = `${Math.max(r.width, min)}px`;
+  hover.style.height = `${Math.max(r.height, min)}px`;
+
+  if (phase === "hover") {
+    const hint = ensureHint();
+    const tag = el.tagName.toLowerCase();
+    const cycle = stackSize > 1 ? ` [${cycleIndex + 1}:${stackSize}]` : "";
+    hint.textContent = `${tag}${cycle} · [ ] parent/child`;
+    hint.style.top = `${Math.max(4, r.top - 24)}px`;
+    hint.style.left = `${clamp(r.left, 4, window.innerWidth - 160)}px`;
+  }
+}
+
+function updateHover(x: number, y: number): void {
+  lastX = x;
+  lastY = y;
+  const stack = stackAt(x, y);
+  if (stack.length && cycleIndex >= stack.length) cycleIndex = 0;
+  stackSize = Math.max(stack.length, 1);
+  const el = targetAt(x, y, cycleIndex);
+  if (!el || el.closest(`#${COMMENT_ID}`)) return;
+  highlight(el);
+}
+
+function cycleSelection(dir: 1 | -1): void {
+  if (stackSize <= 1) return;
+  cycleIndex = (cycleIndex + dir + stackSize) % stackSize;
+  const el = targetAt(lastX, lastY, cycleIndex);
+  if (!el) return;
+  highlight(el);
+  if (phase === "comment" && pendingElement) {
+    pendingElement = el;
+  }
+}
+
+function positionCommentPanel(panel: HTMLElement, el: Element): void {
+  const anchor = el.getBoundingClientRect();
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const gap = 8;
+  const pad = 8;
+
+  panel.style.display = "block";
+  panel.style.visibility = "hidden";
+  panel.style.left = "0";
+  panel.style.top = "0";
+
+  const panelRect = panel.getBoundingClientRect();
+  const width = panelRect.width;
+  const height = panelRect.height;
+
+  let top = anchor.bottom + gap;
+  if (top + height > vh - pad) top = anchor.top - height - gap;
+  top = clamp(top, pad, vh - pad - height);
+
+  let left = anchor.left;
+  if (left + width > vw - pad) left = anchor.right - width;
+  left = clamp(left, pad, vw - pad - width);
+
+  panel.style.top = `${top}px`;
+  panel.style.left = `${left}px`;
+  panel.style.visibility = "visible";
+}
+
+function ensureCommentPanel(): HTMLElement {
+  let panel = document.getElementById(COMMENT_ID);
+  if (panel) return panel;
+
+  panel = document.createElement("div");
+  panel.id = COMMENT_ID;
+  panel.className = "grip-picker-panel";
+  panel.innerHTML = `
+    <div class="grip-picker-header">
+      <span class="grip-picker-hint">Describe what you need</span>
+    </div>
+    <textarea class="grip-picker-comment-input" placeholder="Select elements on the page, then describe what you need…" aria-label="Pick comment"></textarea>
+    <div class="grip-picker-actions">
+      <button type="button" id="__grip_comment_cancel__">Cancel</button>
+      <button type="button" id="__grip_comment_save__">Save</button>
+    </div>
+  `;
+  document.documentElement.appendChild(panel);
+  return panel;
+}
+
+function finishPick(comment: string): void {
+  if (!pendingElement || !onSaveCallback) return;
+  const payload = {
+    ...describeElement(pendingElement),
+    comment: comment.trim() || undefined,
+  };
+  onSaveCallback(payload);
+  resumeHover();
+}
+
+function resumeHover(): void {
+  document.getElementById(COMMENT_ID)?.remove();
+  document.getElementById(HINT_ID)?.remove();
+  pendingElement = null;
+  phase = "hover";
+  updateHover(lastX, lastY);
+}
+
+function showCommentPrompt(el: Element): void {
+  pendingElement = el;
+  phase = "comment";
+  highlight(el);
+
+  const panel = ensureCommentPanel();
+  const textarea = panel.querySelector("textarea") as HTMLTextAreaElement;
+  const save = panel.querySelector("#__grip_comment_save__") as HTMLButtonElement;
+  const cancel = panel.querySelector("#__grip_comment_cancel__") as HTMLButtonElement;
+
+  if (save.dataset.bound !== "1") {
+    save.dataset.bound = "1";
+    save.onclick = (e) => {
+      e.stopPropagation();
+      finishPick(textarea.value);
+    };
+    cancel.onclick = (e) => {
+      e.stopPropagation();
+      stopPlaygroundPicker();
+    };
+    panel.addEventListener("mousedown", (e) => e.stopPropagation());
+    panel.addEventListener("click", (e) => e.stopPropagation());
+  }
+
+  textarea.value = "";
+  positionCommentPanel(panel, el);
+  textarea.focus();
+}
+
+function onMove(e: MouseEvent): void {
+  if (phase !== "hover" && phase !== "comment") return;
+  if (isGripChrome(e.target)) return;
+  updateHover(e.clientX, e.clientY);
+}
+
+function onClick(e: MouseEvent): void {
+  if (phase !== "hover" && phase !== "comment") return;
+  if (isGripChrome(e.target)) return;
+
+  e.preventDefault();
+  e.stopPropagation();
+  e.stopImmediatePropagation();
+
+  lastX = e.clientX;
+  lastY = e.clientY;
+  const stack = stackAt(lastX, lastY);
+  stackSize = Math.max(stack.length, 1);
+  if (cycleIndex >= stackSize) cycleIndex = 0;
+
+  const el = targetFromClick(e);
+  if (!el) {
+    if (phase === "hover") stopPlaygroundPicker();
+    return;
+  }
+
+  if (phase === "comment") {
+    pendingElement = el;
+    highlight(el);
+    const panel = document.getElementById(COMMENT_ID);
+    if (panel) positionCommentPanel(panel, el);
+    return;
+  }
+
+  showCommentPrompt(el);
+}
+
+function onKey(e: KeyboardEvent): void {
+  if (e.key === "Escape") {
+    if (phase === "comment") {
+      const panel = document.getElementById(COMMENT_ID);
+      const textarea = panel?.querySelector("textarea");
+      if (document.activeElement === textarea) {
+        resumeHover();
+        return;
+      }
+    }
+    stopPlaygroundPicker();
+    return;
+  }
+
+  if (phase === "comment" && document.activeElement instanceof HTMLTextAreaElement) return;
+  if (phase === "idle") return;
+
+  if (e.key === "[" || e.key === "ArrowDown") {
+    e.preventDefault();
+    cycleSelection(1);
+  }
+  if (e.key === "]" || e.key === "ArrowUp") {
+    e.preventDefault();
+    cycleSelection(-1);
+  }
+}
+
+export function stopPlaygroundPicker(notify = true): void {
+  document.getElementById(HOVER_ID)?.remove();
+  document.getElementById(STYLE_ID)?.remove();
+  document.getElementById(COMMENT_ID)?.remove();
+  document.getElementById(HINT_ID)?.remove();
+  document.removeEventListener("mousemove", onMove, true);
+  document.removeEventListener("click", onClick, true);
+  document.removeEventListener("keydown", onKey, true);
+  phase = "idle";
+  cycleIndex = 0;
+  pendingElement = null;
+  onSaveCallback = null;
+  if (notify) {
+    onStopCallback?.();
+    onStopCallback = null;
+  }
+}
+
+export function startPlaygroundPicker(options: PlaygroundPickerOptions): void {
+  stopPlaygroundPicker(false);
+  onSaveCallback = options.onSave;
+  onStopCallback = options.onStop ?? null;
+  phase = "hover";
+  cycleIndex = 0;
+  ensureStyle();
+  document.addEventListener("mousemove", onMove, true);
+  document.addEventListener("click", onClick, true);
+  document.addEventListener("keydown", onKey, true);
+}
+
+export function isPlaygroundPickerActive(): boolean {
+  return phase !== "idle";
+}
