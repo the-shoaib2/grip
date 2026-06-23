@@ -82,7 +82,7 @@ function commitPanelSave(): void {
   if (!pendingElements.length || !onSaveCallback) {
     return;
   }
-  finishPick(value, true);
+  finishPick(value, false);
 }
 
 function commitPanelCancel(): void {
@@ -587,7 +587,7 @@ function bindComposerEvents(panel: HTMLElement): void {
         finishEdit(serializeEditor(editor));
         return;
       }
-      finishPick(serializeEditor(editor), true);
+      finishPick(serializeEditor(editor), false);
     }
     if (e.key === "Escape") {
       if (phase === "edit") {
@@ -676,7 +676,10 @@ function finishPick(comment: string, continueSession: boolean): void {
     resumeHover();
     return;
   }
-  stopPlaygroundPicker();
+  const stop = onStopCallback;
+  stopPlaygroundPicker(false);
+  stop?.();
+  onStopCallback = null;
 }
 
 function resumeHover(): void {
