@@ -5,9 +5,9 @@ import {
   elementFromComposedEvent,
   elementsAtPoint,
   formatInlineCommentForMcp,
-  formatPickIndexLabel,
   newChipId,
   type OpenContextEditorPayload,
+  type StoredPickChipRef,
   type PickerElementPayload,
 } from "@grip/core";
 import {
@@ -26,6 +26,7 @@ import {
   setEditorFromComment,
   toInlineChipRef,
   updateChipActiveStates,
+  type InlineChipRef,
 } from "@grip/devtools";
 
 const TRAY_ID = "__grip_tray__";
@@ -121,9 +122,49 @@ function toPending(el: Element): PendingPick {
 }
 
 function formatPickerIndexLabel(): string {
-  if (stackSize > 1) return `[${cycleIndex + 1}:${stackSize}]`;
+  if (phase === "hover" && stackSize > 1) return `[${cycleIndex + 1}:${stackSize}]`;
   const count = Math.max(pendingElements.length, 1);
   return `[${activePendingIndex + 1}:${count}]`;
+}
+
+function inlineChipsFromStored(chips: StoredPickChipRef[]): InlineChipRef[] {
+  return chips.map((chip) => ({
+    id: chip.id,
+    tag: chip.tag,
+    role: chip.role,
+    css: chip.css,
+    xpath: chip.xpath,
+    text: chip.text,
+    name: chip.name,
+    rect: chip.rect,
+    shadowDOM: chip.shadowDOM,
+    iframe: chip.iframe,
+  }));
+}
+
+function syncPendingFromStoredChips(chips: StoredPickChipRef[]): Element | null {
+  pendingElements = [];
+  let anchor: Element | null = null;
+  for (const chip of chips) {
+    if (!chip.css) continue;
+    const el = document.querySelector(chip.css);
+    if (!el) continue;
+    const existing = pendingElements.find((item) => item.css === chip.css);
+    if (existing) {
+      existing.chipId = chip.id;
+      continue;
+    }
+    const pending = toPending(el);
+    pending.chipId = chip.id;
+    pendingElements.push(pending);
+    anchor ??= el;
+  }
+  activePendingIndex = 0;
+  if (pendingElements[0]) {
+    highlight(pendingElements[0].el);
+    anchor = pendingElements[0].el;
+  }
+  return anchor;
 }
 
 function updateComposerPlaceholder(): void {
@@ -154,6 +195,10 @@ function removePendingAt(index: number): void {
 
   pendingElements.splice(index, 1);
   if (!pendingElements.length) {
+    if (phase === "edit") {
+      closeContextEditor();
+      return;
+    }
     resumeHover();
     return;
   }
@@ -338,7 +383,7 @@ function cycleSelection(dir: 1 | -1): void {
   const el = targetAt(lastX, lastY, cycleIndex);
   if (!el) return;
   highlight(el);
-  if (phase === "comment") updatePendingUI();
+  if (phase === "comment" || phase === "edit") updatePendingUI();
 }
 
 function positionCommentPanel(panel: HTMLElement, el: Element): void {
@@ -447,9 +492,19 @@ function bindComposerEvents(panel: HTMLElement): void {
     }
     if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
+      if (phase === "edit") {
+        finishEdit(serializeEditor(editor));
+        return;
+      }
       finishPick(serializeEditor(editor), true);
     }
-    if (e.key === "Escape") resumeHover();
+    if (e.key === "Escape") {
+      if (phase === "edit") {
+        closeContextEditor();
+        return;
+      }
+      resumeHover();
+    }
   });
 
   bindChipTooltipRoot(editor, (chip) => {
@@ -670,32 +725,25 @@ export function openPlaygroundContextEditor(
 ): void {
   if (phase === "hover" || phase === "comment") stopPlaygroundPicker(false);
 
-  const { pick, pickIndex = 1, pickCount = 1 } = payload;
+  const { pick } = payload;
   editingPickId = pick.id;
   onEditSaveCallback = onSave;
   ensureStyle();
   const panel = ensureCommentPanel();
   phase = "edit";
-  pendingElements = [];
   activePendingIndex = 0;
 
   const { chips, comment } = composerStateForStoredPick(pick);
   const editor = panel.querySelector("#__grip_comment_editor__") as HTMLElement;
-  setEditorFromComment(editor, comment, chips.map((chip) => toInlineChipRef(chip)));
+  const inlineChips = inlineChipsFromStored(chips);
+  setEditorFromComment(editor, comment, inlineChips);
+  const anchor = syncPendingFromStoredChips(chips);
 
-  const el = document.querySelector(pick.css);
-  if (el) {
-    const pending = toPending(el);
-    if (chips[0]?.id) pending.chipId = chips[0].id;
-    pendingElements.push(pending);
-    activePendingIndex = 0;
-    highlight(el);
-    positionCommentPanel(panel, el);
-  }
-
-  const sessionLabel = panel.querySelector("#__grip_session_label__");
-  if (sessionLabel) {
-    sessionLabel.textContent = formatPickIndexLabel(pickIndex, pickCount);
+  if (anchor) {
+    positionCommentPanel(panel, anchor);
+  } else {
+    panel.style.display = "block";
+    panel.style.visibility = "visible";
   }
 
   const save = panel.querySelector("#__grip_comment_save__") as HTMLButtonElement;
@@ -718,6 +766,7 @@ export function openPlaygroundContextEditor(
   document.addEventListener("mousemove", onMove, true);
   document.addEventListener("click", onClick, true);
   document.addEventListener("keydown", onKey, true);
+  updatePendingUI();
   focusComposerEditor();
 }
 

@@ -5,9 +5,9 @@ import {
   elementFromComposedEvent,
   elementsAtPoint,
   formatInlineCommentForMcp,
-  formatPickIndexLabel,
   newChipId,
   type OpenContextEditorPayload,
+  type StoredPickChipRef,
 } from "@grip/core";
 import type { PickerStartPayload } from "@grip/core";
 import {
@@ -28,6 +28,7 @@ import {
   setEditorFromComment,
   toInlineChipRef,
   updateChipActiveStates,
+  type InlineChipRef,
 } from "@/lib";
 
 const TRAY_ID = "__grip_tray__";
@@ -611,11 +612,51 @@ function updatePendingUI(): void {
 }
 
 function formatPickerIndexLabel(): string {
-  if (stackSize > 1) {
+  if (phase === "hover" && stackSize > 1) {
     return `[${cycleIndex + 1}:${stackSize}]`;
   }
   const count = Math.max(pendingElements.length, 1);
   return `[${activePendingIndex + 1}:${count}]`;
+}
+
+function inlineChipsFromStored(chips: StoredPickChipRef[]): InlineChipRef[] {
+  return chips.map((chip) => ({
+    id: chip.id,
+    tag: chip.tag,
+    role: chip.role,
+    css: chip.css,
+    xpath: chip.xpath,
+    text: chip.text,
+    name: chip.name,
+    rect: chip.rect,
+    shadowDOM: chip.shadowDOM,
+    iframe: chip.iframe,
+  }));
+}
+
+function syncPendingFromStoredChips(chips: StoredPickChipRef[]): Element | null {
+  pendingElements = [];
+  let anchor: Element | null = null;
+  for (const chip of chips) {
+    if (!chip.css) continue;
+    const el = document.querySelector(chip.css);
+    if (!el) continue;
+    const existing = pendingElements.find((item) => item.css === chip.css);
+    if (existing) {
+      existing.chipId = chip.id;
+      continue;
+    }
+    const pending = toPending(el);
+    pending.chipId = chip.id;
+    pendingElements.push(pending);
+    anchor ??= el;
+  }
+  activePendingIndex = 0;
+  if (pendingElements[0]) {
+    highlight(pendingElements[0].el);
+    anchor = pendingElements[0].el;
+  }
+  return anchor;
 }
 
 function updateComposerPlaceholder(): void {
@@ -775,9 +816,19 @@ function bindComposerEvents(panel: HTMLElement): void {
     }
     if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
+      if (phase === "edit") {
+        finishEdit(serializeEditor(editor));
+        return;
+      }
       finishPick(serializeEditor(editor), true);
     }
-    if (e.key === "Escape") resumeHover();
+    if (e.key === "Escape") {
+      if (phase === "edit") {
+        closeContextEditor();
+        return;
+      }
+      resumeHover();
+    }
   });
 
   bindChipTooltipRoot(editor, (chip) => {
@@ -870,7 +921,7 @@ function bindPanelActions(panel: HTMLElement, editor: HTMLElement): void {
 function openContextEditor(payload: OpenContextEditorPayload): void {
   if (phase === "hover" || phase === "comment") cleanup();
 
-  const { pick, pickIndex = 1, pickCount = 1 } = payload;
+  const { pick } = payload;
   editingPickId = pick.id;
   ensureStyle();
   const panel = ensureCommentPanel();
@@ -883,26 +934,17 @@ function openContextEditor(payload: OpenContextEditorPayload): void {
 
   const { chips, comment } = composerStateForStoredPick(pick);
   const editor = panel.querySelector("#__grip_comment_editor__") as HTMLElement;
-  setEditorFromComment(editor, comment, chips.map((chip) => toInlineChipRef(chip)));
+  const inlineChips = inlineChipsFromStored(chips);
+  setEditorFromComment(editor, comment, inlineChips);
+  const anchor = syncPendingFromStoredChips(chips);
 
-  const el = document.querySelector(pick.css);
-  if (el) {
-    const pending = toPending(el);
-    if (chips[0]?.id) pending.chipId = chips[0].id;
-    pendingElements.push(pending);
-    activePendingIndex = 0;
-    highlight(el);
-    positionCommentPanel(panel, el, true);
+  if (anchor) {
+    positionCommentPanel(panel, anchor, true);
   } else {
     panel.style.display = "block";
     panel.style.visibility = "visible";
     panel.style.top = `${Math.max(VIEWPORT_PAD, window.innerHeight / 2 - 80)}px`;
     panel.style.left = `${Math.max(VIEWPORT_PAD, window.innerWidth / 2 - 160)}px`;
-  }
-
-  const sessionLabel = document.getElementById("__grip_session_label__");
-  if (sessionLabel) {
-    sessionLabel.textContent = formatPickIndexLabel(pickIndex, pickCount);
   }
 
   bindPanelActions(panel, editor);
