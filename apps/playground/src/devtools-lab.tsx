@@ -1,5 +1,6 @@
 import { render } from "preact";
-import { useState } from "preact/hooks";
+import { useMemo, useState } from "preact/hooks";
+import { gripChipToken, newChipId } from "@grip/core";
 import {
   CommentField,
   CopyButton,
@@ -11,6 +12,7 @@ import {
   PickHistoryList,
   SelectDropdown,
   Tooltip,
+  type InlineChipRef,
 } from "@grip/devtools";
 import { FloatingShell } from "@grip/devtools-floating";
 import "@grip/devtools-css";
@@ -19,6 +21,38 @@ import { playgroundRuntime } from "./mockRuntime";
 import "./styles/devtools-lab.css";
 
 type LabView = "popup" | "panel" | "floating" | "components";
+
+const DEMO_ELEMENT: Omit<InlineChipRef, "id"> = {
+  tag: "button",
+  role: "button",
+  css: "#grip-target",
+  xpath: "//button[@id='grip-target']",
+  text: "Grip Search",
+  name: "",
+  rect: { top: 0, left: 0, width: 120, height: 40 },
+  shadowDOM: false,
+  iframe: "none",
+};
+
+function CommentFieldLabDemo() {
+  const chipId = useMemo(() => newChipId(), []);
+  const chips = useMemo<InlineChipRef[]>(
+    () => [{ id: chipId, ...DEMO_ELEMENT }],
+    [chipId],
+  );
+  const [comment, setComment] = useState(
+    () => `Pick the ${gripChipToken(chipId)} and describe context`,
+  );
+
+  return (
+    <CommentField
+      chips={chips}
+      value={comment}
+      onChange={setComment}
+      placeholder="Select elements on the page, then describe what you need…"
+    />
+  );
+}
 
 function ComponentGallery() {
   return (
@@ -53,14 +87,7 @@ function ComponentGallery() {
 
       <section class="lab-block">
         <h3 class="lab-block-title">Comment field</h3>
-        <CommentField
-          value="Pick the [[button]] and describe context"
-          onChange={() => {}}
-          tagName="button"
-          role="button"
-          css="#grip-target"
-          innerText="Grip Search"
-        />
+        <CommentFieldLabDemo />
       </section>
 
       <section class="lab-block">

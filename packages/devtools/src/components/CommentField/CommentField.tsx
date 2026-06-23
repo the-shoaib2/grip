@@ -17,6 +17,8 @@ interface CommentFieldProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  /** Full chip metadata — same shape as the extension picker composer. */
+  chips?: InlineChipRef[];
   tagName?: string;
   role?: string;
   css?: string;
@@ -34,6 +36,7 @@ export function CommentField({
   value,
   onChange,
   placeholder = "Describe what you need…",
+  chips,
   tagName,
   role,
   css,
@@ -50,6 +53,7 @@ export function CommentField({
   const lastEmitted = useRef(value);
 
   const chipRefs = useMemo<InlineChipRef[]>(() => {
+    if (chips?.length) return chips;
     if (tags?.length) {
       return tags.map((tag, index) => ({ id: `static-${index}`, tag }));
     }
@@ -75,7 +79,7 @@ export function CommentField({
       return refs;
     }
     return [];
-  }, [tagName, role, css, xpath, innerText, name, rect, shadowDOM, iframe, tags]);
+  }, [chips, tagName, role, css, xpath, innerText, name, rect, shadowDOM, iframe, tags]);
 
   useEffect(() => {
     const editor = editorRef.current;

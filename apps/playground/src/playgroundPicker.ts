@@ -3,8 +3,26 @@ import {
   describeElement,
   elementFromComposedEvent,
   elementsAtPoint,
+  formatInlineCommentForMcp,
+  newChipId,
   type PickerElementPayload,
 } from "@grip/core";
+import {
+  bindChipTooltipRoot,
+  bindEditorClipboard,
+  chipMetaFromElement,
+  findChipElement,
+  focusEditor,
+  handleEditorKeydown,
+  insertChipAtSelection,
+  isEditorEmpty,
+  placeCaretAtEnd,
+  removeChipElement,
+  selectChipElement,
+  serializeEditor,
+  toInlineChipRef,
+  updateChipActiveStates,
+} from "@grip/devtools";
 
 const TRAY_ID = "__grip_tray__";
 const HOVER_ID = "__grip_picker_hover__";
@@ -12,7 +30,24 @@ const STYLE_ID = "__grip_picker_style__";
 const COMMENT_ID = "__grip_picker_comment__";
 const HINT_ID = "__grip_picker_hint__";
 
+const COMPOSER_PLACEHOLDER =
+  "Select elements on the page, then describe what you need…";
+
 type PickerPhase = "idle" | "hover" | "comment";
+
+interface PendingPick {
+  chipId: string;
+  el: Element;
+  css: string;
+  tag: string;
+  role: string;
+  text: string;
+  name: string;
+  xpath: string;
+  rect: { top: number; left: number; width: number; height: number };
+  shadowDOM: boolean;
+  iframe: string;
+}
 
 export interface PlaygroundPickerOptions {
   onSave: (payload: PickerElementPayload) => void;
@@ -24,7 +59,8 @@ let cycleIndex = 0;
 let lastX = 0;
 let lastY = 0;
 let stackSize = 1;
-let pendingElement: Element | null = null;
+let pendingElements: PendingPick[] = [];
+let activePendingIndex = 0;
 let onSaveCallback: ((payload: PickerElementPayload) => void) | null = null;
 let onStopCallback: (() => void) | null = null;
 
@@ -57,6 +93,74 @@ function isGripChrome(target: EventTarget | null): boolean {
   );
 }
 
+function getComposerEditor(): HTMLElement | null {
+  return document.getElementById("__grip_comment_editor__");
+}
+
+function toPending(el: Element): PendingPick {
+  const desc = describeElement(el);
+  return {
+    chipId: newChipId(),
+    el,
+    css: desc.css,
+    tag: desc.tagName.toLowerCase(),
+    role: desc.role?.toLowerCase() ?? "",
+    text: desc.innerText,
+    name: desc.name,
+    xpath: desc.xpath,
+    rect: desc.rect,
+    shadowDOM: desc.shadowDOM,
+    iframe: desc.iframe,
+  };
+}
+
+function formatPickerIndexLabel(): string {
+  if (stackSize > 1) return `[${cycleIndex + 1}:${stackSize}]`;
+  const count = Math.max(pendingElements.length, 1);
+  return `[${activePendingIndex + 1}:${count}]`;
+}
+
+function updateComposerPlaceholder(): void {
+  const editor = getComposerEditor();
+  if (!editor) return;
+  editor.dataset.placeholder =
+    pendingElements.length > 0 ? "" : COMPOSER_PLACEHOLDER;
+}
+
+function updatePendingUI(): void {
+  const editor = getComposerEditor();
+  if (editor) {
+    updateChipActiveStates(editor, pendingElements[activePendingIndex]?.chipId);
+  }
+  const sessionLabel = document.getElementById("__grip_session_label__");
+  if (sessionLabel) sessionLabel.textContent = formatPickerIndexLabel();
+  updateComposerPlaceholder();
+}
+
+function removePendingAt(index: number): void {
+  if (index < 0 || index >= pendingElements.length) return;
+  const item = pendingElements[index];
+  if (!item) return;
+
+  const editor = getComposerEditor();
+  const chip = editor ? findChipElement(editor, item.chipId) : null;
+  if (chip) removeChipElement(chip);
+
+  pendingElements.splice(index, 1);
+  if (!pendingElements.length) {
+    resumeHover();
+    return;
+  }
+  activePendingIndex = Math.min(activePendingIndex, pendingElements.length - 1);
+  highlight(pendingElements[activePendingIndex]!.el);
+  updatePendingUI();
+}
+
+function removePendingByChipId(chipId: string): void {
+  const index = pendingElements.findIndex((item) => item.chipId === chipId);
+  if (index >= 0) removePendingAt(index);
+}
+
 function ensureStyle(): void {
   if (document.getElementById(STYLE_ID)) return;
   const s = document.createElement("style");
@@ -85,28 +189,71 @@ function ensureStyle(): void {
       gap:8px;
       margin-bottom:8px;
     }
+    .grip-picker-session{
+      font-size:11px;
+      font-weight:600;
+      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+      color:#e4e4e7;
+    }
     .grip-picker-hint{
       font-size:10px;
       color:#71717a;
       white-space:nowrap;
     }
-    .grip-picker-comment-input{
-      width:100%;
-      min-height:56px;
-      margin-bottom:8px;
+    .grip-context-field{margin-bottom:8px}
+    .grip-context-composer{
+      min-height:40px;
+      max-height:160px;
+      overflow-y:auto;
       border-radius:12px;
-      border:1px solid #3f3f46;
       background:#09090b;
       padding:8px 10px;
-      font:12px system-ui,sans-serif;
+      cursor:text;
+      line-height:1.45;
+    }
+    .grip-inline-editor{
+      min-height:1.35em;
+      max-height:96px;
+      overflow-y:auto;
+      outline:none;
+      white-space:pre-wrap;
+      word-break:break-word;
+      font:12px/1.45 system-ui,sans-serif;
       color:#fafafa;
-      resize:vertical;
-      box-sizing:border-box;
+      caret-color:#fafafa;
+    }
+    .grip-inline-editor:empty::before{
+      content:attr(data-placeholder);
+      color:#71717a;
+      pointer-events:none;
+    }
+    .grip-inline-chip{
+      display:inline-flex;
+      align-items:center;
+      vertical-align:baseline;
+      margin:0 2px;
+      padding:1px 8px;
+      border-radius:9999px;
+      border:none;
+      background:#2d3748;
+      color:#cbd5e1;
+      font-size:10px;
+      font-weight:500;
+      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+      line-height:1.35;
+      user-select:all;
+      cursor:default;
+      white-space:nowrap;
+    }
+    .grip-inline-chip-active{
+      background:rgba(37,99,235,0.22);
+      color:#f8fafc;
     }
     .grip-picker-actions{
       display:flex;
       gap:6px;
       justify-content:flex-end;
+      flex-wrap:wrap;
     }
     .grip-picker-actions button{
       border-radius:9999px;
@@ -185,9 +332,7 @@ function cycleSelection(dir: 1 | -1): void {
   const el = targetAt(lastX, lastY, cycleIndex);
   if (!el) return;
   highlight(el);
-  if (phase === "comment" && pendingElement) {
-    pendingElement = el;
-  }
+  if (phase === "comment") updatePendingUI();
 }
 
 function positionCommentPanel(panel: HTMLElement, el: Element): void {
@@ -228,9 +373,21 @@ function ensureCommentPanel(): HTMLElement {
   panel.className = "grip-picker-panel";
   panel.innerHTML = `
     <div class="grip-picker-header">
-      <span class="grip-picker-hint">Describe what you need</span>
+      <span id="__grip_session_label__" class="grip-picker-session">[1:1]</span>
+      <span class="grip-picker-hint">type · click add · drag</span>
     </div>
-    <textarea class="grip-picker-comment-input" placeholder="Select elements on the page, then describe what you need…" aria-label="Pick comment"></textarea>
+    <div class="grip-context-field">
+      <div id="__grip_comment_composer__" class="grip-context-composer">
+        <div
+          id="__grip_comment_editor__"
+          class="grip-inline-editor"
+          contenteditable="true"
+          role="textbox"
+          aria-multiline="true"
+          data-placeholder="${COMPOSER_PLACEHOLDER}"
+        ></div>
+      </div>
+    </div>
     <div class="grip-picker-actions">
       <button type="button" id="__grip_comment_cancel__">Cancel</button>
       <button type="button" id="__grip_comment_save__">Save</button>
@@ -240,39 +397,157 @@ function ensureCommentPanel(): HTMLElement {
   return panel;
 }
 
-function finishPick(comment: string): void {
-  if (!pendingElement || !onSaveCallback) return;
-  const payload = {
-    ...describeElement(pendingElement),
-    comment: comment.trim() || undefined,
-  };
-  onSaveCallback(payload);
-  resumeHover();
+function bindComposerEvents(panel: HTMLElement): void {
+  const composer = panel.querySelector("#__grip_comment_composer__");
+  const editor = getComposerEditor();
+  if (!composer || !editor || composer.getAttribute("data-bound") === "1") return;
+  composer.setAttribute("data-bound", "1");
+
+  composer.addEventListener("mousedown", (e) => {
+    const target = e.target as HTMLElement;
+    const chip = target.closest<HTMLElement>(".grip-inline-chip");
+    if (chip) {
+      e.preventDefault();
+      selectChipElement(chip);
+      return;
+    }
+    if (!target.closest("#__grip_comment_editor__")) {
+      focusComposerEditor();
+    }
+  });
+
+  composer.addEventListener("click", (e) => {
+    const target = e.target as HTMLElement;
+    const chip = target.closest<HTMLElement>(".grip-inline-chip");
+    if (!chip) return;
+    const chipId = chip.dataset.gripChip;
+    const index = pendingElements.findIndex((item) => item.chipId === chipId);
+    if (index < 0 || !pendingElements[index]) return;
+    activePendingIndex = index;
+    highlight(pendingElements[index]!.el);
+    updatePendingUI();
+  });
+
+  bindEditorClipboard(editor);
+
+  editor.addEventListener("keydown", (e) => {
+    e.stopPropagation();
+    if (
+      handleEditorKeydown(editor, e, (chipId) => {
+        removePendingByChipId(chipId);
+      })
+    ) {
+      return;
+    }
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      finishPick(serializeEditor(editor), true);
+    }
+    if (e.key === "Escape") resumeHover();
+  });
+
+  bindChipTooltipRoot(editor, (chip) => {
+    const meta = chipMetaFromElement(chip);
+    if (meta) return meta;
+    const pick = pendingElements.find((item) => item.chipId === chip.dataset.gripChip);
+    if (!pick) return null;
+    return {
+      tag: pick.tag,
+      role: pick.role,
+      css: pick.css,
+      text: pick.text,
+      name: pick.name,
+    };
+  });
+}
+
+function focusComposerEditor(): void {
+  const editor = getComposerEditor();
+  if (!editor) return;
+  focusEditor(editor);
+  if (isEditorEmpty(editor)) placeCaretAtEnd(editor);
+}
+
+function addToPending(el: Element, options?: { keepTyping?: boolean }): void {
+  const next = toPending(el);
+  const existingIndex = pendingElements.findIndex((item) => item.css === next.css);
+  const editor = getComposerEditor();
+  let inserted = false;
+
+  if (existingIndex >= 0) {
+    activePendingIndex = existingIndex;
+    next.chipId = pendingElements[existingIndex]!.chipId;
+  } else {
+    pendingElements.push(next);
+    activePendingIndex = pendingElements.length - 1;
+    if (editor) {
+      insertChipAtSelection(editor, toInlineChipRef(next), true);
+      inserted = true;
+    }
+  }
+
+  highlight(el);
+  updatePendingUI();
+
+  const panel = document.getElementById(COMMENT_ID);
+  if (panel && !options?.keepTyping) {
+    positionCommentPanel(panel, el);
+  }
+
+  if (editor && !options?.keepTyping && inserted) {
+    focusComposerEditor();
+  }
+}
+
+function finishPick(comment: string, continueSession: boolean): void {
+  if (!pendingElements.length || !onSaveCallback) return;
+  const tagsById = Object.fromEntries(
+    pendingElements.map((item) => [item.chipId, item.tag]),
+  );
+  const trimmed = formatInlineCommentForMcp(comment.trim(), tagsById);
+
+  for (const item of pendingElements) {
+    onSaveCallback({
+      ...describeElement(item.el),
+      comment: trimmed || undefined,
+    });
+  }
+
+  pendingElements = [];
+  activePendingIndex = 0;
+
+  if (continueSession) {
+    resumeHover();
+    return;
+  }
+  stopPlaygroundPicker();
 }
 
 function resumeHover(): void {
   document.getElementById(COMMENT_ID)?.remove();
   document.getElementById(HINT_ID)?.remove();
-  pendingElement = null;
+  pendingElements = [];
+  activePendingIndex = 0;
   phase = "hover";
   updateHover(lastX, lastY);
 }
 
 function showCommentPrompt(el: Element): void {
-  pendingElement = el;
-  phase = "comment";
-  highlight(el);
-
   const panel = ensureCommentPanel();
-  const textarea = panel.querySelector("textarea") as HTMLTextAreaElement;
   const save = panel.querySelector("#__grip_comment_save__") as HTMLButtonElement;
   const cancel = panel.querySelector("#__grip_comment_cancel__") as HTMLButtonElement;
+  const isNewPanel = save.dataset.bound !== "1";
 
-  if (save.dataset.bound !== "1") {
+  phase = "comment";
+  addToPending(el);
+
+  if (isNewPanel) {
     save.dataset.bound = "1";
+    bindComposerEvents(panel);
     save.onclick = (e) => {
       e.stopPropagation();
-      finishPick(textarea.value);
+      const editor = getComposerEditor();
+      finishPick(editor ? serializeEditor(editor) : "", true);
     };
     cancel.onclick = (e) => {
       e.stopPropagation();
@@ -282,9 +557,16 @@ function showCommentPrompt(el: Element): void {
     panel.addEventListener("click", (e) => e.stopPropagation());
   }
 
-  textarea.value = "";
   positionCommentPanel(panel, el);
-  textarea.focus();
+  if (isNewPanel) focusComposerEditor();
+}
+
+function isEventInComposer(e: KeyboardEvent): boolean {
+  const editor = getComposerEditor();
+  if (!editor) return false;
+  return e.composedPath().some(
+    (node) => node === editor || (node instanceof Node && editor.contains(node)),
+  );
 }
 
 function onMove(e: MouseEvent): void {
@@ -314,10 +596,9 @@ function onClick(e: MouseEvent): void {
   }
 
   if (phase === "comment") {
-    pendingElement = el;
-    highlight(el);
-    const panel = document.getElementById(COMMENT_ID);
-    if (panel) positionCommentPanel(panel, el);
+    const editor = getComposerEditor();
+    const keepTyping = document.activeElement === editor;
+    addToPending(el, { keepTyping });
     return;
   }
 
@@ -326,19 +607,15 @@ function onClick(e: MouseEvent): void {
 
 function onKey(e: KeyboardEvent): void {
   if (e.key === "Escape") {
-    if (phase === "comment") {
-      const panel = document.getElementById(COMMENT_ID);
-      const textarea = panel?.querySelector("textarea");
-      if (document.activeElement === textarea) {
-        resumeHover();
-        return;
-      }
+    if (phase === "comment" && isEventInComposer(e)) {
+      resumeHover();
+      return;
     }
     stopPlaygroundPicker();
     return;
   }
 
-  if (phase === "comment" && document.activeElement instanceof HTMLTextAreaElement) return;
+  if (phase === "comment" && isEventInComposer(e)) return;
   if (phase === "idle") return;
 
   if (e.key === "[" || e.key === "ArrowDown") {
@@ -361,7 +638,8 @@ export function stopPlaygroundPicker(notify = true): void {
   document.removeEventListener("keydown", onKey, true);
   phase = "idle";
   cycleIndex = 0;
-  pendingElement = null;
+  pendingElements = [];
+  activePendingIndex = 0;
   onSaveCallback = null;
   if (notify) {
     onStopCallback?.();
