@@ -1,1 +1,6 @@
-export { mountFloatingGrip, TRAY_ID, type FloatingGripController } from "./mountFloatingGrip";
+export {
+  isGripTrayMounted,
+  mountFloatingGrip,
+  TRAY_ID,
+  type FloatingGripController,
+} from "./mountFloatingGrip";

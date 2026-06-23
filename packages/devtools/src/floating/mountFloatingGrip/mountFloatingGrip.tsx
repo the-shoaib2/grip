@@ -53,6 +53,13 @@ function FloatingApp() {
 }
 
 let chromeRuntimeForMount: GripRuntime | null = null;
+let mountedRuntime: GripRuntime | null = null;
+
+export function isGripTrayMounted(): boolean {
+  const host = document.getElementById(TRAY_ID);
+  const mountPoint = host?.shadowRoot?.querySelector("[data-grip-mount]");
+  return Boolean(mountPoint?.childElementCount);
+}
 
 export function mountFloatingGrip(runtime: GripRuntime): FloatingGripController {
   chromeRuntimeForMount = runtime;
@@ -85,9 +92,11 @@ export function mountFloatingGrip(runtime: GripRuntime): FloatingGripController 
     shadow.appendChild(mountPoint);
   }
 
-  if (!mountPoint.childElementCount) {
+  const needsRender = !mountPoint.childElementCount || mountedRuntime !== runtime;
+  if (needsRender) {
     try {
       render(<FloatingApp />, mountPoint);
+      mountedRuntime = runtime;
     } catch (err) {
       console.error("[Grip] Failed to mount floating panel:", err);
     }

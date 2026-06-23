@@ -1,5 +1,21 @@
 /** Lightweight interactions for the fixture page (no framework). */
 
+import {
+  applyColorSchemePreference,
+  getColorSchemePreference,
+  initPlaygroundColorScheme,
+  type ColorSchemePreference,
+} from "./theme";
+
+initPlaygroundColorScheme();
+
+document.querySelectorAll<HTMLButtonElement>("[data-pg-theme]").forEach((button) => {
+  button.addEventListener("click", () => {
+    const preference = button.dataset.pgTheme as ColorSchemePreference;
+    if (preference) applyColorSchemePreference(preference);
+  });
+});
+
 const dialog = document.getElementById("pg-dialog") as HTMLDialogElement | null;
 const openModal = document.getElementById("pg-open-modal");
 const closeModal = document.getElementById("pg-dialog-close");

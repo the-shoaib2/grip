@@ -5,8 +5,7 @@
   z-index: 2147483645;
   pointer-events: none;
   font: 12px system-ui, sans-serif;
-  /* Always dark overlay UI — reads correctly on light web pages */
-  color-scheme: dark;
+  color-scheme: light dark;
 }
 
 .grip-floating-inner {
@@ -61,7 +60,6 @@
   overflow: hidden;
   order: -1;
   border-radius: 1rem;
-  border: 1px solid var(--grip-border);
   background: var(--grip-shell-bg);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.42), 0 20px 48px rgba(0, 0, 0, 0.55);
 }

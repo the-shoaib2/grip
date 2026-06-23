@@ -951,3 +951,10 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     return true;
   }
 });
+
+/** Drop stale picker-active UI state when the content script reloads mid-session. */
+void chrome.storage.session.get("pickerActive").then((data) => {
+  if (data.pickerActive && phase === "idle") {
+    void chrome.storage.session.set({ pickerActive: false });
+  }
+});
