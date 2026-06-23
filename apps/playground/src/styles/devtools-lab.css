@@ -77,6 +77,10 @@
   width: min(36rem, 100vw - 2rem);
 }
 
+.lab-shell-workspace-narrow {
+  width: min(20rem, calc(100vw - 2rem));
+}
+
 .lab-shell-workspace > .lab-preview,
 .lab-shell-workspace > .lab-preview-floating-stage,
 .lab-context-editor-block {

@@ -132,13 +132,15 @@ function LabShellWorkspace({
   children,
   editorPick,
   onCloseEditor,
+  narrow = false,
 }: {
   children: ComponentChildren;
   editorPick: StoredPick | null;
   onCloseEditor: () => void;
+  narrow?: boolean;
 }) {
   return (
-    <div class="lab-shell-workspace">
+    <div class={`lab-shell-workspace${narrow ? " lab-shell-workspace-narrow" : ""}`}>
       {children}
       <section
         class="lab-block lab-context-editor-block"
@@ -266,6 +268,7 @@ function DevToolsLabContent() {
             <LabShellWorkspace
               editorPick={editorPick}
               onCloseEditor={() => setEditorPick(null)}
+              narrow
             >
               <div class="lab-preview-floating-stage">
                 <FloatingShell

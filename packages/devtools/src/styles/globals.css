@@ -508,8 +508,12 @@ body {
 }
 
 .grip-context-editor-host .grip-context-composer {
-  min-height: 2.5rem;
+  min-height: 3.5rem;
   max-height: 10rem;
+}
+
+.grip-context-editor-host .grip-inline-editor {
+  min-height: 2.7em;
 }
 
 .grip-shell-dialog-overlay {
@@ -813,13 +817,13 @@ body {
 }
 
 .grip-btn-ghost {
-  background: transparent;
+  background-color: transparent;
   color: var(--grip-muted);
   box-shadow: none;
 }
 
 .grip-btn-ghost:hover {
-  background: var(--grip-surface-hover);
+  background-color: var(--grip-surface-hover);
   color: var(--grip-fg);
 }
 
@@ -831,6 +835,21 @@ body {
   font-size: 11px;
   font-weight: 500;
   line-height: 1;
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: transparent;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.grip-btn-ghost.grip-btn-toolbar:not(.grip-btn-toolbar-active) {
+  background-color: transparent;
+  color: var(--grip-fg);
+}
+
+.grip-btn-ghost.grip-btn-toolbar:not(.grip-btn-toolbar-active):hover {
+  background-color: var(--grip-surface-hover);
+  color: var(--grip-fg);
 }
 
 .grip-btn-toolbar-icon {
@@ -842,22 +861,22 @@ body {
 }
 
 .grip-btn-toolbar-active {
-  background: var(--grip-accent);
+  background-color: var(--grip-accent);
   color: var(--grip-on-accent);
 }
 
 .grip-btn-toolbar-active:hover {
-  background: var(--grip-accent-hover);
+  background-color: var(--grip-accent-hover);
   color: var(--grip-on-accent);
 }
 
 .grip-btn-toolbar-muted-active {
-  background: var(--grip-accent);
+  background-color: var(--grip-accent);
   color: var(--grip-on-accent);
 }
 
 .grip-btn-toolbar-muted-active:hover {
-  background: var(--grip-accent-hover);
+  background-color: var(--grip-accent-hover);
   color: var(--grip-on-accent);
 }
 
