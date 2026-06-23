@@ -16,6 +16,8 @@ export {
   pickLabel,
   picksForSession,
   picksForUrl,
+  groupPicksBySession,
+  type SessionPickGroup,
   toStoredPick,
   updatePickInHistory,
   removePickFromHistory,

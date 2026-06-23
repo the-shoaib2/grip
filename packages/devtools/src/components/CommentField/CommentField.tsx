@@ -30,6 +30,7 @@ interface CommentFieldProps {
   iframe?: string;
   tags?: string[];
   maxHeight?: number;
+  onChipActivate?: () => void;
 }
 
 export function CommentField({
@@ -48,6 +49,7 @@ export function CommentField({
   iframe,
   tags,
   maxHeight = 160,
+  onChipActivate,
 }: CommentFieldProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const lastEmitted = useRef(value);
@@ -127,6 +129,7 @@ export function CommentField({
           if (chip) {
             e.preventDefault();
             selectChipElement(chip);
+            onChipActivate?.();
             return;
           }
           focusEditor(editorRef.current!);

@@ -53,4 +53,9 @@ describe("formatAllMcpPrompts", () => {
     const out = formatAllMcpPrompts([pick, pick]);
     expect(out).toContain("## Grip session · 2 elements");
   });
+
+  it("includes session id in header when provided", () => {
+    const out = formatAllMcpPrompts([pick], { sessionId: "sess-abc" });
+    expect(out).toContain("## Grip session `sess-abc` · 1 element");
+  });
 });

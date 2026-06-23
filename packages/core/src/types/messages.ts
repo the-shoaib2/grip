@@ -12,6 +12,8 @@ export type GripMessageType =
   | "SHOW_TRAY"
   | "UPDATE_PICK_COMMENT"
   | "DELETE_PICK"
+  | "SET_ACTIVE_SESSION"
+  | "DELETE_SESSION"
   | "GRIP_PING"
   | "GRIP_BOOTSTRAP_PING"
   | "GRIP_BOOTSTRAP_ERROR";

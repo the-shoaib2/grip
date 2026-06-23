@@ -5,20 +5,20 @@ import { Tooltip } from "../Tooltip";
 export interface GripSessionToolbarProps {
   variant: "popup" | "compact";
   pickActive?: boolean;
-  historyOpen?: boolean;
+  historyView?: boolean;
   sessionCount?: number;
   onPick: () => void;
-  onToggleHistory: () => void;
+  onToggleHistoryView: () => void;
   onNewSession: () => void;
 }
 
 export function GripSessionToolbar({
   variant,
   pickActive = false,
-  historyOpen = true,
+  historyView = false,
   sessionCount = 0,
   onPick,
-  onToggleHistory,
+  onToggleHistoryView,
   onNewSession,
 }: GripSessionToolbarProps) {
   if (variant === "compact") {
@@ -50,8 +50,8 @@ export function GripSessionToolbar({
         </button>
       </Tooltip>
       <div className="grip-popup-toolbar-trail">
-        {!historyOpen ? (
-          <SessionLabel pickCount={sessionCount} className="grip-session-toolbar-label" />
+        {!historyView ? (
+          <SessionLabel pickCount={sessionCount} current className="grip-session-toolbar-label" />
         ) : null}
         <div className="grip-popup-toolbar-actions">
           <Tooltip text="New session">
@@ -64,13 +64,13 @@ export function GripSessionToolbar({
               <PlusIcon size={16} />
             </button>
           </Tooltip>
-          <Tooltip text={historyOpen ? "Hide session picks" : "Show session picks"}>
+          <Tooltip text={historyView ? "Current session" : "All sessions"}>
             <button
               type="button"
-              className={`grip-btn-ghost grip-btn-toolbar grip-btn-toolbar-icon${historyOpen && sessionCount > 0 ? " grip-btn-toolbar-muted-active" : ""}`}
-              aria-label={historyOpen ? "Hide session picks" : "Show session picks"}
-              aria-pressed={historyOpen ? "true" : "false"}
-              onClick={onToggleHistory}
+              className={`grip-btn-ghost grip-btn-toolbar grip-btn-toolbar-icon${historyView ? " grip-btn-toolbar-active" : ""}`}
+              aria-label={historyView ? "Show current session" : "Show all sessions"}
+              aria-pressed={historyView ? "true" : "false"}
+              onClick={onToggleHistoryView}
             >
               <HistoryIcon size={16} />
             </button>

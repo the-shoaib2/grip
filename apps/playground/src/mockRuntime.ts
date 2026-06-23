@@ -2,6 +2,7 @@ import {
   appendPickHistory,
   newSessionId,
   removePickFromHistory,
+  clearPicksForSession,
   toStoredPick,
   updatePickInHistory,
   type PickerElementPayload,
@@ -33,13 +34,8 @@ const samplePick = toStoredPick(
   },
   "http://localhost:5174/",
   "Grip Playground",
-  "playground-session",
+  "playground-session-prev",
 );
-
-let sessionId = "playground-session";
-let tabSessionIds: Record<string, string> = { [String(MOCK_TAB_ID)]: sessionId };
-let pickHistory: StoredPick[] = [samplePick];
-let lastPick: StoredPick | undefined = samplePick;
 
 const samplePickInput = toStoredPick(
   {
@@ -59,7 +55,14 @@ const samplePickInput = toStoredPick(
   "playground-session",
 );
 
+let sessionId = "playground-session";
+let tabSessionIds: Record<string, string> = { [String(MOCK_TAB_ID)]: sessionId };
+let pickHistory: StoredPick[] = [];
+let lastPick: StoredPick | undefined;
+
+pickHistory = appendPickHistory(pickHistory, samplePick);
 pickHistory = appendPickHistory(pickHistory, samplePickInput);
+lastPick = pickHistory.find((p) => p.sessionId === sessionId);
 const storageListeners = new Set<StorageChangeHandler>();
 
 function emitStorage(
@@ -175,6 +178,53 @@ export const playgroundRuntime: GripRuntime = {
           lastPick: { newValue: lastPick, oldValue: undefined },
         });
         return Promise.resolve({ ok: true } as T);
+      }
+      case "SET_ACTIVE_SESSION": {
+        const payload = m.payload as { sessionId: string };
+        const sessionPicks = pickHistory.filter((p) => p.sessionId === payload.sessionId);
+        if (!sessionPicks.length) {
+          return Promise.resolve({ ok: false, error: "Session not found" } as T);
+        }
+        sessionId = payload.sessionId;
+        tabSessionIds = { ...tabSessionIds, [String(MOCK_TAB_ID)]: sessionId };
+        lastPick = sessionPicks[sessionPicks.length - 1];
+        emitStorage("session", {
+          tabSessionIds: { newValue: { ...tabSessionIds }, oldValue: undefined },
+          lastPick: { newValue: lastPick, oldValue: undefined },
+        });
+        return Promise.resolve({
+          ok: true,
+          history: sessionPicks,
+          sessionId,
+          tabId: MOCK_TAB_ID,
+        } as T);
+      }
+      case "DELETE_SESSION": {
+        const payload = m.payload as { sessionId: string };
+        pickHistory = clearPicksForSession(
+          pickHistory,
+          window.location.origin + "/",
+          payload.sessionId,
+        );
+        if (sessionId === payload.sessionId) {
+          sessionId = newSessionId();
+          tabSessionIds = { ...tabSessionIds, [String(MOCK_TAB_ID)]: sessionId };
+          lastPick = undefined;
+        }
+        emitStorage("local", {
+          pickHistory: { newValue: [...pickHistory], oldValue: undefined },
+        });
+        emitStorage("session", {
+          tabSessionIds: { newValue: { ...tabSessionIds }, oldValue: undefined },
+          lastPick: { newValue: lastPick, oldValue: undefined },
+        });
+        const sessionPicks = pickHistory.filter((p) => p.sessionId === sessionId);
+        return Promise.resolve({
+          ok: true,
+          history: sessionPicks,
+          sessionId,
+          tabId: MOCK_TAB_ID,
+        } as T);
       }
       case "PANEL_READY":
         return Promise.resolve({

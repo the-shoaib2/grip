@@ -2,11 +2,12 @@ import { formatSessionLabel } from "../../lib/sessionLabel";
 
 export interface SessionLabelProps {
   pickCount: number;
+  current?: boolean;
   className?: string;
 }
 
-export function SessionLabel({ pickCount, className }: SessionLabelProps) {
-  const label = formatSessionLabel(pickCount);
+export function SessionLabel({ pickCount, current = false, className }: SessionLabelProps) {
+  const label = formatSessionLabel(pickCount, { current });
   if (!label) return null;
 
   const rootClass = className

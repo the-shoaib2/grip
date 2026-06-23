@@ -85,6 +85,37 @@ export function picksForSession(
     .sort((a, b) => a.timestamp - b.timestamp);
 }
 
+export interface SessionPickGroup {
+  sessionId: string;
+  picks: StoredPick[];
+}
+
+/** Group page picks by session, newest session first. */
+export function groupPicksBySession(
+  history: StoredPick[],
+  url: string,
+): SessionPickGroup[] {
+  const pagePicks = picksForUrl(history, url);
+  const bySession = new Map<string, StoredPick[]>();
+
+  for (const pick of pagePicks) {
+    const list = bySession.get(pick.sessionId) ?? [];
+    list.push(pick);
+    bySession.set(pick.sessionId, list);
+  }
+
+  return [...bySession.entries()]
+    .map(([sessionId, picks]) => ({
+      sessionId,
+      picks: picks.sort((a, b) => a.timestamp - b.timestamp),
+    }))
+    .sort((a, b) => {
+      const aLast = a.picks[a.picks.length - 1]?.timestamp ?? 0;
+      const bLast = b.picks[b.picks.length - 1]?.timestamp ?? 0;
+      return bLast - aLast;
+    });
+}
+
 /** Remove picks for one session on a page; keep other sessions on the same page. */
 export function clearPicksForSession(
   history: StoredPick[],

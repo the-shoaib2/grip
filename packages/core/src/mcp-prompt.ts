@@ -44,12 +44,17 @@ export function formatMcpPrompt(pick: PickerElementDetails): string {
 /** Join MCP prompts for every pick in a chat session (oldest first). */
 export function formatAllMcpPrompts(
   picks: (PickerElementDetails & { label?: string })[],
+  options?: { sessionId?: string },
 ): string {
   if (!picks.length) return "";
-  const header =
-    picks.length === 1
+  const countLabel =
+    picks.length === 1 ? "1 element" : `${picks.length} elements`;
+  const sessionRef = options?.sessionId?.trim();
+  const header = sessionRef
+    ? `## Grip session \`${sessionRef}\` · ${countLabel}`
+    : picks.length === 1
       ? "## Grip session · 1 element"
-      : `## Grip session · ${picks.length} elements`;
+      : `## Grip session · ${countLabel}`;
   const body = picks
     .map((pick, i) => {
       const name = pick.label ?? pick.tagName;

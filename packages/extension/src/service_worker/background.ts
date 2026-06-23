@@ -399,6 +399,89 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
       })();
       return true;
 
+    case "SET_ACTIVE_SESSION":
+      void (async () => {
+        try {
+          const payload = msg.payload as { sessionId: string };
+          const tab = await resolveTargetTab(sender, msg);
+          if (!tab?.id) {
+            sendResponse({ ok: false, history: [] });
+            return;
+          }
+          const url = tab.url ?? "";
+          const data = await chrome.storage.local.get(HISTORY_KEY);
+          const all = (data[HISTORY_KEY] as StoredPick[]) ?? [];
+          const sessionPicks = picksForSession(all, url, payload.sessionId);
+          if (!sessionPicks.length) {
+            sendResponse({ ok: false, error: "Session not found" });
+            return;
+          }
+          const map = await getTabSessionMap();
+          map[String(tab.id)] = payload.sessionId;
+          await setTabSessionMap(map);
+          const last = sessionPicks[sessionPicks.length - 1];
+          if (last) {
+            await chrome.storage.session.set({ lastPick: last });
+          }
+          sendResponse({
+            ok: true,
+            history: sessionPicks,
+            sessionId: payload.sessionId,
+            tabId: tab.id,
+          });
+        } catch {
+          try {
+            sendResponse({ ok: false, history: [] });
+          } catch {
+            /* receiver closed */
+          }
+        }
+      })();
+      return true;
+
+    case "DELETE_SESSION":
+      void (async () => {
+        try {
+          const payload = msg.payload as { sessionId: string };
+          const tab = await resolveTargetTab(sender, msg);
+          if (!tab?.id) {
+            sendResponse({ ok: false, history: [] });
+            return;
+          }
+          const url = tab.url ?? "";
+          const data = await chrome.storage.local.get(HISTORY_KEY);
+          const history = clearPicksForSession(
+            (data[HISTORY_KEY] as StoredPick[]) ?? [],
+            url,
+            payload.sessionId,
+          );
+          await chrome.storage.local.set({ [HISTORY_KEY]: history });
+          const currentSessionId = await getOrCreateSessionIdForTab(tab.id);
+          let nextSessionId = currentSessionId;
+          if (payload.sessionId === currentSessionId) {
+            nextSessionId = newSessionId();
+            const map = await getTabSessionMap();
+            map[String(tab.id)] = nextSessionId;
+            await setTabSessionMap(map);
+            await chrome.storage.session.remove("lastPick");
+          }
+          const sessionHistory = await sessionPicksForTab(tab.id, url);
+          sendResponse({
+            ok: true,
+            history: sessionHistory,
+            sessionId: nextSessionId,
+            tabId: tab.id,
+          });
+        } catch {
+          try {
+            sendResponse({ ok: false, history: [] });
+          } catch {
+            /* receiver closed */
+          }
+        }
+      })();
+      return true;
+
     case "LOG_ENTRY": {
       const entry = msg.payload as LogMessagePayload;
       logs.push(entry);

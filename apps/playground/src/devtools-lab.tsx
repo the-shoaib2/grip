@@ -10,6 +10,7 @@ import {
   GripPopupView,
   GripRuntimeProvider,
   PickHistoryList,
+  SessionHistoryList,
   SelectDropdown,
   Tooltip,
   useGripRuntime,
@@ -58,15 +59,54 @@ function CommentFieldLabDemo() {
 
 function PickHistoryLabDemo() {
   const runtime = useGripRuntime();
-  const { history, activePick, selectPick, deletePick } = usePickHistory(runtime);
+  const [historyView, setHistoryView] = useState(false);
+  const {
+    history,
+    sessionGroups,
+    activeSessionId,
+    activePick,
+    selectPick,
+    deleteSession,
+    switchSession,
+  } = usePickHistory(runtime);
 
   return (
-    <PickHistoryList
-      history={history}
-      activeId={activePick?.id}
-      onSelect={selectPick}
-      onDelete={(pick) => void deletePick(pick)}
-    />
+    <div class="lab-history-demo">
+      <div class="lab-history-demo-toggle">
+        <button
+          type="button"
+          class={`lab-nav-btn${!historyView ? " lab-nav-active" : ""}`}
+          onClick={() => setHistoryView(false)}
+        >
+          Session
+        </button>
+        <button
+          type="button"
+          class={`lab-nav-btn${historyView ? " lab-nav-active" : ""}`}
+          onClick={() => setHistoryView(true)}
+        >
+          All sessions
+        </button>
+      </div>
+      {historyView ? (
+        <SessionHistoryList
+          groups={sessionGroups}
+          activeSessionId={activeSessionId}
+          onSelectSession={(id) => {
+            void switchSession(id);
+            setHistoryView(false);
+          }}
+          onDeleteSession={(id) => void deleteSession(id)}
+        />
+      ) : (
+        <PickHistoryList
+          history={history}
+          activeId={activePick?.id}
+          activeSessionId={activeSessionId}
+          onSelect={selectPick}
+        />
+      )}
+    </div>
   );
 }
 

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   appendPickHistory,
   clearPicksForSession,
+  groupPicksBySession,
   pickLabel,
   picksForSession,
   removePickFromHistory,
@@ -63,5 +64,18 @@ describe("pick-history", () => {
     const next = removePickFromHistory([a, b], a.id);
     expect(next).toHaveLength(1);
     expect(next[0].id).toBe(b.id);
+  });
+
+  it("groupPicksBySession groups page picks newest session first", () => {
+    const url = "https://x.com/page";
+    const old = { ...toStoredPick(base, url, "P", "sess-old"), timestamp: 1000 };
+    const newer = {
+      ...toStoredPick({ ...base, css: "div > button" }, url, "P", "sess-new"),
+      timestamp: 2000,
+    };
+    const groups = groupPicksBySession([old, newer], url);
+    expect(groups).toHaveLength(2);
+    expect(groups[0].sessionId).toBe("sess-new");
+    expect(groups[1].sessionId).toBe("sess-old");
   });
 });

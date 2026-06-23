@@ -1,33 +1,34 @@
 import { formatAllMcpPrompts, formatMcpPrompt, type StoredPick } from "@grip/core";
 import { CopyButton } from "../CopyButton";
 import { ElementTagBadge } from "../ElementTagBadge";
-import { TrashIcon } from "../icons";
 import { SessionLabel } from "../SessionLabel";
 import { Tooltip } from "../Tooltip";
 
 interface PickHistoryListProps {
   history: StoredPick[];
   activeId?: string;
+  activeSessionId?: string | null;
   onSelect: (pick: StoredPick) => void;
-  onDelete?: (pick: StoredPick) => void;
 }
 
 export function PickHistoryList({
   history,
   activeId,
+  activeSessionId,
   onSelect,
-  onDelete,
 }: PickHistoryListProps) {
   if (!history.length) {
     return <p className="grip-empty-state">No picks yet</p>;
   }
 
-  const allText = formatAllMcpPrompts(history);
+  const allText = formatAllMcpPrompts(history, {
+    sessionId: activeSessionId ?? history[0]?.sessionId,
+  });
 
   return (
     <section className="grip-pick-section">
       <div className="grip-pick-section-header">
-        <SessionLabel pickCount={history.length} />
+        <SessionLabel pickCount={history.length} current />
         <CopyButton
           label="Copy all"
           text={allText}
@@ -73,21 +74,6 @@ export function PickHistoryList({
                   variant="ghost"
                   size="icon"
                 />
-                {onDelete ? (
-                  <Tooltip text="Remove from session">
-                    <button
-                      type="button"
-                      className="grip-btn-icon grip-pick-delete"
-                      aria-label={`Remove ${pick.label}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete(pick);
-                      }}
-                    >
-                      <TrashIcon size={12} />
-                    </button>
-                  </Tooltip>
-                ) : null}
               </div>
             </li>
           );

@@ -7,6 +7,7 @@ import {
   MinusIcon,
   PickErrorBanner,
   PickHistoryList,
+  SessionHistoryList,
   Tooltip,
 } from "../../components";
 import { usePickHistory } from "../../hooks/usePickHistory";
@@ -34,8 +35,17 @@ export function GripMainView({
   const addLog = useGripStore((s) => s.addLog);
   const clearLogs = useGripStore((s) => s.clearLogs);
   const [mcpOk, setMcpOk] = useState(false);
-  const [historyOpen, setHistoryOpen] = useState(true);
-  const { history, activePick, newSession, selectPick, deletePick } = usePickHistory(runtime);
+  const [historyView, setHistoryView] = useState(false);
+  const {
+    history,
+    sessionGroups,
+    activeSessionId,
+    activePick,
+    newSession,
+    switchSession,
+    selectPick,
+    deleteSession,
+  } = usePickHistory(runtime);
   const isPickerActive = usePickerActive(runtime);
   const { pickError, startPicker, stopPicker } = useStartPicker(runtime);
 
@@ -113,25 +123,38 @@ export function GripMainView({
       <GripSessionToolbar
         variant="popup"
         pickActive={isPickerActive}
-        historyOpen={historyOpen}
+        historyView={historyView}
         sessionCount={history.length}
         onPick={handlePick}
-        onToggleHistory={() => setHistoryOpen((open) => !open)}
-        onNewSession={() => void newSession()}
+        onToggleHistoryView={() => setHistoryView((open) => !open)}
+        onNewSession={() => {
+          setHistoryView(false);
+          void newSession();
+        }}
       />
 
       {pickError ? <PickErrorBanner message={pickError} onRetry={handlePick} /> : null}
 
-      {historyOpen ? (
-        <div className="grip-popup-history">
+      <div className="grip-popup-history">
+        {historyView ? (
+          <SessionHistoryList
+            groups={sessionGroups}
+            activeSessionId={activeSessionId}
+            onSelectSession={(sessionId) => {
+              void switchSession(sessionId);
+              setHistoryView(false);
+            }}
+            onDeleteSession={(sessionId) => void deleteSession(sessionId)}
+          />
+        ) : (
           <PickHistoryList
             history={history}
             activeId={activePick?.id}
+            activeSessionId={activeSessionId}
             onSelect={selectPick}
-            onDelete={(pick) => void deletePick(pick)}
           />
-        </div>
-      ) : null}
+        )}
+      </div>
     </GripRootLayout>
   );
 }
