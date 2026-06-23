@@ -6,6 +6,7 @@ export { GripRuntimeProvider, useGripRuntime } from "./runtime/context";
 export type { GripRuntime, RuntimeMessage, StorageChangeHandler } from "./runtime/types";
 
 export { useGripStore } from "./store/gripStore";
+export { usePickHistory, type UsePickHistoryResult } from "./hooks/usePickHistory";
 
 export * from "./components";
 export * from "./lib";

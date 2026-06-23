@@ -11,6 +11,7 @@ import {
   picksForSession,
   toStoredPick,
   updatePickInHistory,
+  removePickFromHistory,
 } from "@grip/core";
 import { gripUserError } from "@/lib/errors";
 import {
@@ -355,6 +356,39 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
             }
           }
           sendResponse({ ok: true, pick: updated });
+        } catch {
+          try {
+            sendResponse({ ok: false });
+          } catch {
+            /* receiver closed */
+          }
+        }
+      })();
+      return true;
+
+    case "DELETE_PICK":
+      void (async () => {
+        try {
+          const payload = msg.payload as { pickId: string };
+          const data = await chrome.storage.local.get(HISTORY_KEY);
+          const history = removePickFromHistory(
+            (data[HISTORY_KEY] as StoredPick[]) ?? [],
+            payload.pickId,
+          );
+          await chrome.storage.local.set({ [HISTORY_KEY]: history });
+          const sessionData = await chrome.storage.session.get("lastPick");
+          const lastPick = sessionData.lastPick as StoredPick | undefined;
+          if (lastPick?.id === payload.pickId) {
+            const remaining = history.length
+              ? history.reduce((a, b) => (a.timestamp > b.timestamp ? a : b))
+              : undefined;
+            if (remaining) {
+              await chrome.storage.session.set({ lastPick: remaining });
+            } else {
+              await chrome.storage.session.remove("lastPick");
+            }
+          }
+          sendResponse({ ok: true });
         } catch {
           try {
             sendResponse({ ok: false });

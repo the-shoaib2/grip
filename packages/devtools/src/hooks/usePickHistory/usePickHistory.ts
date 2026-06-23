@@ -24,6 +24,7 @@ export interface UsePickHistoryResult {
   refresh: () => Promise<void>;
   newSession: () => Promise<void>;
   selectPick: (pick: StoredPick) => void;
+  deletePick: (pick: StoredPick) => Promise<void>;
 }
 
 export function usePickHistory(runtime: GripRuntime): UsePickHistoryResult {
@@ -131,6 +132,28 @@ export function usePickHistory(runtime: GripRuntime): UsePickHistoryResult {
     [runtime],
   );
 
+  const deletePick = useCallback(
+    async (pick: StoredPick) => {
+      try {
+        await runtime.sendMessage<{ ok?: boolean }>({
+          type: "DELETE_PICK",
+          payload: { pickId: pick.id },
+        });
+        setHistory((prev) => {
+          const next = prev.filter((p) => p.id !== pick.id);
+          setActivePick((current) => {
+            if (current?.id !== pick.id) return current;
+            return next[next.length - 1] ?? null;
+          });
+          return next;
+        });
+      } catch {
+        /* ignore */
+      }
+    },
+    [runtime],
+  );
+
   return {
     history,
     activePick,
@@ -138,5 +161,6 @@ export function usePickHistory(runtime: GripRuntime): UsePickHistoryResult {
     refresh,
     newSession,
     selectPick,
+    deletePick,
   };
 }

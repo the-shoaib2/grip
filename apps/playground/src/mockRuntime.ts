@@ -1,7 +1,9 @@
 import {
   appendPickHistory,
   newSessionId,
+  removePickFromHistory,
   toStoredPick,
+  updatePickInHistory,
   type PickerElementPayload,
   type StoredPick,
   GRIP_MCP_DOCS_URL,
@@ -38,6 +40,26 @@ let sessionId = "playground-session";
 let tabSessionIds: Record<string, string> = { [String(MOCK_TAB_ID)]: sessionId };
 let pickHistory: StoredPick[] = [samplePick];
 let lastPick: StoredPick | undefined = samplePick;
+
+const samplePickInput = toStoredPick(
+  {
+    tagName: "input",
+    css: "#pg-search-input",
+    xpath: "//input[@id='pg-search-input']",
+    role: "searchbox",
+    name: "Search",
+    innerText: "",
+    rect: { top: 0, left: 0, width: 200, height: 40 },
+    shadowDOM: false,
+    iframe: "none",
+    comment: "Hero search field",
+  },
+  "http://localhost:5174/",
+  "Grip Playground",
+  "playground-session",
+);
+
+pickHistory = appendPickHistory(pickHistory, samplePickInput);
 const storageListeners = new Set<StorageChangeHandler>();
 
 function emitStorage(
@@ -128,16 +150,29 @@ export const playgroundRuntime: GripRuntime = {
         return Promise.resolve({ ok: true } as T);
       case "UPDATE_PICK_COMMENT": {
         const payload = m.payload as { pickId: string; comment?: string };
-        pickHistory = pickHistory.map((p) =>
-          p.id === payload.pickId
-            ? { ...p, comment: payload.comment?.trim() || undefined }
-            : p,
-        );
+        pickHistory = updatePickInHistory(pickHistory, payload.pickId, {
+          comment: payload.comment?.trim() || undefined,
+        });
         if (lastPick?.id === payload.pickId) {
           lastPick = pickHistory.find((p) => p.id === payload.pickId);
         }
         emitStorage("local", {
           pickHistory: { newValue: [...pickHistory], oldValue: undefined },
+        });
+        return Promise.resolve({ ok: true } as T);
+      }
+      case "DELETE_PICK": {
+        const payload = m.payload as { pickId: string };
+        pickHistory = removePickFromHistory(pickHistory, payload.pickId);
+        if (lastPick?.id === payload.pickId) {
+          const sessionPicks = pickHistory.filter((p) => p.sessionId === sessionId);
+          lastPick = sessionPicks[sessionPicks.length - 1];
+        }
+        emitStorage("local", {
+          pickHistory: { newValue: [...pickHistory], oldValue: undefined },
+        });
+        emitStorage("session", {
+          lastPick: { newValue: lastPick, oldValue: undefined },
         });
         return Promise.resolve({ ok: true } as T);
       }

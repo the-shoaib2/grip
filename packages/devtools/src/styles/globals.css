@@ -782,6 +782,28 @@ button.grip-chip-warn:hover {
   color: var(--grip-accent-fg);
 }
 
+.grip-pick-row-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.125rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.grip-pick-row:hover .grip-pick-row-actions,
+.grip-pick-row:focus-within .grip-pick-row-actions,
+.grip-pick-row-active .grip-pick-row-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.grip-pick-delete:hover {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.12);
+}
+
 .grip-pick-row .grip-btn-icon {
   height: 1.75rem;
   width: 1.75rem;

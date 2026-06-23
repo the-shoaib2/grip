@@ -112,3 +112,12 @@ export function updatePickInHistory(
   });
   return changed ? next : history;
 }
+
+/** Remove a single stored pick by id. */
+export function removePickFromHistory(
+  history: StoredPick[],
+  pickId: string,
+): StoredPick[] {
+  if (!history.some((h) => h.id === pickId)) return history;
+  return history.filter((h) => h.id !== pickId);
+}

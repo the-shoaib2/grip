@@ -18,6 +18,7 @@ export {
   picksForUrl,
   toStoredPick,
   updatePickInHistory,
+  removePickFromHistory,
 } from "./pick-history.js";
 export { buildSnapshot, buildSnapshotForLLM } from "./snapshot.js";
 export { serializeForLLM, serializeSnapshotJson } from "./serializer.js";

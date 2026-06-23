@@ -12,6 +12,8 @@ import {
   PickHistoryList,
   SelectDropdown,
   Tooltip,
+  useGripRuntime,
+  usePickHistory,
   type InlineChipRef,
 } from "@grip/devtools";
 import { FloatingShell } from "@grip/devtools-floating";
@@ -54,35 +56,26 @@ function CommentFieldLabDemo() {
   );
 }
 
+function PickHistoryLabDemo() {
+  const runtime = useGripRuntime();
+  const { history, activePick, selectPick, deletePick } = usePickHistory(runtime);
+
+  return (
+    <PickHistoryList
+      history={history}
+      activeId={activePick?.id}
+      onSelect={selectPick}
+      onDelete={(pick) => void deletePick(pick)}
+    />
+  );
+}
+
 function ComponentGallery() {
   return (
     <div class="lab-gallery">
       <section class="lab-block">
         <h3 class="lab-block-title">Pick history</h3>
-        <PickHistoryList
-          history={[
-            {
-              id: "1",
-              tagName: "button",
-              css: "#grip-target",
-              xpath: "//button",
-              role: "button",
-              name: "",
-              innerText: "Grip Search",
-              rect: { top: 0, left: 0, width: 1, height: 1 },
-              shadowDOM: false,
-              iframe: "none",
-              sessionId: "s1",
-              url: "http://localhost:5174/",
-              pageTitle: "Playground",
-              timestamp: Date.now(),
-              label: 'button "Grip Search"',
-              comment: "Hero CTA",
-            },
-          ]}
-          activeId="1"
-          onSelect={() => {}}
-        />
+        <PickHistoryLabDemo />
       </section>
 
       <section class="lab-block">

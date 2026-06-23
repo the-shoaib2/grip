@@ -4,6 +4,7 @@ import {
   clearPicksForSession,
   pickLabel,
   picksForSession,
+  removePickFromHistory,
   toStoredPick,
   updatePickInHistory,
 } from "./pick-history.js";
@@ -54,5 +55,13 @@ describe("pick-history", () => {
     const stored = toStoredPick(base, "https://x.com", "P", "sess-1");
     const next = updatePickInHistory([stored], stored.id, { comment: "note" });
     expect(next[0].comment).toBe("note");
+  });
+
+  it("removePickFromHistory drops pick by id", () => {
+    const a = toStoredPick(base, "https://x.com", "P", "sess-1");
+    const b = toStoredPick({ ...base, css: "div > button" }, "https://x.com", "P", "sess-1");
+    const next = removePickFromHistory([a, b], a.id);
+    expect(next).toHaveLength(1);
+    expect(next[0].id).toBe(b.id);
   });
 });

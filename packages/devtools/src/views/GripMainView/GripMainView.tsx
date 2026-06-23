@@ -35,7 +35,7 @@ export function GripMainView({
   const clearLogs = useGripStore((s) => s.clearLogs);
   const [mcpOk, setMcpOk] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(true);
-  const { history, activePick, newSession, selectPick } = usePickHistory(runtime);
+  const { history, activePick, newSession, selectPick, deletePick } = usePickHistory(runtime);
   const isPickerActive = usePickerActive(runtime);
   const { pickError, startPicker, stopPicker } = useStartPicker(runtime);
 
@@ -128,6 +128,7 @@ export function GripMainView({
             history={history}
             activeId={activePick?.id}
             onSelect={selectPick}
+            onDelete={(pick) => void deletePick(pick)}
           />
         </div>
       ) : null}
