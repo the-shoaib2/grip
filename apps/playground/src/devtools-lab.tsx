@@ -1,8 +1,9 @@
 import { render } from "preact";
-import { useMemo, useState } from "preact/hooks";
-import { gripChipToken, newChipId } from "@grip/core";
+import type { ComponentChildren } from "preact";
+import { useState } from "preact/hooks";
+import type { StoredPick } from "@grip/core";
 import {
-  CommentField,
+  ContextEditorPanel,
   CopyButton,
   ElementTagBadge,
   FieldRow,
@@ -14,9 +15,8 @@ import {
   SessionPickComposer,
   SelectDropdown,
   Tooltip,
-  useGripRuntime,
+  usePageContextEditor,
   usePickHistory,
-  type InlineChipRef,
 } from "@grip/devtools";
 import { FloatingShell } from "@grip/devtools-floating";
 import "@grip/devtools-css";
@@ -26,40 +26,41 @@ import "./styles/devtools-lab.css";
 
 type LabView = "popup" | "panel" | "floating" | "components";
 
-const DEMO_ELEMENT: Omit<InlineChipRef, "id"> = {
-  tag: "button",
-  role: "button",
-  css: "#grip-target",
-  xpath: "//button[@id='grip-target']",
-  text: "Grip Search",
-  name: "",
-  rect: { top: 0, left: 0, width: 120, height: 40 },
-  shadowDOM: false,
-  iframe: "none",
-};
+function CommentFieldSection({
+  pick,
+  onClose,
+}: {
+  pick: StoredPick | null;
+  onClose: () => void;
+}) {
+  const { savePickComment, selectPick } = usePickHistory();
 
-function CommentFieldLabDemo() {
-  const chipId = useMemo(() => newChipId(), []);
-  const chips = useMemo<InlineChipRef[]>(
-    () => [{ id: chipId, ...DEMO_ELEMENT }],
-    [chipId],
-  );
-  const [comment, setComment] = useState(
-    () => `Pick the ${gripChipToken(chipId)} and describe context`,
-  );
+  if (!pick) {
+    return (
+      <p class="grip-empty-state">
+        Pick an element or click context in the shell, then confirm to create or edit here.
+      </p>
+    );
+  }
 
   return (
-    <CommentField
-      chips={chips}
-      value={comment}
-      onChange={setComment}
-      placeholder="Select elements on the page, then describe what you need…"
+    <ContextEditorPanel
+      pick={pick}
+      onClose={onClose}
+      onSave={(comment) => savePickComment(pick.id, comment)}
+      onNavigate={selectPick}
     />
   );
 }
 
-function PickHistoryLabDemo() {
-  const runtime = useGripRuntime();
+function PickHistoryLabDemo({
+  onContextEditRequest,
+}: {
+  onContextEditRequest?: (
+    pick: StoredPick,
+    meta: { pickIndex: number; pickCount: number },
+  ) => void;
+}) {
   const [historyView, setHistoryView] = useState(false);
   const {
     history,
@@ -70,7 +71,7 @@ function PickHistoryLabDemo() {
     savePickComment,
     deleteSession,
     switchSession,
-  } = usePickHistory(runtime);
+  } = usePickHistory();
 
   return (
     <div class="lab-history-demo">
@@ -105,10 +106,11 @@ function PickHistoryLabDemo() {
           {activePick ? (
             <SessionPickComposer
               pick={activePick}
-              pickIndex={history.findIndex((pick) => pick.id === activePick.id) + 1}
+              pickIndex={history.findIndex((p) => p.id === activePick.id) + 1}
               pickCount={history.length}
               onCommentChange={(comment) => savePickComment(activePick.id, comment)}
               onNavigate={selectPick}
+              onEditRequest={onContextEditRequest}
             />
           ) : (
             <p class="grip-empty-state">No picks yet</p>
@@ -126,17 +128,50 @@ function PickHistoryLabDemo() {
   );
 }
 
-function ComponentGallery() {
+function LabShellWorkspace({
+  children,
+  editorPick,
+  onCloseEditor,
+}: {
+  children: ComponentChildren;
+  editorPick: StoredPick | null;
+  onCloseEditor: () => void;
+}) {
+  return (
+    <div class="lab-shell-workspace">
+      {children}
+      <section
+        class={`lab-block lab-context-editor-block${editorPick ? " lab-context-editor-open" : ""}`}
+      >
+        <h3 class="lab-block-title">Comment field</h3>
+        <CommentFieldSection pick={editorPick} onClose={onCloseEditor} />
+      </section>
+    </div>
+  );
+}
+
+function ComponentGallery({
+  editorPick,
+  onContextEditRequest,
+  onCloseEditor,
+}: {
+  editorPick: StoredPick | null;
+  onContextEditRequest: (
+    pick: StoredPick,
+    meta: { pickIndex: number; pickCount: number },
+  ) => void;
+  onCloseEditor: () => void;
+}) {
   return (
     <div class="lab-gallery">
       <section class="lab-block">
         <h3 class="lab-block-title">Pick history</h3>
-        <PickHistoryLabDemo />
+        <PickHistoryLabDemo onContextEditRequest={onContextEditRequest} />
       </section>
 
-      <section class="lab-block">
+      <section class={`lab-block lab-context-editor-block${editorPick ? " lab-context-editor-open" : ""}`}>
         <h3 class="lab-block-title">Comment field</h3>
-        <CommentFieldLabDemo />
+        <CommentFieldSection pick={editorPick} onClose={onCloseEditor} />
       </section>
 
       <section class="lab-block">
@@ -168,6 +203,12 @@ function ComponentGallery() {
 function DevToolsLab() {
   const [view, setView] = useState<LabView>("popup");
   const [floatingOpen, setFloatingOpen] = useState(true);
+  const [editorPick, setEditorPick] = useState<StoredPick | null>(null);
+  const openPageContextEditor = usePageContextEditor();
+
+  const openContextEditor = (pick: StoredPick) => {
+    setEditorPick(pick);
+  };
 
   return (
     <GripRuntimeProvider runtime={playgroundRuntime}>
@@ -203,29 +244,51 @@ function DevToolsLab() {
 
         <main class="lab-main">
           {view === "popup" && (
-            <div class="lab-preview lab-preview-popup">
-              <GripPopupView />
-            </div>
+            <LabShellWorkspace
+              editorPick={editorPick}
+              onCloseEditor={() => setEditorPick(null)}
+            >
+              <div class="lab-preview lab-preview-popup">
+                <GripPopupView onContextEditRequest={openContextEditor} />
+              </div>
+            </LabShellWorkspace>
           )}
           {view === "panel" && (
-            <div class="lab-preview lab-preview-panel">
-              <GripPanelView />
-            </div>
+            <LabShellWorkspace
+              editorPick={editorPick}
+              onCloseEditor={() => setEditorPick(null)}
+            >
+              <div class="lab-preview lab-preview-panel">
+                <GripPanelView onContextEditRequest={openContextEditor} />
+              </div>
+            </LabShellWorkspace>
           )}
           {view === "floating" && (
-            <div class="lab-preview-floating-stage">
-              <FloatingShell
-                open={floatingOpen}
-                onToggle={() => setFloatingOpen((open) => !open)}
-              >
-                <GripPanelView
-                  layout="floating"
-                  onMinimize={() => setFloatingOpen(false)}
-                />
-              </FloatingShell>
-            </div>
+            <LabShellWorkspace
+              editorPick={editorPick}
+              onCloseEditor={() => setEditorPick(null)}
+            >
+              <div class="lab-preview-floating-stage">
+                <FloatingShell
+                  open={floatingOpen}
+                  onToggle={() => setFloatingOpen((open) => !open)}
+                >
+                  <GripPanelView
+                    layout="floating"
+                    onMinimize={() => setFloatingOpen(false)}
+                    onContextEditRequest={openPageContextEditor}
+                  />
+                </FloatingShell>
+              </div>
+            </LabShellWorkspace>
           )}
-          {view === "components" && <ComponentGallery />}
+          {view === "components" && (
+            <ComponentGallery
+              editorPick={editorPick}
+              onContextEditRequest={openContextEditor}
+              onCloseEditor={() => setEditorPick(null)}
+            />
+          )}
         </main>
       </div>
     </GripRuntimeProvider>

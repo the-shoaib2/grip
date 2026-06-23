@@ -11,6 +11,7 @@ export type GripMessageType =
   | "NEW_SESSION"
   | "SHOW_TRAY"
   | "UPDATE_PICK_COMMENT"
+  | "OPEN_CONTEXT_EDITOR"
   | "DELETE_PICK"
   | "SET_ACTIVE_SESSION"
   | "DELETE_SESSION"
@@ -46,6 +47,13 @@ export interface StoredPick extends PickerElementPayload {
   pageTitle: string;
   timestamp: number;
   label: string;
+}
+
+/** Open the page-level picker comment panel to edit an existing pick. */
+export interface OpenContextEditorPayload {
+  pick: StoredPick;
+  pickIndex?: number;
+  pickCount?: number;
 }
 
 export interface GripMessage<T = unknown> {

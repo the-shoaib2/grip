@@ -1,5 +1,5 @@
 import { useEffect, useState } from "preact/hooks";
-import type { LogMessagePayload, PickerElementPayload } from "@grip/core";
+import type { LogMessagePayload, PickerElementPayload, StoredPick } from "@grip/core";
 import {
   GripIcon,
   GripMcpChip,
@@ -23,6 +23,10 @@ export interface GripMainViewProps {
   closeOnPickSuccess?: boolean;
   onMinimize?: () => void;
   syncPanelReady?: boolean;
+  onContextEditRequest?: (
+    pick: StoredPick,
+    meta: { pickIndex: number; pickCount: number },
+  ) => void;
 }
 
 export function GripMainView({
@@ -30,6 +34,7 @@ export function GripMainView({
   closeOnPickSuccess = false,
   onMinimize,
   syncPanelReady = false,
+  onContextEditRequest,
 }: GripMainViewProps) {
   const runtime = useGripRuntime();
   const setLastPick = useGripStore((s) => s.setLastPick);
@@ -47,7 +52,7 @@ export function GripMainView({
     selectPick,
     savePickComment,
     deleteSession,
-  } = usePickHistory(runtime);
+  } = usePickHistory();
   const isPickerActive = usePickerActive(runtime);
   const { pickError, startPicker, stopPicker } = useStartPicker(runtime);
 
@@ -145,6 +150,7 @@ export function GripMainView({
             pickCount={history.length}
             onCommentChange={(comment) => savePickComment(activePick.id, comment)}
             onNavigate={selectPick}
+            onEditRequest={onContextEditRequest}
           />
           <PickHistoryList
             history={history}

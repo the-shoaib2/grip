@@ -31,6 +31,7 @@ interface CommentFieldProps {
   tags?: string[];
   maxHeight?: number;
   onChipActivate?: () => void;
+  readOnly?: boolean;
 }
 
 export function CommentField({
@@ -50,6 +51,7 @@ export function CommentField({
   tags,
   maxHeight = 160,
   onChipActivate,
+  readOnly = false,
 }: CommentFieldProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const lastEmitted = useRef(value);
@@ -85,7 +87,7 @@ export function CommentField({
 
   useEffect(() => {
     const editor = editorRef.current;
-    if (!editor) return;
+    if (!editor || readOnly) return;
 
     const onInput = () => {
       const next = serializeEditor(editor);
@@ -108,7 +110,7 @@ export function CommentField({
       unbindTooltip();
       unbindClipboard();
     };
-  }, [onChange]);
+  }, [onChange, readOnly]);
 
   useEffect(() => {
     const editor = editorRef.current;
@@ -119,7 +121,7 @@ export function CommentField({
   }, [value, chipRefs]);
 
   return (
-    <div className="grip-context-field">
+    <div className={`grip-context-field${readOnly ? " grip-context-readonly" : ""}`}>
       <div
         className="grip-context-composer"
         style={{ maxHeight: `${maxHeight}px` }}
@@ -128,19 +130,22 @@ export function CommentField({
           const chip = target.closest<HTMLElement>(".grip-inline-chip");
           if (chip) {
             e.preventDefault();
-            selectChipElement(chip);
+            e.stopPropagation();
+            if (!readOnly) selectChipElement(chip);
             onChipActivate?.();
             return;
           }
+          if (readOnly) return;
           focusEditor(editorRef.current!);
         }}
       >
         <div
           ref={editorRef}
           className={INLINE_EDITOR_CLASS}
-          contentEditable
+          contentEditable={!readOnly}
           role="textbox"
           aria-multiline="true"
+          aria-readonly={readOnly ? "true" : undefined}
           data-placeholder={placeholder}
         />
       </div>

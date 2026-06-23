@@ -1,4 +1,6 @@
 import type { ComponentChildren } from "preact";
+import { useRef } from "preact/hooks";
+import { GripShellRefContext } from "../GripShellContext";
 
 export type GripShellVariant = "popup" | "panel" | "floating";
 
@@ -19,12 +21,15 @@ export interface GripRootLayoutProps {
 }
 
 export function GripRootLayout({ variant, className, children }: GripRootLayoutProps) {
+  const shellRef = useRef<HTMLDivElement>(null);
   const shellClass = gripShellClassName(variant);
   const rootClass = className ? `${shellClass} ${className}` : shellClass;
 
   return (
-    <div className={rootClass} data-grip-shell={variant}>
-      {children}
-    </div>
+    <GripShellRefContext.Provider value={shellRef}>
+      <div ref={shellRef} className={rootClass} data-grip-shell={variant}>
+        {children}
+      </div>
+    </GripShellRefContext.Provider>
   );
 }

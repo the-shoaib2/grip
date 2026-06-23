@@ -1,11 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from "preact/hooks";
+import { createContext } from "preact";
+import { useCallback, useContext, useEffect, useRef, useState } from "preact/hooks";
 import {
   groupPicksBySession,
-  picksForSession,
   type SessionPickGroup,
   type StoredPick,
 } from "@grip/core";
 import type { GripRuntime } from "../../runtime/types";
+
+export const PickHistoryContext = createContext<UsePickHistoryResult | null>(null);
 
 interface HistoryResponse {
   history?: StoredPick[];
@@ -37,7 +39,15 @@ export interface UsePickHistoryResult {
   deleteSession: (sessionId: string) => Promise<void>;
 }
 
-export function usePickHistory(runtime: GripRuntime): UsePickHistoryResult {
+export function usePickHistory(): UsePickHistoryResult {
+  const value = useContext(PickHistoryContext);
+  if (!value) {
+    throw new Error("usePickHistory must be used within GripRuntimeProvider");
+  }
+  return value;
+}
+
+export function usePickHistoryState(runtime: GripRuntime): UsePickHistoryResult {
   const [history, setHistory] = useState<StoredPick[]>([]);
   const [allHistory, setAllHistory] = useState<StoredPick[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
@@ -103,7 +113,8 @@ export function usePickHistory(runtime: GripRuntime): UsePickHistoryResult {
   useEffect(() => {
     const unsub = runtime.onStorageChanged((changes, area) => {
       if (area === "session" && changes.lastPick?.newValue) {
-        const pick = changes.lastPick.newValue as StoredPick;
+        const pick = changes.lastPick.newValue as StoredPick | undefined;
+        if (!pick) return;
         setActivePick((prev) => {
           if (prev?.id === pick.id) {
             return pick;
@@ -113,26 +124,7 @@ export function usePickHistory(runtime: GripRuntime): UsePickHistoryResult {
         });
       }
       if (area === "local" && changes.pickHistory?.newValue) {
-        void (async () => {
-          const sessionId = await sessionIdForRuntime(runtime);
-          const url = pageUrl || (await runtime.getPageUrl());
-          const all = changes.pickHistory!.newValue as StoredPick[];
-          setAllHistory(all);
-          setSessionGroups(groupPicksBySession(all, url));
-          if (!sessionId) {
-            void refresh();
-            return;
-          }
-          setActiveSessionId(sessionId);
-          const next = picksForSession(all, url, sessionId);
-          setHistory(next);
-          setActivePick((prev) => {
-            if (prev && next.some((p) => p.id === prev.id)) {
-              return next.find((p) => p.id === prev.id) ?? prev;
-            }
-            return next[next.length - 1] ?? null;
-          });
-        })();
+        void refresh();
       }
       if (area === "session" && changes.tabSessionIds?.newValue) {
         const tabId = runtime.getTargetTabId?.();

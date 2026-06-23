@@ -336,6 +336,24 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
       })();
       return true;
 
+    case "OPEN_CONTEXT_EDITOR": {
+      const payload = msg.payload;
+      void (async () => {
+        const tab = await resolveTargetTab(sender, msg);
+        if (!tab?.id) return;
+        try {
+          await sendToTabWhenReady(tab.id, {
+            type: "OPEN_CONTEXT_EDITOR",
+            payload,
+          });
+        } catch {
+          /* ignore editor open errors */
+        }
+      })();
+      sendResponse({ ok: true });
+      return true;
+    }
+
     case "UPDATE_PICK_COMMENT":
       void (async () => {
         try {

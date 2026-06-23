@@ -68,6 +68,23 @@
   padding: 2rem 1.5rem 3rem;
 }
 
+.lab-shell-workspace,
+.lab-popup-workspace {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  width: min(36rem, 100vw - 2rem);
+}
+
+.lab-context-editor-block {
+  width: 100%;
+}
+
+.lab-context-editor-open {
+  outline: 2px solid var(--grip-accent-soft);
+}
+
 .lab-preview {
   background: transparent;
   border: none;

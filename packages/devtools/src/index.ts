@@ -7,6 +7,7 @@ export type { GripRuntime, RuntimeMessage, StorageChangeHandler } from "./runtim
 
 export { useGripStore } from "./store/gripStore";
 export { usePickHistory, type UsePickHistoryResult } from "./hooks/usePickHistory";
+export { usePageContextEditor, type PageContextEditorMeta } from "./hooks/usePageContextEditor";
 
 export * from "./components";
 export * from "./lib";

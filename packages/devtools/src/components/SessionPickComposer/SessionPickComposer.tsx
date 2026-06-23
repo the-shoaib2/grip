@@ -1,21 +1,28 @@
-import { useEffect, useMemo, useRef, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import {
   composerStateForStoredPick,
+  formatMcpPrompt,
   formatPickIndexLabel,
   type StoredPick,
 } from "@grip/core";
 import { CommentField } from "../CommentField";
+import { CopyButton } from "../CopyButton";
+import { GripShellDialog } from "../GripShellDialog";
+import { Tooltip } from "../Tooltip";
+import { UndoIcon } from "../icons";
 
 export interface SessionPickComposerProps {
   pick: StoredPick;
   pickIndex: number;
   pickCount: number;
-  /** Persist prompt edits — debounced; no Save button in the panel. */
   onCommentChange?: (comment: string) => void | Promise<void>;
   onNavigate?: (pick: StoredPick) => void;
+  /** After confirm dialog — open the page-level picker comment panel. */
+  onEditRequest?: (
+    pick: StoredPick,
+    meta: { pickIndex: number; pickCount: number },
+  ) => void;
 }
-
-const SAVE_DEBOUNCE_MS = 400;
 
 export function SessionPickComposer({
   pick,
@@ -23,60 +30,122 @@ export function SessionPickComposer({
   pickCount,
   onCommentChange,
   onNavigate,
+  onEditRequest,
 }: SessionPickComposerProps) {
-  const { chips: initialChips, comment: initialComment } = useMemo(
-    () => composerStateForStoredPick(pick),
-    [pick],
-  );
-  const [comment, setComment] = useState(initialComment);
-  const saveTimer = useRef<number | undefined>(undefined);
-  const latestComment = useRef(initialComment);
-
-  useEffect(() => {
-    setComment(initialComment);
-    latestComment.current = initialComment;
-  }, [pick.id, initialComment]);
-
-  useEffect(
-    () => () => {
-      if (saveTimer.current != null) window.clearTimeout(saveTimer.current);
-    },
-    [],
-  );
+  const baseline = useRef("");
+  const chipsRef = useRef(composerStateForStoredPick(pick).chips);
+  const [displayComment, setDisplayComment] = useState("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const indexLabel = formatPickIndexLabel(pickIndex, pickCount);
+  const canUndo = displayComment !== baseline.current;
+  const copyText = formatMcpPrompt({ ...pick, comment: displayComment });
 
-  const scheduleSave = (next: string) => {
-    latestComment.current = next;
-    if (!onCommentChange || next === initialComment) return;
-    if (saveTimer.current != null) window.clearTimeout(saveTimer.current);
-    saveTimer.current = window.setTimeout(() => {
-      saveTimer.current = undefined;
-      if (latestComment.current !== initialComment) {
-        void onCommentChange(latestComment.current);
-      }
-    }, SAVE_DEBOUNCE_MS);
+  useEffect(() => {
+    const state = composerStateForStoredPick(pick);
+    baseline.current = state.comment;
+    chipsRef.current = state.chips;
+    setDisplayComment(state.comment);
+  }, [pick.id]);
+
+  useEffect(() => {
+    const state = composerStateForStoredPick(pick);
+    chipsRef.current = state.chips;
+    setDisplayComment(state.comment);
+  }, [pick.comment, pick.id]);
+
+  const requestEdit = () => {
+    if (onEditRequest) setConfirmOpen(true);
+  };
+
+  const confirmEdit = () => {
+    setConfirmOpen(false);
+    onEditRequest?.(pick, { pickIndex, pickCount });
+  };
+
+  const undoToBaseline = (e: Event) => {
+    e.stopPropagation();
+    const previous = baseline.current;
+    setDisplayComment(previous);
+    void onCommentChange?.(previous);
   };
 
   return (
-    <div className="grip-picker-panel grip-session-panel" aria-label="Current pick">
-      <div className="grip-picker-header">
-        <span className="grip-picker-session">{indexLabel}</span>
-        <span className="grip-picker-hint">click chip to locate</span>
+    <>
+      <div className="grip-picker-panel grip-session-panel" aria-label="Current pick">
+        <div className="grip-picker-header">
+          <span className="grip-picker-session">{indexLabel}</span>
+          <span className="grip-picker-hint">click to edit below · chip to locate</span>
+        </div>
+
+        <div className="grip-session-context-wrap">
+          <div
+            className="grip-session-context-preview"
+            role="button"
+            tabIndex={0}
+            aria-label="Edit context prompt"
+            onClick={(e) => {
+              if ((e.target as HTMLElement).closest(".grip-inline-chip, .grip-session-context-actions")) {
+                return;
+              }
+              requestEdit();
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                requestEdit();
+              }
+            }}
+          >
+            <CommentField
+              chips={chipsRef.current}
+              value={displayComment}
+              onChange={() => {}}
+              readOnly
+              onChipActivate={() => {
+                onNavigate?.(pick);
+              }}
+            />
+          </div>
+
+          <div className="grip-session-context-actions">
+            {canUndo ? (
+              <span className="grip-session-undo-action">
+                <Tooltip text="Undo changes">
+                  <button
+                    type="button"
+                    className="grip-btn-icon"
+                    aria-label="Undo changes"
+                    onClick={undoToBaseline}
+                  >
+                    <UndoIcon size={12} />
+                  </button>
+                </Tooltip>
+              </span>
+            ) : null}
+            <CopyButton
+              label="Copy"
+              text={copyText}
+              tooltip="Copy prompt"
+              variant="ghost"
+              size="icon"
+            />
+          </div>
+        </div>
       </div>
 
-      <CommentField
-        chips={initialChips}
-        value={comment}
-        onChange={(next) => {
-          setComment(next);
-          scheduleSave(next);
-        }}
-        placeholder="Select elements on the page, then describe what you need…"
-        onChipActivate={() => {
-          onNavigate?.(pick);
-        }}
-      />
-    </div>
+      <GripShellDialog
+        open={confirmOpen}
+        title="Edit context?"
+        cancelLabel="Cancel"
+        confirmLabel="Confirm"
+        onCancel={() => setConfirmOpen(false)}
+        onConfirm={confirmEdit}
+      >
+        <p className="grip-shell-dialog-lead">
+          Open the comment panel on the page to edit this pick&apos;s context.
+        </p>
+      </GripShellDialog>
+    </>
   );
 }

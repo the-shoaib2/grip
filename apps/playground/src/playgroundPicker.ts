@@ -1,10 +1,13 @@
 import {
+  composerStateForStoredPick,
   deepElementFromPoint,
   describeElement,
   elementFromComposedEvent,
   elementsAtPoint,
   formatInlineCommentForMcp,
+  formatPickIndexLabel,
   newChipId,
+  type OpenContextEditorPayload,
   type PickerElementPayload,
 } from "@grip/core";
 import {
@@ -20,6 +23,7 @@ import {
   removeChipElement,
   selectChipElement,
   serializeEditor,
+  setEditorFromComment,
   toInlineChipRef,
   updateChipActiveStates,
 } from "@grip/devtools";
@@ -33,7 +37,7 @@ const HINT_ID = "__grip_picker_hint__";
 const COMPOSER_PLACEHOLDER =
   "Select elements on the page, then describe what you need…";
 
-type PickerPhase = "idle" | "hover" | "comment";
+type PickerPhase = "idle" | "hover" | "comment" | "edit";
 
 interface PendingPick {
   chipId: string;
@@ -63,6 +67,8 @@ let pendingElements: PendingPick[] = [];
 let activePendingIndex = 0;
 let onSaveCallback: ((payload: PickerElementPayload) => void) | null = null;
 let onStopCallback: (() => void) | null = null;
+let onEditSaveCallback: ((pickId: string, comment: string) => void) | null = null;
+let editingPickId: string | null = null;
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(value, max));
@@ -570,13 +576,13 @@ function isEventInComposer(e: KeyboardEvent): boolean {
 }
 
 function onMove(e: MouseEvent): void {
-  if (phase !== "hover" && phase !== "comment") return;
+  if (phase !== "hover" && phase !== "comment" && phase !== "edit") return;
   if (isGripChrome(e.target)) return;
   updateHover(e.clientX, e.clientY);
 }
 
 function onClick(e: MouseEvent): void {
-  if (phase !== "hover" && phase !== "comment") return;
+  if (phase !== "hover" && phase !== "comment" && phase !== "edit") return;
   if (isGripChrome(e.target)) return;
 
   e.preventDefault();
@@ -595,7 +601,7 @@ function onClick(e: MouseEvent): void {
     return;
   }
 
-  if (phase === "comment") {
+  if (phase === "comment" || phase === "edit") {
     const editor = getComposerEditor();
     const keepTyping = document.activeElement === editor;
     addToPending(el, { keepTyping });
@@ -607,6 +613,12 @@ function onClick(e: MouseEvent): void {
 
 function onKey(e: KeyboardEvent): void {
   if (e.key === "Escape") {
+    if (phase === "edit") {
+      if (isEventInComposer(e)) return;
+      e.preventDefault();
+      closeContextEditor();
+      return;
+    }
     if (phase === "comment" && isEventInComposer(e)) {
       resumeHover();
       return;
@@ -615,7 +627,7 @@ function onKey(e: KeyboardEvent): void {
     return;
   }
 
-  if (phase === "comment" && isEventInComposer(e)) return;
+  if ((phase === "comment" || phase === "edit") && isEventInComposer(e)) return;
   if (phase === "idle") return;
 
   if (e.key === "[" || e.key === "ArrowDown") {
@@ -626,6 +638,87 @@ function onKey(e: KeyboardEvent): void {
     e.preventDefault();
     cycleSelection(-1);
   }
+}
+
+function closeContextEditor(): void {
+  if (phase !== "edit") return;
+  editingPickId = null;
+  onEditSaveCallback = null;
+  document.getElementById(COMMENT_ID)?.remove();
+  document.getElementById(STYLE_ID)?.remove();
+  document.removeEventListener("mousemove", onMove, true);
+  document.removeEventListener("click", onClick, true);
+  document.removeEventListener("keydown", onKey, true);
+  pendingElements = [];
+  activePendingIndex = 0;
+  phase = "idle";
+}
+
+function finishEdit(comment: string): void {
+  if (!editingPickId || !onEditSaveCallback) return;
+  const tagsById = Object.fromEntries(
+    pendingElements.map((item) => [item.chipId, item.tag]),
+  );
+  const trimmed = formatInlineCommentForMcp(comment.trim(), tagsById);
+  onEditSaveCallback(editingPickId, trimmed);
+  closeContextEditor();
+}
+
+export function openPlaygroundContextEditor(
+  payload: OpenContextEditorPayload,
+  onSave: (pickId: string, comment: string) => void,
+): void {
+  if (phase === "hover" || phase === "comment") stopPlaygroundPicker(false);
+
+  const { pick, pickIndex = 1, pickCount = 1 } = payload;
+  editingPickId = pick.id;
+  onEditSaveCallback = onSave;
+  ensureStyle();
+  const panel = ensureCommentPanel();
+  phase = "edit";
+  pendingElements = [];
+  activePendingIndex = 0;
+
+  const { chips, comment } = composerStateForStoredPick(pick);
+  const editor = panel.querySelector("#__grip_comment_editor__") as HTMLElement;
+  setEditorFromComment(editor, comment, chips.map((chip) => toInlineChipRef(chip)));
+
+  const el = document.querySelector(pick.css);
+  if (el) {
+    const pending = toPending(el);
+    if (chips[0]?.id) pending.chipId = chips[0].id;
+    pendingElements.push(pending);
+    activePendingIndex = 0;
+    highlight(el);
+    positionCommentPanel(panel, el);
+  }
+
+  const sessionLabel = panel.querySelector("#__grip_session_label__");
+  if (sessionLabel) {
+    sessionLabel.textContent = formatPickIndexLabel(pickIndex, pickCount);
+  }
+
+  const save = panel.querySelector("#__grip_comment_save__") as HTMLButtonElement;
+  const cancel = panel.querySelector("#__grip_comment_cancel__") as HTMLButtonElement;
+  if (save.dataset.bound !== "1") {
+    save.dataset.bound = "1";
+    bindComposerEvents(panel);
+    panel.addEventListener("mousedown", (e) => e.stopPropagation());
+    panel.addEventListener("click", (e) => e.stopPropagation());
+  }
+  save.onclick = (e) => {
+    e.stopPropagation();
+    finishEdit(serializeEditor(editor));
+  };
+  cancel.onclick = (e) => {
+    e.stopPropagation();
+    closeContextEditor();
+  };
+
+  document.addEventListener("mousemove", onMove, true);
+  document.addEventListener("click", onClick, true);
+  document.addEventListener("keydown", onKey, true);
+  focusComposerEditor();
 }
 
 export function stopPlaygroundPicker(notify = true): void {
@@ -640,6 +733,8 @@ export function stopPlaygroundPicker(notify = true): void {
   cycleIndex = 0;
   pendingElements = [];
   activePendingIndex = 0;
+  editingPickId = null;
+  onEditSaveCallback = null;
   onSaveCallback = null;
   if (notify) {
     onStopCallback?.();

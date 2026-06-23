@@ -1,5 +1,6 @@
 export { Icon, type IconProps } from "./Icon";
 export { HistoryIcon } from "./HistoryIcon";
+export { UndoIcon } from "./UndoIcon";
 export { McpIcon } from "./McpIcon";
 export { MousePointerClickIcon } from "./MousePointerClickIcon";
 export { MinusIcon } from "./MinusIcon";

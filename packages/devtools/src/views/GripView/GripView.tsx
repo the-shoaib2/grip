@@ -1,5 +1,6 @@
 import type { StoredPick } from "@grip/core";
 import type { GripShellVariant } from "../../layout";
+import type { PageContextEditorMeta } from "../../hooks/usePageContextEditor";
 import { GripMainView } from "../GripMainView";
 
 export type GripViewVariant = GripShellVariant;
@@ -7,7 +8,7 @@ export type GripViewVariant = GripShellVariant;
 export interface GripViewProps {
   variant: GripViewVariant;
   onMinimize?: () => void;
-  onContextEditRequest?: (pick: StoredPick) => void;
+  onContextEditRequest?: (pick: StoredPick, meta: PageContextEditorMeta) => void;
 }
 
 export function GripView({ variant, onMinimize, onContextEditRequest }: GripViewProps) {

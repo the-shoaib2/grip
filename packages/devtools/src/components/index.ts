@@ -1,12 +1,15 @@
 export { CommentField } from "./CommentField";
+export { ContextEditorPanel, type ContextEditorPanelProps } from "./ContextEditorPanel";
 export { CopyButton } from "./CopyButton";
 export { ElementTagBadge } from "./ElementTagBadge";
 export { FieldRow } from "./FieldRow";
+export { GripContextEditorHost, type GripContextEditorHostProps } from "./GripContextEditorHost";
 export { GripIcon } from "./GripIcon";
 export { GripMcpChip } from "./GripMcpChip";
 export { GripSessionToolbar } from "./GripSessionToolbar";
+export { GripShellDialog, type GripShellDialogProps } from "./GripShellDialog";
 export { PickErrorBanner } from "./PickErrorBanner";
-export { HistoryIcon, McpIcon, MinusIcon, MousePointerClickIcon, PlusIcon } from "./icons";
+export { HistoryIcon, McpIcon, MinusIcon, MousePointerClickIcon, PlusIcon, UndoIcon } from "./icons";
 export { PickHistoryList } from "./PickHistoryList";
 export { SessionHistoryList, type SessionHistoryListProps } from "./SessionHistoryList";
 export { SessionPickComposer, type SessionPickComposerProps } from "./SessionPickComposer";

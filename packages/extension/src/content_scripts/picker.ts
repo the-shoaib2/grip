@@ -1,10 +1,13 @@
 import {
+  composerStateForStoredPick,
   deepElementFromPoint,
   describeElement,
   elementFromComposedEvent,
   elementsAtPoint,
   formatInlineCommentForMcp,
+  formatPickIndexLabel,
   newChipId,
+  type OpenContextEditorPayload,
 } from "@grip/core";
 import type { PickerStartPayload } from "@grip/core";
 import {
@@ -37,7 +40,7 @@ const SELECTED_ID = "__grip_picker_selected__";
 const VIEWPORT_PAD = 8;
 const PANEL_GAP = 8;
 
-type PickerPhase = "idle" | "hover" | "comment";
+type PickerPhase = "idle" | "hover" | "comment" | "edit";
 
 interface PendingPick {
   chipId: string;
@@ -69,6 +72,7 @@ let panelDrag: {
   originLeft: number;
   originTop: number;
 } | null = null;
+let editingPickId: string | null = null;
 
 function cleanup(): void {
   document.getElementById(HOVER_ID)?.remove();
@@ -86,6 +90,7 @@ function cleanup(): void {
   composerPrompt = "";
   panelManuallyPlaced = false;
   panelDrag = null;
+  editingPickId = null;
   void chrome.storage.session.set({ pickerActive: false });
 }
 
@@ -111,7 +116,7 @@ function cycleSelection(dir: 1 | -1): void {
   cycleIndex = (cycleIndex + dir + stackSize) % stackSize;
   const el = targetAt(lastX, lastY, cycleIndex);
   if (!el) return;
-  if (phase === "comment") {
+  if (phase === "comment" || phase === "edit") {
     highlight(el);
     updatePendingUI();
     return;
@@ -134,6 +139,12 @@ function onKey(e: KeyboardEvent): void {
   }
 
   if (e.key === "Escape") {
+    if (phase === "edit") {
+      if (isEventInComposer(e)) return;
+      e.preventDefault();
+      closeContextEditor();
+      return;
+    }
     if (phase === "comment") {
       if (isEventInComposer(e)) return;
       e.preventDefault();
@@ -144,7 +155,7 @@ function onKey(e: KeyboardEvent): void {
     return;
   }
 
-  if (phase === "comment" && isEventInComposer(e)) return;
+  if ((phase === "comment" || phase === "edit") && isEventInComposer(e)) return;
 
   if (phase === "idle") return;
 
@@ -415,7 +426,7 @@ function onMove(e: MouseEvent): void {
     cleanup();
     return;
   }
-  if (phase !== "hover" && phase !== "comment") return;
+  if (phase !== "hover" && phase !== "comment" && phase !== "edit") return;
   if (isGripChrome(e.target)) return;
   updateHover(e.clientX, e.clientY);
 }
@@ -630,6 +641,10 @@ function removePendingAt(index: number): void {
 
   pendingElements.splice(index, 1);
   if (!pendingElements.length) {
+    if (phase === "edit") {
+      closeContextEditor();
+      return;
+    }
     resumeHover();
     return;
   }
@@ -787,6 +802,118 @@ function focusComposerEditor(): void {
   if (isEditorEmpty(editor)) placeCaretAtEnd(editor);
 }
 
+function closeContextEditor(): void {
+  if (phase !== "edit") return;
+  editingPickId = null;
+  document.getElementById(COMMENT_ID)?.remove();
+  document.getElementById(SELECTED_ID)?.remove();
+  document.getElementById(STYLE_ID)?.remove();
+  document.removeEventListener("mousemove", onMove, true);
+  document.removeEventListener("click", onClick, true);
+  document.removeEventListener("keydown", onKey, true);
+  pendingElements = [];
+  activePendingIndex = 0;
+  composerPrompt = "";
+  panelManuallyPlaced = false;
+  panelDrag = null;
+  phase = "idle";
+}
+
+function finishEdit(comment: string): void {
+  if (!editingPickId) return;
+  const tagsById = Object.fromEntries(
+    pendingElements.map((item) => [item.chipId, item.tag]),
+  );
+  const trimmed = formatInlineCommentForMcp(
+    (comment || composerPrompt).trim(),
+    tagsById,
+  );
+  safeSendMessage({
+    type: "UPDATE_PICK_COMMENT",
+    payload: { pickId: editingPickId, comment: trimmed || undefined },
+  });
+  closeContextEditor();
+}
+
+function bindPanelActions(panel: HTMLElement, editor: HTMLElement): void {
+  const save = panel.querySelector("#__grip_comment_save__") as HTMLButtonElement;
+  const cancel = panel.querySelector("#__grip_comment_cancel__") as HTMLButtonElement;
+  if (save.dataset.bound !== "1") {
+    save.dataset.bound = "1";
+    bindComposerEvents(panel);
+    save.onclick = (e) => {
+      e.stopPropagation();
+      const value = serializeEditor(editor);
+      if (phase === "edit") {
+        finishEdit(value);
+        return;
+      }
+      finishPick(value, true);
+    };
+    cancel.onclick = (e) => {
+      e.stopPropagation();
+      if (phase === "edit") {
+        closeContextEditor();
+        return;
+      }
+      if (phase === "comment") {
+        resumeHover();
+        return;
+      }
+      cleanup();
+    };
+    panel.addEventListener("mousedown", (e) => e.stopPropagation());
+    panel.addEventListener("click", (e) => e.stopPropagation());
+  }
+}
+
+function openContextEditor(payload: OpenContextEditorPayload): void {
+  if (phase === "hover" || phase === "comment") cleanup();
+
+  const { pick, pickIndex = 1, pickCount = 1 } = payload;
+  editingPickId = pick.id;
+  ensureStyle();
+  const panel = ensureCommentPanel();
+  panelManuallyPlaced = false;
+  panelDrag = null;
+  phase = "edit";
+  pendingElements = [];
+  activePendingIndex = 0;
+  composerPrompt = "";
+
+  const { chips, comment } = composerStateForStoredPick(pick);
+  const editor = panel.querySelector("#__grip_comment_editor__") as HTMLElement;
+  setEditorFromComment(editor, comment, chips.map((chip) => toInlineChipRef(chip)));
+
+  const el = document.querySelector(pick.css);
+  if (el) {
+    const pending = toPending(el);
+    if (chips[0]?.id) pending.chipId = chips[0].id;
+    pendingElements.push(pending);
+    activePendingIndex = 0;
+    highlight(el);
+    positionCommentPanel(panel, el, true);
+  } else {
+    panel.style.display = "block";
+    panel.style.visibility = "visible";
+    panel.style.top = `${Math.max(VIEWPORT_PAD, window.innerHeight / 2 - 80)}px`;
+    panel.style.left = `${Math.max(VIEWPORT_PAD, window.innerWidth / 2 - 160)}px`;
+  }
+
+  const sessionLabel = document.getElementById("__grip_session_label__");
+  if (sessionLabel) {
+    sessionLabel.textContent = formatPickIndexLabel(pickIndex, pickCount);
+  }
+
+  bindPanelActions(panel, editor);
+  document.addEventListener("mousemove", onMove, true);
+  document.addEventListener("click", onClick, true);
+  document.addEventListener("keydown", onKey, true);
+  updatePendingUI();
+  focusComposerEditor();
+  syncComposerEditor(editor);
+}
+
 function resumeHover(): void {
   document.getElementById(COMMENT_ID)?.remove();
   document.getElementById(HINT_ID)?.remove();
@@ -837,8 +964,6 @@ function showCommentPrompt(el: Element): void {
   }
 
   const editor = panel.querySelector("#__grip_comment_editor__") as HTMLElement;
-  const save = panel.querySelector("#__grip_comment_save__") as HTMLButtonElement;
-  const cancel = panel.querySelector("#__grip_comment_cancel__") as HTMLButtonElement;
 
   if (isNewPanel) {
     pendingElements = [];
@@ -850,21 +975,7 @@ function showCommentPrompt(el: Element): void {
   addToPending(el);
   panel.style.display = "block";
 
-  if (save.dataset.bound !== "1") {
-    save.dataset.bound = "1";
-    bindComposerEvents(panel);
-    save.onclick = (e) => {
-      e.stopPropagation();
-      finishPick(serializeEditor(editor), true);
-    };
-    cancel.onclick = (e) => {
-      e.stopPropagation();
-      cleanup();
-    };
-
-    panel.addEventListener("mousedown", (e) => e.stopPropagation());
-    panel.addEventListener("click", (e) => e.stopPropagation());
-  }
+  bindPanelActions(panel, editor);
 
   if (!panelManuallyPlaced) {
     positionCommentPanel(panel, el, true);
@@ -894,7 +1005,7 @@ function onClick(e: MouseEvent): void {
     cleanup();
     return;
   }
-  if (phase !== "hover" && phase !== "comment") return;
+  if (phase !== "hover" && phase !== "comment" && phase !== "edit") return;
   if (isGripChrome(e.target)) return;
 
   e.preventDefault();
@@ -914,6 +1025,13 @@ function onClick(e: MouseEvent): void {
   }
 
   if (phase === "comment") {
+    const editor = getComposerEditor();
+    const keepTyping = document.activeElement === editor;
+    addToPending(el, { keepTyping });
+    return;
+  }
+
+  if (phase === "edit") {
     const editor = getComposerEditor();
     const keepTyping = document.activeElement === editor;
     addToPending(el, { keepTyping });
@@ -947,6 +1065,11 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   }
   if (msg.type === "STOP_PICKER") {
     cleanup();
+    sendResponse({ ok: true });
+    return true;
+  }
+  if (msg.type === "OPEN_CONTEXT_EDITOR") {
+    openContextEditor(msg.payload as OpenContextEditorPayload);
     sendResponse({ ok: true });
     return true;
   }

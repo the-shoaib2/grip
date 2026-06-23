@@ -6,11 +6,12 @@ import {
   toStoredPick,
   updatePickInHistory,
   type PickerElementPayload,
+  type OpenContextEditorPayload,
   type StoredPick,
   GRIP_MCP_DOCS_URL,
 } from "@grip/core";
 import type { GripRuntime, RuntimeMessage, StorageChangeHandler } from "@grip/devtools";
-import { startPlaygroundPicker, stopPlaygroundPicker } from "./playgroundPicker";
+import { startPlaygroundPicker, stopPlaygroundPicker, openPlaygroundContextEditor } from "./playgroundPicker";
 
 const TAB_SESSIONS_KEY = "tabSessionIds";
 const HISTORY_KEY = "pickHistory";
@@ -164,6 +165,21 @@ export const playgroundRuntime: GripRuntime = {
         });
         return Promise.resolve({ ok: true } as T);
       }
+      case "OPEN_CONTEXT_EDITOR": {
+        const payload = m.payload as OpenContextEditorPayload;
+        openPlaygroundContextEditor(payload, (pickId, comment) => {
+          pickHistory = updatePickInHistory(pickHistory, pickId, {
+            comment: comment.trim() || undefined,
+          });
+          if (lastPick?.id === pickId) {
+            lastPick = pickHistory.find((p) => p.id === pickId);
+          }
+          emitStorage("local", {
+            pickHistory: { newValue: [...pickHistory], oldValue: undefined },
+          });
+        });
+        return Promise.resolve({ ok: true } as T);
+      }
       case "UPDATE_PICK_COMMENT": {
         const payload = m.payload as { pickId: string; comment?: string };
         pickHistory = updatePickInHistory(pickHistory, payload.pickId, {
@@ -258,7 +274,7 @@ export const playgroundRuntime: GripRuntime = {
   },
 
   async getPageUrl() {
-    return window.location.origin + "/";
+    return window.location.href.split("#")[0];
   },
 
   getTargetTabId() {

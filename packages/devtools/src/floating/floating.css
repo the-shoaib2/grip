@@ -57,7 +57,8 @@
   width: 20rem;
   max-width: min(20rem, calc(100vw - 24px));
   max-height: min(80vh, 640px);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   order: -1;
   border-radius: 1rem;
   background: var(--grip-shell-bg);

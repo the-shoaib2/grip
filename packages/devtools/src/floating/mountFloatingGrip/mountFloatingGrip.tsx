@@ -2,6 +2,7 @@ import { render } from "preact";
 import { useCallback, useState } from "preact/hooks";
 import type { GripRuntime } from "../../runtime/types";
 import { GripRuntimeProvider } from "../../runtime/context";
+import { usePageContextEditor } from "../../hooks/usePageContextEditor";
 import { GripPanelView } from "../../views/GripPanelView";
 import { FloatingShell } from "../FloatingShell";
 import devtoolsCss from "../../styles/globals.css?inline";
@@ -28,8 +29,9 @@ let toggleOpen: (() => void) | null = null;
 let setOpenExternal: ((open: boolean) => void) | null = null;
 let openRef = false;
 
-function FloatingApp() {
+function FloatingTray() {
   const [open, setOpen] = useState(false);
+  const openPageContextEditor = usePageContextEditor();
 
   const syncOpen = useCallback((next: boolean) => {
     openRef = next;
@@ -44,10 +46,20 @@ function FloatingApp() {
   }, [syncOpen]);
 
   return (
+    <FloatingShell open={open} onToggle={onToggle}>
+      <GripPanelView
+        layout="floating"
+        onMinimize={() => syncOpen(false)}
+        onContextEditRequest={(pick, meta) => openPageContextEditor(pick, meta)}
+      />
+    </FloatingShell>
+  );
+}
+
+function FloatingApp() {
+  return (
     <GripRuntimeProvider runtime={chromeRuntimeForMount!}>
-      <FloatingShell open={open} onToggle={onToggle}>
-        <GripPanelView layout="floating" onMinimize={() => syncOpen(false)} />
-      </FloatingShell>
+      <FloatingTray />
     </GripRuntimeProvider>
   );
 }

@@ -64,6 +64,7 @@ export type {
   GripMessageType,
   LogMessagePayload,
   NetworkMessagePayload,
+  OpenContextEditorPayload,
   PickerElementPayload,
   PickerStartPayload,
   StoredPick,
