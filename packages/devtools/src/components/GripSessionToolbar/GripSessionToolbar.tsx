@@ -38,12 +38,13 @@ export function GripSessionToolbar({
       <Tooltip text={pickActive ? "Stop picking" : "Pick any element on the page"}>
         <button
           type="button"
-          className={`grip-btn-ghost grip-btn-toolbar${pickActive ? " grip-btn-toolbar-active" : ""}`}
+          className={`grip-btn-ghost grip-btn-toolbar grip-btn-toolbar-pick${pickActive ? " grip-btn-toolbar-active" : ""}`}
           aria-pressed={pickActive ? "true" : "false"}
           onClick={onPick}
         >
           <MousePointerClickIcon size={16} />
-          <span>Pick</span>
+          <span className="grip-btn-toolbar-pick-label">Pick</span>
+          <span className="grip-btn-toolbar-pick-shine" aria-hidden="true" />
         </button>
       </Tooltip>
     </div>

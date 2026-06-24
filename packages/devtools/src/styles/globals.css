@@ -965,8 +965,53 @@ body {
   cursor: pointer;
 }
 
+.grip-btn-toolbar-pick {
+  position: relative;
+  overflow: hidden;
+  border-radius: 9999px;
+  isolation: isolate;
+  background: var(--grip-surface-hover);
+  color: var(--grip-fg);
+}
+
+.grip-btn-toolbar-pick-label {
+  position: relative;
+  z-index: 1;
+}
+
+.grip-btn-toolbar-pick-shine {
+  position: absolute;
+  inset: -1px;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.6;
+  transform: translateX(130%);
+  background: linear-gradient(
+    110deg,
+    transparent 15%,
+    rgba(124, 58, 237, 0.18) 45%,
+    rgba(37, 99, 235, 0.28) 55%,
+    transparent 85%
+  );
+  animation: grip-pick-shine 4.2s linear infinite;
+}
+
+@keyframes grip-pick-shine {
+  0% {
+    transform: translateX(130%);
+  }
+  100% {
+    transform: translateX(-130%);
+  }
+}
+
 .grip-btn-ghost.grip-btn-toolbar:not(.grip-btn-toolbar-active) {
   background: transparent;
+  color: var(--grip-fg);
+}
+
+.grip-btn-ghost.grip-btn-toolbar.grip-btn-toolbar-pick:not(.grip-btn-toolbar-active) {
+  background: var(--grip-surface-hover);
   color: var(--grip-fg);
 }
 
@@ -986,6 +1031,10 @@ body {
 .grip-btn-toolbar-active {
   background: var(--grip-accent);
   color: var(--grip-on-accent);
+}
+
+.grip-btn-toolbar-active .grip-btn-toolbar-pick-shine {
+  opacity: 0.45;
 }
 
 .grip-btn-toolbar-active:hover {
