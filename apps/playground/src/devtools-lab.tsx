@@ -23,7 +23,6 @@ import {
   MinusIcon,
   MousePointerClickIcon,
   PickErrorBanner,
-  PickHistoryList,
   PlusIcon,
   SessionHistoryList,
   SessionLabel,
@@ -134,13 +133,6 @@ function PickHistoryLabDemo({
           ) : (
             <p class="grip-empty-state">No picks yet</p>
           )}
-          <PickHistoryList
-            history={history}
-            activeId={activePick?.id}
-            activeSessionId={activeSessionId}
-            onSelect={selectPick}
-            compact
-          />
         </div>
       )}
     </div>

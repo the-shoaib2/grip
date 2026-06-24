@@ -1,5 +1,4 @@
 import type { SessionPickGroup } from "@grip/core";
-import { useEffect, useRef } from "preact/hooks";
 import { formatSessionTabTitle } from "../../lib/sessionLabel";
 import { CloseIcon, HistoryIcon, PlusIcon } from "../icons";
 import { Tooltip } from "../Tooltip";
@@ -14,6 +13,7 @@ export interface SessionTabBarProps {
   onToggleHistoryView: () => void;
 }
 
+/** Include the active empty session even before it has saved picks. */
 function buildTabs(
   groups: SessionPickGroup[],
   activeSessionId?: string | null,
@@ -21,7 +21,7 @@ function buildTabs(
   if (!activeSessionId || groups.some((group) => group.sessionId === activeSessionId)) {
     return groups;
   }
-  return [{ sessionId: activeSessionId, picks: [] }, ...groups];
+  return [...groups, { sessionId: activeSessionId, picks: [] }];
 }
 
 export function SessionTabBar({
@@ -34,22 +34,10 @@ export function SessionTabBar({
   onToggleHistoryView,
 }: SessionTabBarProps) {
   const tabs = buildTabs(groups, activeSessionId);
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (historyView || !activeSessionId || !scrollRef.current) return;
-    const activeTab = scrollRef.current.querySelector(".grip-session-tab-active");
-    activeTab?.scrollIntoView({ block: "nearest", inline: "nearest" });
-  }, [activeSessionId, historyView, tabs.length]);
 
   return (
     <div className="grip-session-tab-bar">
-      <div
-        ref={scrollRef}
-        className="grip-session-tab-scroll"
-        role="tablist"
-        aria-label="Sessions"
-      >
+      <div className="grip-session-tab-scroll" role="tablist" aria-label="Sessions">
         {tabs.map((group) => {
           const active = group.sessionId === activeSessionId && !historyView;
           const title = formatSessionTabTitle(group.picks);
@@ -58,6 +46,7 @@ export function SessionTabBar({
           return (
             <div
               key={group.sessionId}
+              data-session-id={group.sessionId}
               className={`grip-session-tab${active ? " grip-session-tab-active" : ""}`}
               role="presentation"
             >
@@ -77,7 +66,6 @@ export function SessionTabBar({
                   type="button"
                   className="grip-session-tab-close"
                   aria-label={`Close ${title}`}
-                  tabIndex={-1}
                   onClick={(e) => {
                     e.stopPropagation();
                     onCloseSession(group.sessionId);

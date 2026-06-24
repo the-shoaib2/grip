@@ -6,7 +6,6 @@ import {
   GripSessionToolbar,
   MinusIcon,
   PickErrorBanner,
-  PickHistoryList,
   SessionHistoryList,
   SessionPickComposer,
   SessionTabBar,
@@ -166,13 +165,6 @@ export function GripMainView({
             onCommentChange={(comment) => savePickComment(activePick.id, comment)}
             onNavigate={selectPick}
             onEditRequest={onContextEditRequest}
-          />
-          <PickHistoryList
-            history={history}
-            activeId={activePick.id}
-            activeSessionId={activeSessionId}
-            onSelect={selectPick}
-            compact
           />
         </div>
       ) : !historyView ? (

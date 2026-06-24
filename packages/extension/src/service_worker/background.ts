@@ -333,18 +333,9 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
             sendResponse({ ok: false, history: [] });
             return;
           }
-          const url = tab.url ?? "";
-          const currentSessionId = await getOrCreateSessionIdForTab(tab.id);
-          const data = await chrome.storage.local.get(HISTORY_KEY);
-          const history = clearPicksForSession(
-            (data[HISTORY_KEY] as StoredPick[]) ?? [],
-            url,
-            currentSessionId,
-          );
           const sessionId = newSessionId();
           const map = await getTabSessionMap();
           map[String(tab.id)] = sessionId;
-          await chrome.storage.local.set({ [HISTORY_KEY]: history });
           await setTabSessionMap(map);
           await chrome.storage.session.remove("lastPick");
           sendResponse({ ok: true, history: [], sessionId, tabId: tab.id });

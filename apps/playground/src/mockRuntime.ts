@@ -132,13 +132,9 @@ export const playgroundRuntime: GripRuntime = {
           tabId: MOCK_TAB_ID,
         } as T);
       case "NEW_SESSION": {
-        pickHistory = pickHistory.filter((p) => p.sessionId !== sessionId);
         sessionId = newSessionId();
         tabSessionIds = { ...tabSessionIds, [String(MOCK_TAB_ID)]: sessionId };
         lastPick = undefined;
-        emitStorage("local", {
-          pickHistory: { newValue: [...pickHistory], oldValue: undefined },
-        });
         emitStorage("session", {
           tabSessionIds: { newValue: { ...tabSessionIds }, oldValue: undefined },
           lastPick: { newValue: undefined, oldValue: lastPick },
