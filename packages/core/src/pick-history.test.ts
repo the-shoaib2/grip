@@ -80,7 +80,7 @@ describe("pick-history", () => {
     expect(lastPickInSession([a, b, other], url, "sess-2")?.id).toBe(other.id);
   });
 
-  it("groupPicksBySession groups page picks newest session first", () => {
+  it("groupPicksBySession groups page picks in stable creation order", () => {
     const url = "https://x.com/page";
     const old = { ...toStoredPick(base, url, "P", "sess-old"), timestamp: 1000 };
     const newer = {
@@ -89,7 +89,7 @@ describe("pick-history", () => {
     };
     const groups = groupPicksBySession([old, newer], url);
     expect(groups).toHaveLength(2);
-    expect(groups[0].sessionId).toBe("sess-new");
-    expect(groups[1].sessionId).toBe("sess-old");
+    expect(groups[0].sessionId).toBe("sess-old");
+    expect(groups[1].sessionId).toBe("sess-new");
   });
 });

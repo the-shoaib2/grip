@@ -61,6 +61,7 @@ const samplePickInput = toStoredPick(
 
 let sessionId = "playground-session";
 let tabSessionIds: Record<string, string> = { [String(MOCK_TAB_ID)]: sessionId };
+let tabSessionOrderIds: Record<string, string[]> = { [String(MOCK_TAB_ID)]: [sessionId] };
 let pickHistory: StoredPick[] = [];
 let lastPick: StoredPick | undefined;
 
@@ -129,17 +130,32 @@ export const playgroundRuntime: GripRuntime = {
           history: pickHistory.filter((p) => p.sessionId === sessionId),
           all: pickHistory,
           sessionId,
+          sessionOrder: tabSessionOrderIds[String(MOCK_TAB_ID)] ?? [sessionId],
           tabId: MOCK_TAB_ID,
         } as T);
       case "NEW_SESSION": {
         sessionId = newSessionId();
         tabSessionIds = { ...tabSessionIds, [String(MOCK_TAB_ID)]: sessionId };
+        tabSessionOrderIds = {
+          ...tabSessionOrderIds,
+          [String(MOCK_TAB_ID)]: [
+            ...(tabSessionOrderIds[String(MOCK_TAB_ID)] ?? []),
+            sessionId,
+          ],
+        };
         lastPick = undefined;
         emitStorage("session", {
           tabSessionIds: { newValue: { ...tabSessionIds }, oldValue: undefined },
           lastPick: { newValue: undefined, oldValue: lastPick },
         });
-        return Promise.resolve({ ok: true, history: [], sessionId, tabId: MOCK_TAB_ID } as T);
+        return Promise.resolve({
+          ok: true,
+          history: [],
+          all: pickHistory,
+          sessionId,
+          sessionOrder: tabSessionOrderIds[String(MOCK_TAB_ID)],
+          tabId: MOCK_TAB_ID,
+        } as T);
       }
       case "START_PICKER":
         hideTrayForHandoff();
@@ -242,7 +258,9 @@ export const playgroundRuntime: GripRuntime = {
         return Promise.resolve({
           ok: true,
           history: sessionPicks,
+          all: pickHistory,
           sessionId,
+          sessionOrder: tabSessionOrderIds[String(MOCK_TAB_ID)] ?? [sessionId],
           tabId: MOCK_TAB_ID,
         } as T);
       }
@@ -254,9 +272,25 @@ export const playgroundRuntime: GripRuntime = {
           payload.sessionId,
         );
         if (sessionId === payload.sessionId) {
-          sessionId = newSessionId();
+          const remainingOrder = (tabSessionOrderIds[String(MOCK_TAB_ID)] ?? []).filter(
+            (id) => id !== payload.sessionId,
+          );
+          sessionId = remainingOrder[remainingOrder.length - 1] ?? newSessionId();
+          tabSessionOrderIds = {
+            ...tabSessionOrderIds,
+            [String(MOCK_TAB_ID)]: remainingOrder.includes(sessionId)
+              ? remainingOrder
+              : [...remainingOrder, sessionId],
+          };
           tabSessionIds = { ...tabSessionIds, [String(MOCK_TAB_ID)]: sessionId };
           lastPick = undefined;
+        } else {
+          tabSessionOrderIds = {
+            ...tabSessionOrderIds,
+            [String(MOCK_TAB_ID)]: (tabSessionOrderIds[String(MOCK_TAB_ID)] ?? []).filter(
+              (id) => id !== payload.sessionId,
+            ),
+          };
         }
         emitStorage("local", {
           pickHistory: { newValue: [...pickHistory], oldValue: undefined },
@@ -269,7 +303,9 @@ export const playgroundRuntime: GripRuntime = {
         return Promise.resolve({
           ok: true,
           history: sessionPicks,
+          all: pickHistory,
           sessionId,
+          sessionOrder: tabSessionOrderIds[String(MOCK_TAB_ID)] ?? [sessionId],
           tabId: MOCK_TAB_ID,
         } as T);
       }

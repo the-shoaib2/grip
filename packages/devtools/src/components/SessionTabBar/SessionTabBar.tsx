@@ -5,6 +5,7 @@ import { Tooltip } from "../Tooltip";
 
 export interface SessionTabBarProps {
   groups: SessionPickGroup[];
+  sessionOrder?: string[];
   activeSessionId?: string | null;
   historyView?: boolean;
   onSelectSession: (sessionId: string) => void;
@@ -16,16 +17,22 @@ export interface SessionTabBarProps {
 /** Include the active empty session even before it has saved picks. */
 function buildTabs(
   groups: SessionPickGroup[],
+  sessionOrder: string[],
   activeSessionId?: string | null,
 ): SessionPickGroup[] {
-  if (!activeSessionId || groups.some((group) => group.sessionId === activeSessionId)) {
-    return groups;
+  const byId = new Map(groups.map((group) => [group.sessionId, group]));
+  const ordered = sessionOrder.map((id) => byId.get(id) ?? { sessionId: id, picks: [] });
+  const extras = groups.filter((group) => !sessionOrder.includes(group.sessionId));
+  const merged = [...ordered, ...extras];
+  if (!activeSessionId || merged.some((group) => group.sessionId === activeSessionId)) {
+    return merged;
   }
-  return [...groups, { sessionId: activeSessionId, picks: [] }];
+  return [...merged, { sessionId: activeSessionId, picks: [] }];
 }
 
 export function SessionTabBar({
   groups,
+  sessionOrder = [],
   activeSessionId,
   historyView = false,
   onSelectSession,
@@ -33,7 +40,7 @@ export function SessionTabBar({
   onNewSession,
   onToggleHistoryView,
 }: SessionTabBarProps) {
-  const tabs = buildTabs(groups, activeSessionId);
+  const tabs = buildTabs(groups, sessionOrder, activeSessionId);
 
   return (
     <div className="grip-session-tab-bar">

@@ -12,6 +12,7 @@ export const PickHistoryContext = createContext<UsePickHistoryResult | null>(nul
 interface HistoryResponse {
   history?: StoredPick[];
   all?: StoredPick[];
+  sessionOrder?: string[];
   sessionId?: string;
   tabId?: number;
 }
@@ -28,6 +29,7 @@ async function sessionIdForRuntime(runtime: GripRuntime): Promise<string | undef
 export interface UsePickHistoryResult {
   history: StoredPick[];
   sessionGroups: SessionPickGroup[];
+  sessionOrder: string[];
   activeSessionId: string | null;
   activePick: StoredPick | null;
   setActivePick: (pick: StoredPick | null) => void;
@@ -53,20 +55,37 @@ export function usePickHistoryState(runtime: GripRuntime): UsePickHistoryResult 
   const [allHistory, setAllHistory] = useState<StoredPick[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [sessionGroups, setSessionGroups] = useState<SessionPickGroup[]>([]);
+  const [sessionOrder, setSessionOrder] = useState<string[]>([]);
   const [activePick, setActivePick] = useState<StoredPick | null>(null);
   const [pageUrl, setPageUrl] = useState("");
   const inspectedTabRef = useRef<number | undefined>(runtime.getTargetTabId?.());
+  const allHistoryRef = useRef<StoredPick[]>([]);
+
+  useEffect(() => {
+    allHistoryRef.current = allHistory;
+  }, [allHistory]);
 
   const applyHistoryResponse = useCallback(
     async (data: HistoryResponse) => {
       const items = data?.history ?? [];
-      const all = data?.all ?? items;
+      const all = data?.all ?? allHistoryRef.current;
       const url = await runtime.getPageUrl();
       setPageUrl(url);
       setHistory(items);
       setAllHistory(all);
       setActiveSessionId(data?.sessionId ?? null);
-      setSessionGroups(groupPicksBySession(all, url));
+      const grouped = groupPicksBySession(all, url);
+      const groupedIds = grouped.map((group) => group.sessionId);
+      const responseOrder = data?.sessionOrder ?? [];
+      const mergedOrder = responseOrder
+        .filter((id, idx) => responseOrder.indexOf(id) === idx)
+        .concat(groupedIds.filter((id) => !responseOrder.includes(id)));
+      const finalOrder = mergedOrder.length ? mergedOrder : groupedIds;
+      setSessionOrder(finalOrder);
+      const byId = new Map(grouped.map((group) => [group.sessionId, group]));
+      setSessionGroups(
+        finalOrder.map((id) => byId.get(id) ?? { sessionId: id, picks: [] }),
+      );
       setActivePick((prev) => {
         if (prev && items.some((p) => p.id === prev.id)) return prev;
         return items[items.length - 1] ?? null;
@@ -213,14 +232,26 @@ export function usePickHistoryState(runtime: GripRuntime): UsePickHistoryResult 
         });
         setAllHistory((prev) => {
           const next = prev.filter((pick) => pick.id !== pickId);
-          setSessionGroups(groupPicksBySession(next, pageUrl));
+          const grouped = groupPicksBySession(next, pageUrl);
+          const keepOrder = sessionOrder.filter((id) =>
+            grouped.some((group) => group.sessionId === id),
+          );
+          const groupedIds = grouped.map((group) => group.sessionId);
+          const finalOrder = keepOrder.concat(
+            groupedIds.filter((id) => !keepOrder.includes(id)),
+          );
+          const byId = new Map(grouped.map((group) => [group.sessionId, group]));
+          setSessionOrder(finalOrder);
+          setSessionGroups(
+            finalOrder.map((id) => byId.get(id) ?? { sessionId: id, picks: [] }),
+          );
           return next;
         });
       } catch {
         /* ignore */
       }
     },
-    [runtime, pageUrl],
+    [runtime, pageUrl, sessionOrder],
   );
 
   const deleteSession = useCallback(
@@ -245,6 +276,7 @@ export function usePickHistoryState(runtime: GripRuntime): UsePickHistoryResult 
   return {
     history,
     sessionGroups,
+    sessionOrder,
     activeSessionId,
     activePick,
     setActivePick,

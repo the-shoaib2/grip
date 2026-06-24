@@ -90,7 +90,7 @@ export interface SessionPickGroup {
   picks: StoredPick[];
 }
 
-/** Group page picks by session, newest session first. */
+/** Group page picks by session in stable creation order. */
 export function groupPicksBySession(
   history: StoredPick[],
   url: string,
@@ -110,9 +110,9 @@ export function groupPicksBySession(
       picks: picks.sort((a, b) => a.timestamp - b.timestamp),
     }))
     .sort((a, b) => {
-      const aLast = a.picks[a.picks.length - 1]?.timestamp ?? 0;
-      const bLast = b.picks[b.picks.length - 1]?.timestamp ?? 0;
-      return bLast - aLast;
+      const aFirst = a.picks[0]?.timestamp ?? 0;
+      const bFirst = b.picks[0]?.timestamp ?? 0;
+      return aFirst - bFirst;
     });
 }
 

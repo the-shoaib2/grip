@@ -27,6 +27,7 @@ import {
 const MAX_LOGS = 500;
 const HISTORY_KEY = "pickHistory";
 const TAB_SESSIONS_KEY = "tabSessionIds";
+const TAB_SESSION_ORDER_KEY = "tabSessionOrderIds";
 const LEGACY_SESSION_KEY = "pickSessionId";
 const logs: LogMessagePayload[] = [];
 const bootstrapErrors = new Map<number, string>();
@@ -38,6 +39,29 @@ async function getTabSessionMap(): Promise<Record<string, string>> {
 
 async function setTabSessionMap(map: Record<string, string>): Promise<void> {
   await chrome.storage.session.set({ [TAB_SESSIONS_KEY]: map });
+}
+
+async function getTabSessionOrderMap(): Promise<Record<string, string[]>> {
+  const data = await chrome.storage.session.get(TAB_SESSION_ORDER_KEY);
+  return (data[TAB_SESSION_ORDER_KEY] as Record<string, string[]>) ?? {};
+}
+
+async function setTabSessionOrderMap(map: Record<string, string[]>): Promise<void> {
+  await chrome.storage.session.set({ [TAB_SESSION_ORDER_KEY]: map });
+}
+
+async function getOrCreateSessionOrderForTab(tabId: number): Promise<string[]> {
+  const key = String(tabId);
+  const [orderMap, sessionId] = await Promise.all([
+    getTabSessionOrderMap(),
+    getOrCreateSessionIdForTab(tabId),
+  ]);
+  const current = orderMap[key] ?? [];
+  if (current.includes(sessionId)) return current;
+  const next = [...current, sessionId];
+  orderMap[key] = next;
+  await setTabSessionOrderMap(orderMap);
+  return next;
 }
 
 async function getOrCreateSessionIdForTab(tabId: number): Promise<string> {
@@ -271,6 +295,7 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
             history,
             all: (data[HISTORY_KEY] as StoredPick[]) ?? [],
             sessionId: await getOrCreateSessionIdForTab(tab.id),
+            sessionOrder: await getOrCreateSessionOrderForTab(tab.id),
             tabId: tab.id,
           });
         } catch {
@@ -330,18 +355,35 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
         try {
           const tab = await resolveTargetTab(sender, msg);
           if (!tab?.id) {
-            sendResponse({ ok: false, history: [] });
+            sendResponse({ ok: false, history: [], all: [] });
             return;
           }
+          const data = await chrome.storage.local.get(HISTORY_KEY);
+          const all = (data[HISTORY_KEY] as StoredPick[]) ?? [];
           const sessionId = newSessionId();
-          const map = await getTabSessionMap();
+          const [map, orderMap] = await Promise.all([
+            getTabSessionMap(),
+            getTabSessionOrderMap(),
+          ]);
           map[String(tab.id)] = sessionId;
+          const order = orderMap[String(tab.id)] ?? [];
+          orderMap[String(tab.id)] = order.includes(sessionId)
+            ? order
+            : [...order, sessionId];
           await setTabSessionMap(map);
+          await setTabSessionOrderMap(orderMap);
           await chrome.storage.session.remove("lastPick");
-          sendResponse({ ok: true, history: [], sessionId, tabId: tab.id });
+          sendResponse({
+            ok: true,
+            history: [],
+            all,
+            sessionId,
+            sessionOrder: orderMap[String(tab.id)],
+            tabId: tab.id,
+          });
         } catch {
           try {
-            sendResponse({ ok: false, history: [] });
+            sendResponse({ ok: false, history: [], all: [] });
           } catch {
             // Receiver closed before session was cleared.
           }
@@ -441,8 +483,9 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
           const url = tab.url ?? "";
           const data = await chrome.storage.local.get(HISTORY_KEY);
           const all = (data[HISTORY_KEY] as StoredPick[]) ?? [];
+          const order = await getOrCreateSessionOrderForTab(tab.id);
           const sessionPicks = picksForSession(all, url, payload.sessionId);
-          if (!sessionPicks.length) {
+          if (!sessionPicks.length && !order.includes(payload.sessionId)) {
             sendResponse({ ok: false, error: "Session not found" });
             return;
           }
@@ -452,16 +495,20 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
           const last = sessionPicks[sessionPicks.length - 1];
           if (last) {
             await chrome.storage.session.set({ lastPick: last });
+          } else {
+            await chrome.storage.session.remove("lastPick");
           }
           sendResponse({
             ok: true,
             history: sessionPicks,
+            all,
             sessionId: payload.sessionId,
+            sessionOrder: order,
             tabId: tab.id,
           });
         } catch {
           try {
-            sendResponse({ ok: false, history: [] });
+            sendResponse({ ok: false, history: [], all: [] });
           } catch {
             /* receiver closed */
           }
@@ -486,25 +533,49 @@ chrome.runtime.onMessage.addListener((msg: GripMessage, sender, sendResponse) =>
             payload.sessionId,
           );
           await chrome.storage.local.set({ [HISTORY_KEY]: history });
-          const currentSessionId = await getOrCreateSessionIdForTab(tab.id);
+          const [currentSessionId, orderMap] = await Promise.all([
+            getOrCreateSessionIdForTab(tab.id),
+            getTabSessionOrderMap(),
+          ]);
+          const existingOrder = orderMap[String(tab.id)] ?? [];
+          const trimmedOrder = existingOrder.filter((id) => id !== payload.sessionId);
+          orderMap[String(tab.id)] = trimmedOrder;
+          await setTabSessionOrderMap(orderMap);
           let nextSessionId = currentSessionId;
           if (payload.sessionId === currentSessionId) {
-            nextSessionId = newSessionId();
-            const map = await getTabSessionMap();
+            nextSessionId = trimmedOrder[trimmedOrder.length - 1] ?? newSessionId();
+            const [map, refreshedOrderMap] = await Promise.all([
+              getTabSessionMap(),
+              getTabSessionOrderMap(),
+            ]);
             map[String(tab.id)] = nextSessionId;
+            const nextOrder = refreshedOrderMap[String(tab.id)] ?? [];
+            refreshedOrderMap[String(tab.id)] = nextOrder.includes(nextSessionId)
+              ? nextOrder
+              : [...nextOrder, nextSessionId];
             await setTabSessionMap(map);
-            await chrome.storage.session.remove("lastPick");
+            await setTabSessionOrderMap(refreshedOrderMap);
+            const sessionPicks = picksForSession(history, url, nextSessionId);
+            const last = sessionPicks[sessionPicks.length - 1];
+            if (last) {
+              await chrome.storage.session.set({ lastPick: last });
+            } else {
+              await chrome.storage.session.remove("lastPick");
+            }
           }
           const sessionHistory = await sessionPicksForTab(tab.id, url);
+          const finalOrder = await getOrCreateSessionOrderForTab(tab.id);
           sendResponse({
             ok: true,
             history: sessionHistory,
+            all: history,
             sessionId: nextSessionId,
+            sessionOrder: finalOrder,
             tabId: tab.id,
           });
         } catch {
           try {
-            sendResponse({ ok: false, history: [] });
+            sendResponse({ ok: false, history: [], all: [] });
           } catch {
             /* receiver closed */
           }
@@ -587,9 +658,21 @@ chrome.tabs.onActivated.addListener(({ tabId }) => {
 
 chrome.tabs.onRemoved.addListener((tabId) => {
   void (async () => {
-    const map = await getTabSessionMap();
-    if (!(String(tabId) in map)) return;
-    delete map[String(tabId)];
-    await setTabSessionMap(map);
+    const key = String(tabId);
+    const [map, orderMap] = await Promise.all([
+      getTabSessionMap(),
+      getTabSessionOrderMap(),
+    ]);
+    let dirty = false;
+    if (key in map) {
+      delete map[key];
+      dirty = true;
+    }
+    if (key in orderMap) {
+      delete orderMap[key];
+      dirty = true;
+    }
+    if (!dirty) return;
+    await Promise.all([setTabSessionMap(map), setTabSessionOrderMap(orderMap)]);
   })();
 });

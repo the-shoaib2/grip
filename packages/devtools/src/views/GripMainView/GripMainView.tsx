@@ -45,6 +45,7 @@ export function GripMainView({
   const {
     history,
     sessionGroups,
+    sessionOrder,
     activeSessionId,
     activePick,
     newSession,
@@ -140,6 +141,7 @@ export function GripMainView({
 
       <SessionTabBar
         groups={sessionGroups}
+        sessionOrder={sessionOrder}
         activeSessionId={activeSessionId}
         historyView={historyView}
         onSelectSession={(sessionId) => {

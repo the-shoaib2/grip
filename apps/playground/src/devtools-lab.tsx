@@ -83,6 +83,7 @@ function PickHistoryLabDemo({
   const {
     history,
     sessionGroups,
+    sessionOrder,
     activeSessionId,
     activePick,
     selectPick,
@@ -96,6 +97,7 @@ function PickHistoryLabDemo({
     <div class="lab-history-demo">
       <SessionTabBar
         groups={sessionGroups}
+        sessionOrder={sessionOrder}
         activeSessionId={activeSessionId}
         historyView={historyView}
         onSelectSession={(id) => {
