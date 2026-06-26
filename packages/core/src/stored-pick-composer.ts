@@ -1,4 +1,5 @@
 import { gripChipToken, parseInlineComment } from "./inline-composer.js";
+import type { ElementRect } from "./types/a11y.js";
 import type { StoredPick } from "./types/messages.js";
 
 export interface StoredPickChipRef {
@@ -9,9 +10,16 @@ export interface StoredPickChipRef {
   xpath?: string;
   text?: string;
   name?: string;
-  rect?: { top: number; left: number; width: number; height: number };
+  rect?: ElementRect;
   shadowDOM?: boolean;
   iframe?: string;
+}
+
+/** Maps stored pick chip refs for inline composer DOM (same shape, explicit conversion point). */
+export function storedPickChipsToInlineRefs(
+  chips: StoredPickChipRef[],
+): StoredPickChipRef[] {
+  return chips;
 }
 
 export function storedPickToChipRef(pick: StoredPick, chipId?: string): StoredPickChipRef {

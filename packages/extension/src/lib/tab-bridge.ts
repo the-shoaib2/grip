@@ -1,4 +1,7 @@
 import { GRIP_ERROR } from "./errors";
+import type { BootstrapFeature } from "./types";
+
+export type { BootstrapFeature } from "./types";
 
 function isMissingResponseError(message: string): boolean {
   return message.toLowerCase().includes("message port closed");
@@ -57,8 +60,6 @@ export async function waitForGrip(
   }
   return false;
 }
-
-export type BootstrapFeature = "picker" | "floating";
 
 export function sendToTabWithResponse<T>(
   tabId: number,

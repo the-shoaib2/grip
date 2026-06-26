@@ -6,15 +6,42 @@
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
-  "types": "./src/index.ts",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/the-shoaib2/grip.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/the-shoaib2/grip/tree/main/packages/core",
+  "bugs": {
+    "url": "https://github.com/the-shoaib2/grip/issues"
+  },
+  "keywords": [
+    "grip",
+    "mcp",
+    "model-context-protocol",
+    "accessibility",
+    "selector",
+    "browser-automation",
+    "chrome-devtools-protocol"
+  ],
   "exports": {
     ".": {
-      "types": "./src/index.ts",
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
+    "./mcp": {
+      "types": "./dist/mcp/index.d.ts",
+      "import": "./dist/mcp/index.js",
+      "require": "./dist/mcp/index.cjs"
+    },
     "./types": {
-      "types": "./src/types/index.ts",
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     }
@@ -22,13 +49,14 @@
   "imports": {
     "#types/*": "./src/types/*"
   },
-  "files": ["dist"],
+  "files": ["dist", "README.md"],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "prepublishOnly": "pnpm run build && pnpm run test"
   },
   "dependencies": {
     "@medv/finder": "^4.0.2"

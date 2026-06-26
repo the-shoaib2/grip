@@ -1,3 +1,5 @@
+import type { ElementRect } from "./a11y.js";
+
 export type GripMessageType =
   | "START_PICKER"
   | "STOP_PICKER"
@@ -26,7 +28,7 @@ export interface PickerElementPayload {
   xpath: string;
   role: string;
   name: string;
-  rect: { top: number; left: number; width: number; height: number };
+  rect: ElementRect;
   shadowDOM: boolean;
   iframe: string;
   innerText: string;

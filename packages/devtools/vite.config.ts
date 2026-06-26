@@ -20,6 +20,7 @@ export default defineConfig({
       entry: {
         index: path.resolve(rootDir, "src/index.ts"),
         floating: path.resolve(rootDir, "src/floating/index.ts"),
+        lib: path.resolve(rootDir, "src/lib/index.ts"),
       },
       formats: ["es"],
       fileName: (format, entryName) => `${entryName}.js`,

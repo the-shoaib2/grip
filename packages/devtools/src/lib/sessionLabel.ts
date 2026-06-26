@@ -1,5 +1,3 @@
-import { formatPickIndexLabel } from "@grip/core";
-
 export const DEFAULT_SESSION_TAB_TITLE = "New Element";
 
 export function formatSessionTabTitle(picks: { label: string }[]): string {
@@ -31,8 +29,4 @@ export function formatSessionGroupTitle(
     minute: "2-digit",
   });
   return `Session ${time} · ${count}`;
-}
-
-export function formatCurrentSessionPickLabel(index: number, total: number): string {
-  return `Current session · ${formatPickIndexLabel(index, total)}`;
 }

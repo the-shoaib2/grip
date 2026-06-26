@@ -1,3 +1,4 @@
+export { GRIP_ERROR, gripUserError, type GripErrorCode } from "./errors.js";
 export { createRefMap, RefMap } from "./ref-map.js";
 export {
   deepElementFromPoint,
@@ -8,6 +9,14 @@ export {
   generateXPath,
   pickTargetAtPoint,
 } from "./selector.js";
+export {
+  appendSessionToOrder,
+  dedupeSessionOrder,
+  mergeSessionOrder,
+  nextSessionIdAfterDelete,
+  reconcileSessionOrderAfterPickDelete,
+  removeSessionFromOrder,
+} from "./session-handlers/index.js";
 export {
   appendPickHistory,
   clearPicksForSession,
@@ -26,6 +35,7 @@ export {
 export {
   composerStateForStoredPick,
   formatPickIndexLabel,
+  storedPickChipsToInlineRefs,
   storedPickToChipRef,
   type StoredPickChipRef,
 } from "./stored-pick-composer.js";

@@ -16,6 +16,8 @@
     "paths": {
       "@grip/core": ["./packages/core/src/index.ts"],
       "@grip/devtools": ["./packages/devtools/src/index.ts"],
+      "@grip/devtools/lib": ["./packages/devtools/src/lib/index.ts"],
+      "@grip/devtools-lib": ["./packages/devtools/src/lib/index.ts"],
       "@grip/devtools-floating": ["./packages/devtools/src/floating/index.ts"],
       "@grip/devtools-css": ["./packages/devtools/src/styles/globals.css"]
     }

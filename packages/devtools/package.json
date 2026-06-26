@@ -28,6 +28,10 @@
       "types": "./src/index.ts",
       "import": "./dist/index.js"
     },
+    "./lib": {
+      "types": "./src/lib/index.ts",
+      "import": "./dist/lib.js"
+    },
     "./floating": {
       "types": "./src/floating/index.ts",
       "import": "./dist/floating.js"

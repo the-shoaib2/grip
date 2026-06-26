@@ -1,8 +1,9 @@
 import { isExtensionContextValid } from "@/lib/runtime";
+import type { BootstrapFeature } from "@/lib/types";
 import "@/content_scripts/bootstrap-floating";
 import "@/content_scripts/bootstrap-core";
 
-export type BootstrapFeature = "picker" | "floating";
+export type { BootstrapFeature } from "@/lib/types";
 
 /** Bootstraps are loaded eagerly so content-script dynamic imports never break on page origins. */
 export function ensureBootstrap(_feature: BootstrapFeature = "picker"): Promise<void> {

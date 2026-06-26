@@ -1,0 +1,554 @@
+/* ── Root layout shells (popup · panel · floating) ── */
+.grip-popup {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  overflow-x: hidden;
+  overflow-y: visible;
+  background: var(--grip-shell-bg);
+  color: var(--grip-fg);
+  padding: 0.75rem;
+  box-sizing: border-box;
+  box-shadow: var(--grip-shell-shadow);
+}
+
+.grip-popup:not(.grip-shell-devtools):not(.grip-shell-floating) {
+  width: 20rem;
+  min-width: 20rem;
+  max-width: 20rem;
+  min-height: 19rem;
+  flex-shrink: 0;
+  border-radius: var(--grip-shell-radius);
+  border: 1px solid var(--grip-shell-border);
+}
+
+.grip-shell-floating {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  min-height: 26rem;
+  border-radius: 0;
+  max-height: min(36rem, calc(100vh - 5rem));
+  overflow-x: hidden;
+  overflow-y: auto;
+  box-shadow: none;
+  border: none;
+  background: transparent;
+}
+
+.grip-shell-devtools {
+  position: relative;
+  width: 100%;
+  min-height: 100%;
+  overflow-y: auto;
+  border-radius: var(--grip-shell-radius);
+}
+
+.grip-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.grip-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.grip-brand-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  background: linear-gradient(120deg, #2563eb 0%, #7c3aed 55%, #db2777 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.grip-popup-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+.grip-session-tab-bar {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  min-width: 0;
+  margin-bottom: 0.5rem;
+}
+
+.grip-session-tab-scroll {
+  display: flex;
+  align-items: stretch;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.grip-session-tab-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.grip-session-tab {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  flex-shrink: 0;
+  min-width: 4.5rem;
+  max-width: 7rem;
+}
+
+.grip-session-tab-main {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex: 1;
+  min-width: 0;
+  padding: 0.375rem 0.5rem;
+  border: none;
+  background: transparent;
+  color: var(--grip-muted);
+  font-size: 11px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.grip-session-tab-icon {
+  flex-shrink: 0;
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background: var(--grip-accent);
+  opacity: 0.55;
+}
+
+.grip-session-tab-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grip-session-tab-close {
+  position: absolute;
+  top: 50%;
+  right: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  padding: 0;
+  border: none;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: var(--grip-muted);
+  transform: translateY(-50%);
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.grip-session-tab-close:hover {
+  background: var(--grip-surface-hover);
+  color: var(--grip-fg);
+}
+
+.grip-session-tab:has(.grip-session-tab-close) .grip-session-tab-main {
+  padding-right: 1.625rem;
+}
+
+.grip-session-tab:hover,
+.grip-session-tab:focus-within {
+  background: var(--grip-surface-hover);
+}
+
+.grip-session-tab-active {
+  background: var(--grip-surface);
+}
+
+.grip-session-tab-active .grip-session-tab-main {
+  color: var(--grip-fg);
+}
+
+.grip-session-tab-active .grip-session-tab-icon {
+  opacity: 1;
+}
+
+.grip-session-tab-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 0.0625rem;
+  padding-left: 0.125rem;
+}
+
+.grip-popup-toolbar-trail {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.grip-session-toolbar-label {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.grip-popup-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.0625rem;
+  flex-shrink: 0;
+}
+
+.grip-popup-error {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.375;
+  color: var(--grip-danger);
+}
+
+.grip-pick-error-banner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.375rem 0;
+}
+
+.grip-pick-error-banner .grip-popup-error {
+  flex: 1;
+  min-width: 0;
+}
+
+.grip-pick-error-banner .grip-btn-toolbar {
+  flex-shrink: 0;
+  padding-inline: 0.5rem;
+}
+
+.grip-popup-history {
+  min-width: 0;
+}
+
+.grip-session-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+  margin-bottom: 0.5rem;
+}
+
+.grip-picker-panel {
+  width: 100%;
+  min-width: 0;
+  padding: 0.625rem 0.75rem;
+  border-radius: 1rem;
+  background: var(--grip-surface);
+  border: 1px solid var(--grip-border);
+  box-sizing: border-box;
+}
+
+.grip-session-panel {
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.grip-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  min-width: 0;
+}
+
+.grip-picker-session {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: var(--grip-fg);
+}
+
+.grip-picker-hint {
+  flex-shrink: 1;
+  min-width: 0;
+  font-size: 10px;
+  color: var(--grip-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
+}
+
+.grip-picker-actions {
+  display: flex;
+  gap: 0.375rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.grip-picker-actions button,
+.grip-shell-dialog-actions button {
+  border-radius: 9999px;
+  border: none;
+  padding: 0.375rem 0.75rem;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.grip-picker-cancel {
+  background: var(--grip-surface-hover);
+  color: var(--grip-fg);
+}
+
+.grip-picker-cancel:hover:not(:disabled) {
+  background: var(--grip-border);
+}
+
+.grip-picker-cancel:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.grip-picker-save {
+  background: var(--grip-accent);
+  color: var(--grip-on-accent);
+}
+
+.grip-picker-save:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.grip-picker-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.grip-picker-panel .grip-context-field {
+  margin-bottom: 0;
+}
+
+.grip-session-panel .grip-context-composer {
+  min-height: 2.25rem;
+  line-height: 1.35;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.grip-session-panel .grip-context-composer-has-actions {
+  display: flex;
+  align-items: center;
+  padding: 0.375rem 1.75rem 0.375rem 0.625rem;
+}
+
+.grip-session-panel .grip-context-composer-has-actions .grip-inline-editor {
+  flex: 1;
+  min-width: 0;
+}
+
+.grip-session-panel .grip-inline-editor {
+  min-height: 0;
+  line-height: 1.35;
+}
+
+.grip-session-panel .grip-context-readonly .grip-inline-editor {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  column-gap: 0.125rem;
+}
+
+.grip-session-panel .grip-inline-chip {
+  margin-block: 0;
+  line-height: 1.35;
+  vertical-align: middle;
+}
+
+.grip-session-context-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.grip-session-context-preview {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+  border-radius: 0.75rem;
+}
+
+.grip-session-context-preview .grip-context-composer {
+  border: none;
+  box-shadow: none;
+  background: var(--grip-inset-bg);
+}
+
+.grip-context-composer-has-actions {
+  position: relative;
+  padding-right: 2rem;
+}
+
+.grip-session-panel .grip-context-composer-actions {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.grip-context-composer-actions {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.0625rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.grip-context-composer-has-actions:hover .grip-context-composer-actions,
+.grip-context-composer-has-actions:focus-within .grip-context-composer-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.grip-context-readonly .grip-context-composer {
+  cursor: default;
+}
+
+.grip-context-readonly .grip-inline-editor {
+  max-height: none;
+  overflow: visible;
+}
+
+.grip-context-editor-host {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.grip-context-editor-host .grip-context-composer {
+  min-height: 3.5rem;
+  max-height: 10rem;
+}
+
+.grip-context-editor-host .grip-inline-editor {
+  min-height: 2.7em;
+}
+
+.grip-shell-dialog-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  border-radius: inherit;
+  background: rgba(9, 9, 11, 0.45);
+  backdrop-filter: blur(2px);
+}
+
+.grip-shell-dialog {
+  width: min(100%, 17.5rem);
+  padding: 0.875rem;
+  border-radius: 0.875rem;
+  border: 1px solid var(--grip-shell-border);
+  background: var(--grip-shell-bg);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+  box-sizing: border-box;
+}
+
+.grip-shell-dialog-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--grip-fg);
+}
+
+.grip-shell-dialog-body {
+  margin-bottom: 0.75rem;
+}
+
+.grip-shell-dialog-lead {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--grip-muted);
+}
+
+.grip-shell-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.375rem;
+}
+
+.grip-pick-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.grip-pick-switcher-btn {
+  min-width: 1.75rem;
+  height: 1.75rem;
+  padding: 0 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid var(--grip-border);
+  background: var(--grip-surface);
+  color: var(--grip-muted);
+  font-size: 11px;
+  font-weight: 600;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  cursor: pointer;
+}
+
+.grip-pick-switcher-btn:hover {
+  border-color: var(--grip-accent);
+  color: var(--grip-fg);
+}
+
+.grip-pick-switcher-active {
+  border-color: var(--grip-accent);
+  background: var(--grip-accent-soft);
+  color: var(--grip-accent-fg);
+}
+
+.grip-empty-state {
+  margin: 0;
+  padding: 0.5rem 0;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.375;
+  color: var(--grip-muted);
+}
+

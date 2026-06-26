@@ -1,0 +1,130 @@
+:host,
+:root {
+  color-scheme: light dark;
+
+  --grip-bg: #ffffff;
+  --grip-fg: #18181b;
+  --grip-muted: #71717a;
+  --grip-surface: #f4f4f5;
+  --grip-surface-hover: #e4e4e7;
+  --grip-inset-bg: #f4f4f5;
+  --grip-border: #e4e4e7;
+  --grip-border-strong: #d4d4d8;
+  --grip-shell-bg: #ffffff;
+  --grip-shell-border: #e4e4e7;
+  --grip-shell-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), 0 12px 28px rgba(0, 0, 0, 0.14);
+  --grip-shell-radius: 0.75rem;
+  --grip-focus-ring: #93c5fd;
+  --grip-accent: #2563eb;
+  --grip-accent-hover: #1d4ed8;
+  --grip-accent-soft: #dbeafe;
+  --grip-accent-fg: #1d4ed8;
+  --grip-on-accent: #ffffff;
+  --grip-chip-bg: #e4e4e7;
+  --grip-chip-fg: #3f3f46;
+  --grip-chip-active-bg: #bfdbfe;
+  --grip-chip-active-fg: #1e3a8a;
+  --grip-scrollbar-thumb: #c4c4cc;
+  --grip-scrollbar-thumb-hover: #a1a1aa;
+  --grip-tooltip-bg: #18181b;
+  --grip-tooltip-fg: #fafafa;
+  --grip-tooltip-border: #a1a1aa;
+  --grip-success: #059669;
+  --grip-success-soft: #d1fae5;
+  --grip-warning: #d97706;
+  --grip-warning-soft: #fef3c7;
+  --grip-danger: #dc2626;
+  --grip-danger-soft: #fee2e2;
+}
+
+:root[data-color-scheme="dark"],
+:host([data-color-scheme="dark"]) {
+  --grip-bg: #09090b;
+  --grip-fg: #fafafa;
+  --grip-muted: #a1a1aa;
+  --grip-surface: #18181b;
+  --grip-surface-hover: #27272a;
+  --grip-inset-bg: #18181b;
+  --grip-border: #3f3f46;
+  --grip-border-strong: #52525b;
+  --grip-shell-bg: #09090b;
+  --grip-shell-border: #3f3f46;
+  --grip-shell-shadow: 0 4px 12px rgba(0, 0, 0, 0.42), 0 16px 36px rgba(0, 0, 0, 0.52);
+  --grip-focus-ring: #1d4ed8;
+  --grip-accent: #3b82f6;
+  --grip-accent-hover: #60a5fa;
+  --grip-accent-soft: #1e3a5f;
+  --grip-accent-fg: #93c5fd;
+  --grip-on-accent: #ffffff;
+  --grip-chip-bg: #27272a;
+  --grip-chip-fg: #d4d4d8;
+  --grip-chip-active-bg: #1e40af;
+  --grip-chip-active-fg: #dbeafe;
+  --grip-scrollbar-thumb: #52525b;
+  --grip-scrollbar-thumb-hover: #71717a;
+  --grip-tooltip-bg: #fafafa;
+  --grip-tooltip-fg: #18181b;
+  --grip-tooltip-border: #71717a;
+  --grip-success: #34d399;
+  --grip-success-soft: #064e3b;
+  --grip-warning: #fbbf24;
+  --grip-warning-soft: #78350f;
+  --grip-danger: #f87171;
+  --grip-danger-soft: #7f1d1d;
+}
+
+@media (prefers-color-scheme: dark) {
+  :host:not([data-color-scheme="light"]),
+  :root:not([data-color-scheme="light"]) {
+    --grip-bg: #09090b;
+    --grip-fg: #fafafa;
+    --grip-muted: #a1a1aa;
+    --grip-surface: #18181b;
+    --grip-surface-hover: #27272a;
+    --grip-inset-bg: #18181b;
+    --grip-border: #3f3f46;
+    --grip-border-strong: #52525b;
+    --grip-shell-bg: #09090b;
+    --grip-shell-border: #3f3f46;
+    --grip-shell-shadow: 0 4px 12px rgba(0, 0, 0, 0.42), 0 16px 36px rgba(0, 0, 0, 0.52);
+    --grip-focus-ring: #1d4ed8;
+    --grip-accent: #3b82f6;
+    --grip-accent-hover: #60a5fa;
+    --grip-accent-soft: #1e3a5f;
+    --grip-accent-fg: #93c5fd;
+    --grip-on-accent: #ffffff;
+    --grip-chip-bg: #27272a;
+    --grip-chip-fg: #d4d4d8;
+    --grip-chip-active-bg: #1e40af;
+    --grip-chip-active-fg: #dbeafe;
+    --grip-scrollbar-thumb: #52525b;
+    --grip-scrollbar-thumb-hover: #71717a;
+    --grip-tooltip-bg: #fafafa;
+    --grip-tooltip-fg: #18181b;
+    --grip-tooltip-border: #71717a;
+    --grip-success: #34d399;
+    --grip-success-soft: #064e3b;
+    --grip-warning: #fbbf24;
+    --grip-warning-soft: #78350f;
+    --grip-danger: #f87171;
+    --grip-danger-soft: #7f1d1d;
+  }
+}
+
+html,
+body {
+  overflow-x: hidden;
+  background: var(--grip-bg);
+  color: var(--grip-fg);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+[data-grip-mount] {
+  color: var(--grip-fg);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  overflow-x: hidden;
+}

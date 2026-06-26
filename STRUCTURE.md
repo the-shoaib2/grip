@@ -3,10 +3,11 @@
 ```
 grip/
 ├── apps/
-│   └── docs/                    # @grip/docs — Next.js site
+│   ├── docs/                    # @grip/docs — Next.js site
+│   └── playground/              # @grip/playground — Vite UI lab + fixture
 ├── packages/
 │   ├── core/                    # @grip/core — shared TS library
-│   ├── devtools/                # @grip/devtools — shared Preact UI
+│   ├── devtools/                # @grip/devtools — shared Preact UI + DOM lib
 │   ├── extension/               # @grip/extension — Chrome MV3
 │   └── mcp-server/              # grip-mcp — Go MCP server
 ├── scripts/
@@ -21,8 +22,9 @@ grip/
 |-------|-------------|---------|
 | `@grip/core` | `packages/core/src/index.ts` | extension, devtools, docs |
 | `@grip/devtools` | `packages/devtools/src/index.ts` | extension popup, DevTools panel |
+| `@grip/devtools/lib` | `packages/devtools/src/lib/index.ts` | formal package export (picker, inline composer DOM) |
+| `@grip/devtools-lib` | `packages/devtools/src/lib/index.ts` | extension content scripts (legacy alias) |
 | `@grip/devtools-floating` | `packages/devtools/src/floating/index.ts` | extension content script |
-| `@grip/devtools-lib` | `packages/devtools/src/lib/index.ts` | extension picker (no CSS side effects) |
 | `@grip/devtools-css` | `packages/devtools/src/styles/globals.css` | extension popup/panel |
 | `@/*` | `packages/extension/src/*` | extension only |
 | `#types/*` | `packages/core/src/types/*` | core internal (package imports) |
@@ -31,10 +33,11 @@ grip/
 
 ```ts
 import { safeSendMessage } from "@/lib";
+import { createPicker } from "@grip/devtools/lib";
 import { mountFloatingGrip } from "@grip/devtools-floating";
 import { GripPopupView, chromeRuntime } from "@grip/devtools";
 import "@grip/devtools-css";
-import { formatMcpPrompt } from "@grip/core";
+import { formatMcpPrompt, gripUserError } from "@grip/core";
 ```
 
 ### DevTools (`@grip/devtools`)
@@ -42,14 +45,14 @@ import { formatMcpPrompt } from "@grip/core";
 ```ts
 import { GripPanelView, GripRuntimeProvider, chromeRuntime } from "@grip/devtools";
 import { mountFloatingGrip } from "@grip/devtools-floating";
+import { createPicker, bindEditorClipboard } from "@grip/devtools/lib";
 ```
 
 ### Core
 
 ```ts
 import type { StoredPick } from "./types/messages.js";
-import type { A11ySnapshot } from "./types/a11y.js";
-// public: import { ... } from "@grip/core";
+import { mergeSessionOrder, gripUserError } from "@grip/core";
 ```
 
 ### MCP server (Go module paths)
@@ -66,15 +69,18 @@ import "github.com/the-shoaib2/grip/packages/mcp-server/internal/tools"
 ```
 packages/core/src/
 ├── index.ts                 # public barrel
+├── errors.ts                # GRIP_ERROR, gripUserError
 ├── types/
 │   ├── index.ts             # type barrel
-│   ├── a11y.ts              # snapshot, CDP, selector types
+│   ├── a11y.ts              # snapshot, CDP, ElementRect
 │   └── messages.ts          # extension IPC + StoredPick
+├── session-handlers/        # pure session-order helpers
 ├── selector.ts
 ├── ref-map.ts
 ├── snapshot.ts
 ├── serializer.ts
 ├── pick-history.ts
+├── stored-pick-composer.ts
 ├── mcp-prompt.ts
 └── *.test.ts
 ```
@@ -88,21 +94,32 @@ Shared Preact UI for popup, Chrome DevTools panel, and in-page floating FAB pane
 ```
 packages/devtools/src/
 ├── index.ts                 # views, components, runtime, store
-├── components/              # CommentField, PickHistoryList, …
-├── views/
-│   ├── GripPanelView.tsx    # full panel (pick, history, copy, logs)
-│   ├── GripPopupView.tsx    # compact toolbar popup
-│   └── LogPanel.tsx
+├── components/              # one folder per component
+├── views/                   # GripPanelView, GripPopupView, LogPanel
+├── hooks/
+│   └── usePickHistory/      # context, state, actions (split modules)
 ├── floating/
-│   ├── mountFloatingGrip.tsx  # shadow DOM FAB + panel
-│   └── FloatingShell.tsx
+│   └── mountFloatingGrip/   # shadow DOM FAB + panel
 ├── runtime/
-│   ├── chrome-runtime.ts    # GripRuntime adapter for chrome.*
+│   ├── createBaseGripRuntime.ts
+│   ├── chrome-runtime/      # GripRuntime adapter
+│   ├── devtools-runtime/
 │   └── context.tsx          # GripRuntimeProvider
 ├── store/gripStore.ts
-├── lib/                     # inlineComposerDom, chipTooltip
-└── styles/globals.css
+├── lib/
+│   ├── picker/              # shared content-script picker engine
+│   ├── inlineComposerDom/   # chips, selection, clipboard, keyboard
+│   └── chipTooltip/
+└── styles/
+    ├── globals.css          # @import chain entry
+    ├── tailwind.css
+    ├── tokens.css
+    ├── base.css
+    ├── views/               # shell.css, panel.css
+    └── components/          # controls.css, composer.css
 ```
+
+Package exports: `.` (main UI), `./lib` (DOM + picker), `./floating`, `./style.css`.
 
 ---
 
@@ -112,16 +129,20 @@ Thin Chrome MV3 shell — mounts `@grip/devtools` views.
 
 ```
 packages/extension/src/
-├── lib/                     # tab-bridge, errors; re-exports devtools lib
+├── lib/                     # tab-bridge, types, errors; re-exports devtools lib
 ├── content_scripts/
-│   ├── picker.ts            # vanilla DOM overlay (unchanged)
+│   ├── picker.ts            # thin adapter over @grip/devtools/lib createPicker
 │   ├── floating-mount.ts    # FAB + full panel via @grip/devtools-floating
 │   ├── navigator.ts
 │   └── log-injector.ts
 ├── service_worker/
-│   └── background.ts
-├── popup/popup.tsx          # mounts GripPopupView
-└── devtools/panel/panel.tsx # mounts GripPanelView
+│   ├── background.ts        # bootstrap + listener registration
+│   ├── messageRouter.ts
+│   ├── handlers/            # picker, history, session, panel
+│   ├── storage/             # pick history + session maps
+│   └── tabLifecycle.ts
+├── popup/popup.tsx
+└── devtools/panel/panel.tsx
 ```
 
 ---
@@ -132,12 +153,9 @@ packages/extension/src/
 packages/mcp-server/
 ├── cmd/grip-mcp/main.go
 ├── internal/
-│   ├── cdp/                 # chromedp session + listeners
-│   ├── server/              # MCP bootstrap
+│   ├── cdp/
+│   ├── server/
 │   └── tools/               # one file per MCP tool
-│       ├── register.go
-│       ├── snapshot.go
-│       └── ...
 └── go.mod
 ```
 
@@ -146,7 +164,8 @@ packages/mcp-server/
 ## Data flow
 
 ```
-Browser page → content_scripts (picker + floating panel) → @grip/core → service_worker
+Browser page → content_scripts (picker + floating panel) → @grip/devtools/lib → @grip/core → service_worker
 Popup / DevTools panel → @grip/devtools → service_worker
+Playground → mockRuntime (shared session handlers) + @grip/devtools
 AI agent → grip-mcp (internal/tools) → chromedp → Chrome :9222
 ```

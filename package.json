@@ -14,6 +14,8 @@
     "test": "turbo test",
     "typecheck": "turbo typecheck",
     "build:mcp": "bash scripts/build-mcp.sh",
+    "publish:core": "pnpm --filter @grip/core build && pnpm --filter @grip/core test && npm publish --access public -C packages/core",
+    "publish:core:dry-run": "npm publish --access public --dry-run -C packages/core",
     "smoke": "pnpm --filter @grip/core test",
     "test:e2e": "playwright test -c e2e/playwright.config.mjs",
     "test:e2e:ui": "playwright test -c e2e/playwright.config.mjs --ui"

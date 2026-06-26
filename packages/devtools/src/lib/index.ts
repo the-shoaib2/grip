@@ -6,6 +6,21 @@ export {
   type ChipTooltipMeta,
 } from "./chipTooltip";
 export {
+  createPicker,
+  buildPickerStyleSheet,
+  syncPendingFromStoredChips,
+  toPendingPick,
+  TRAY_ID as PICKER_TRAY_ID,
+  type Picker,
+  type PickerFeatures,
+  type PickerHost,
+  type PickerPhase,
+  type PickerStartOptions,
+  type PickerStopOptions,
+  type OpenContextEditorOptions,
+  type PendingPick,
+} from "./picker";
+export {
   chipMetaFromElement,
   createChipElement,
   createDefaultChip,

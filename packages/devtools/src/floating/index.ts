@@ -6,8 +6,3 @@ export {
   type FloatingGripController,
 } from "./mountFloatingGrip";
 export { FloatingShell } from "./FloatingShell";
-export {
-  clearTrayHandoff,
-  recordTrayHandoff,
-  shouldRestoreTray,
-} from "./trayHandoff";

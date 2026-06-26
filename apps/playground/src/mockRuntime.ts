@@ -1,8 +1,11 @@
 import {
   appendPickHistory,
+  appendSessionToOrder,
   newSessionId,
   lastPickInSession,
+  nextSessionIdAfterDelete,
   removePickFromHistory,
+  removeSessionFromOrder,
   clearPicksForSession,
   toStoredPick,
   updatePickInHistory,
@@ -138,10 +141,10 @@ export const playgroundRuntime: GripRuntime = {
         tabSessionIds = { ...tabSessionIds, [String(MOCK_TAB_ID)]: sessionId };
         tabSessionOrderIds = {
           ...tabSessionOrderIds,
-          [String(MOCK_TAB_ID)]: [
-            ...(tabSessionOrderIds[String(MOCK_TAB_ID)] ?? []),
+          [String(MOCK_TAB_ID)]: appendSessionToOrder(
+            tabSessionOrderIds[String(MOCK_TAB_ID)] ?? [],
             sessionId,
-          ],
+          ),
         };
         lastPick = undefined;
         emitStorage("session", {
@@ -272,23 +275,23 @@ export const playgroundRuntime: GripRuntime = {
           payload.sessionId,
         );
         if (sessionId === payload.sessionId) {
-          const remainingOrder = (tabSessionOrderIds[String(MOCK_TAB_ID)] ?? []).filter(
-            (id) => id !== payload.sessionId,
+          const remainingOrder = removeSessionFromOrder(
+            tabSessionOrderIds[String(MOCK_TAB_ID)] ?? [],
+            payload.sessionId,
           );
-          sessionId = remainingOrder[remainingOrder.length - 1] ?? newSessionId();
+          sessionId = nextSessionIdAfterDelete(remainingOrder, newSessionId);
           tabSessionOrderIds = {
             ...tabSessionOrderIds,
-            [String(MOCK_TAB_ID)]: remainingOrder.includes(sessionId)
-              ? remainingOrder
-              : [...remainingOrder, sessionId],
+            [String(MOCK_TAB_ID)]: appendSessionToOrder(remainingOrder, sessionId),
           };
           tabSessionIds = { ...tabSessionIds, [String(MOCK_TAB_ID)]: sessionId };
           lastPick = undefined;
         } else {
           tabSessionOrderIds = {
             ...tabSessionOrderIds,
-            [String(MOCK_TAB_ID)]: (tabSessionOrderIds[String(MOCK_TAB_ID)] ?? []).filter(
-              (id) => id !== payload.sessionId,
+            [String(MOCK_TAB_ID)]: removeSessionFromOrder(
+              tabSessionOrderIds[String(MOCK_TAB_ID)] ?? [],
+              payload.sessionId,
             ),
           };
         }

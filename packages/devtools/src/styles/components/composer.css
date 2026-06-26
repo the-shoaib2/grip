@@ -1,0 +1,192 @@
+.grip-inline-chip {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: baseline;
+  margin: 0 0.125rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  background: var(--grip-chip-bg);
+  color: var(--grip-chip-fg);
+  font-size: 10px;
+  font-weight: 500;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  line-height: 1.35;
+  user-select: all;
+  -webkit-user-select: all;
+  cursor: default;
+  white-space: nowrap;
+}
+
+.grip-inline-chip-active {
+  background: var(--grip-chip-active-bg);
+  color: var(--grip-chip-active-fg);
+}
+
+.grip-chip-tooltip {
+  position: fixed;
+  z-index: 2147483647;
+  pointer-events: none;
+  max-width: min(240px, calc(100vw - 1rem));
+  padding: 0.5rem 0.625rem;
+  border-radius: 0.625rem;
+  background: var(--grip-tooltip-bg);
+  border: 1px solid var(--grip-border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--grip-tooltip-fg);
+}
+
+.grip-chip-tooltip-head {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-bottom: 0.125rem;
+}
+
+.grip-chip-tooltip-tag {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  color: var(--grip-accent-fg);
+}
+
+.grip-chip-tooltip-role {
+  font-size: 9px;
+  color: var(--grip-muted);
+  padding: 0.0625rem 0.375rem;
+  border-radius: 9999px;
+  background: var(--grip-surface-hover);
+}
+
+.grip-chip-tooltip-text {
+  margin: 0.125rem 0 0;
+  color: var(--grip-fg);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grip-chip-tooltip-css {
+  margin: 0.25rem 0 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 9px;
+  color: var(--grip-muted);
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
+
+.grip-context-inline {
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.grip-context-badges,
+.grip-el-badges {
+  display: inline;
+}
+
+.grip-context-badges:empty {
+  display: none;
+}
+
+.grip-el-badge,
+.grip-pending-chip {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: baseline;
+  margin: 0 0.25rem 0.125rem 0;
+}
+
+.grip-input-grow {
+  display: inline-grid;
+  vertical-align: baseline;
+  min-width: 4.5rem;
+  max-width: 100%;
+  margin: 0 0 0.125rem 0;
+}
+
+.grip-input-grow::after {
+  content: attr(data-value);
+  white-space: pre-wrap;
+  visibility: hidden;
+  grid-area: 1 / 1;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  padding: 1px 0;
+  min-height: 1.35em;
+}
+
+.grip-input-grow textarea.grip-context-input,
+.grip-input-grow .grip-context-input {
+  grid-area: 1 / 1;
+  width: 100%;
+  min-width: 4.5rem;
+  min-height: 1.35em;
+  max-height: 6rem;
+  overflow: hidden;
+  field-sizing: content;
+}
+
+.grip-context-input {
+  line-height: 1.45;
+  border: none;
+  border-radius: 0;
+  padding: 1px 0;
+  margin: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.grip-textarea.grip-context-input,
+.grip-textarea.grip-context-input:hover,
+.grip-textarea.grip-context-input:focus {
+  border: none;
+  box-shadow: none;
+  outline: none;
+}
+
+.grip-log-error {
+  color: var(--grip-danger);
+}
+
+.grip-log-warn {
+  color: var(--grip-warning);
+}
+
+.grip-tooltip-wrap {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.grip-tooltip {
+  pointer-events: none;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: min(16rem, calc(100vw - 1rem));
+  border-radius: 9999px;
+  border: none;
+  background: var(--grip-tooltip-bg);
+  color: var(--grip-tooltip-fg);
+  padding: 0.1875rem 0.625rem;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+}
+
+.grip-tooltip-portal {
+  position: fixed;
+  z-index: 2147483646;
+}
+
+.grip-tooltip-wide {
+  width: auto;
+  max-width: min(16rem, calc(100vw - 1rem));
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  border-radius: 9999px;
+  text-align: left;
+}

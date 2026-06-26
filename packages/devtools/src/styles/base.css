@@ -1,0 +1,41 @@
+/* System-like thin scrollbars */
+.grip-scrollbar,
+.grip-pick-list,
+.grip-log-list {
+  scrollbar-width: thin;
+  scrollbar-color: var(--grip-scrollbar-thumb) transparent;
+}
+
+.grip-scrollbar::-webkit-scrollbar,
+.grip-pick-list::-webkit-scrollbar,
+.grip-log-list::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.grip-scrollbar::-webkit-scrollbar-track,
+.grip-pick-list::-webkit-scrollbar-track,
+.grip-log-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.grip-scrollbar::-webkit-scrollbar-thumb,
+.grip-pick-list::-webkit-scrollbar-thumb,
+.grip-log-list::-webkit-scrollbar-thumb {
+  background-color: var(--grip-scrollbar-thumb);
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+
+.grip-scrollbar::-webkit-scrollbar-thumb:hover,
+.grip-pick-list::-webkit-scrollbar-thumb:hover,
+.grip-log-list::-webkit-scrollbar-thumb:hover {
+  background-color: var(--grip-scrollbar-thumb-hover);
+}
+
+.grip-scrollbar::-webkit-scrollbar-corner,
+.grip-pick-list::-webkit-scrollbar-corner,
+.grip-log-list::-webkit-scrollbar-corner {
+  background: transparent;
+}
