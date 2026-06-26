@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -252,7 +253,22 @@ func (s *Session) Snapshot(frameID string) (yaml string, title string, url strin
 		if name != "" {
 			label = ` "` + name + `"`
 		}
-		lines = append(lines, fmt.Sprintf("%s- %s%s%s", indent, role, label, ref))
+		propStr := ""
+		if node.Properties != nil {
+			var propParts []string
+			for _, p := range node.Properties {
+				if p.Value != nil && len(p.Value.Value) > 0 {
+					val := axString(p.Value)
+					if val != "" && val != "false" {
+						propParts = append(propParts, fmt.Sprintf("%s=%q", p.Name.String(), val))
+					}
+				}
+			}
+			if len(propParts) > 0 {
+				propStr = " [" + strings.Join(propParts, ", ") + "]"
+			}
+		}
+		lines = append(lines, fmt.Sprintf("%s- %s%s%s%s", indent, role, label, ref, propStr))
 		for _, c := range node.ChildIDs {
 			walk(byID[c], depth+1)
 		}
@@ -442,7 +458,7 @@ func (s *Session) ReadNetwork(urlFilter, method string, status int64) []HarEntry
 	defer s.mu.RUnlock()
 	var out []HarEntry
 	for _, e := range s.network {
-		if urlFilter != "" && !contains(e.URL, urlFilter) {
+		if urlFilter != "" && !strings.Contains(e.URL, urlFilter) {
 			continue
 		}
 		if method != "" && e.Method != method {
@@ -454,19 +470,6 @@ func (s *Session) ReadNetwork(urlFilter, method string, status int64) []HarEntry
 		out = append(out, e)
 	}
 	return out
-}
-
-func contains(s, sub string) bool {
-	return len(sub) == 0 || (len(s) >= len(sub) && (s == sub || len(s) > 0 && stringContains(s, sub)))
-}
-
-func stringContains(s, sub string) bool {
-	for i := 0; i+len(sub) <= len(s); i++ {
-		if s[i:i+len(sub)] == sub {
-			return true
-		}
-	}
-	return false
 }
 
 func (s *Session) AddLog(level, message, stack string) {
@@ -490,7 +493,7 @@ func (s *Session) AddNetwork(entry HarEntry) {
 }
 
 // PickElement runs in-page picker script and returns element info.
-func (s *Session) PickElement(ctx context.Context) (map[string]interface{}, error) {
+func (s *Session) PickElement(_ context.Context) (map[string]interface{}, error) {
 	pickerJS := `(function(){
 		return new Promise((resolve, reject) => {
 			const HOVER_ID='__grip_picker_hover__';

@@ -13,7 +13,10 @@ export type {
   GripMessageType,
   LogMessagePayload,
   NetworkMessagePayload,
+  OpenContextEditorPayload,
   PickerElementPayload,
   PickerStartPayload,
+  ShowTrayPayload,
   StoredPick,
 } from "./messages.js";
+

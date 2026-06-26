@@ -4,7 +4,14 @@ const levels = ["log", "info", "warn", "error", "debug"] as const;
 
 function forward(level: string, args: unknown[]): void {
   const message = args
-    .map((a) => (typeof a === "string" ? a : JSON.stringify(a)))
+    .map((a) => {
+      if (typeof a === "string") return a;
+      try {
+        return JSON.stringify(a);
+      } catch {
+        return String(a);
+      }
+    })
     .join(" ");
   safeSendMessage({
     type: "LOG_ENTRY",

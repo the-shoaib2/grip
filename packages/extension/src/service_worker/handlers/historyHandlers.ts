@@ -54,20 +54,27 @@ export function handleNavigateToPick(
 ): boolean {
   const pick = msg.payload as StoredPick;
   void (async () => {
-    const tab = await resolveTargetTab(sender, msg);
-    if (!tab?.id) return;
     try {
+      const tab = await resolveTargetTab(sender, msg);
+      if (!tab?.id) {
+        sendResponse({ ok: true });
+        return;
+      }
       await sendToTabWhenReady(tab.id, {
         type: "NAVIGATE_TO_PICK",
         payload: pick,
       });
+      await chrome.storage.session.set({ lastPick: pick });
+      sendResponse({ ok: true });
     } catch {
-      /* ignore navigation errors */
+      try {
+        sendResponse({ ok: true });
+      } catch {
+        /* ignore channel closed */
+      }
     }
-    await chrome.storage.session.set({ lastPick: pick });
   })();
-  sendResponse({ ok: true });
-  return false;
+  return true;
 }
 
 export function handleUpdatePickComment(

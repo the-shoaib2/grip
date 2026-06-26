@@ -23,6 +23,19 @@ function chromeExecutable() {
       /* try next */
     }
   }
+  // macOS application bundles
+  const macPaths = [
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "/Applications/Chromium.app/Contents/MacOS/Chromium",
+  ];
+  for (const p of macPaths) {
+    try {
+      execSync(`test -x "${p}"`);
+      return p;
+    } catch {
+      /* try next */
+    }
+  }
   throw new Error("Chrome/Chromium not found for e2e tests");
 }
 

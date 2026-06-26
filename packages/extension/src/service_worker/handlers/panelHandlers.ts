@@ -78,7 +78,7 @@ export function handleOpenContextEditor(
     }
   })();
   sendResponse({ ok: true });
-  return true;
+  return false;
 }
 
 export function handleLogEntry(

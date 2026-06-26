@@ -15,6 +15,10 @@ elif command -v chromium >/dev/null 2>&1; then
   CHROME=chromium
 elif command -v chromium-browser >/dev/null 2>&1; then
   CHROME=chromium-browser
+elif [[ -x "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" ]]; then
+  CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+elif [[ -x "/Applications/Chromium.app/Contents/MacOS/Chromium" ]]; then
+  CHROME="/Applications/Chromium.app/Contents/MacOS/Chromium"
 else
   echo "Chrome/Chromium not found. Install Chrome and retry." >&2
   exit 1

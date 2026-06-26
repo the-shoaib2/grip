@@ -2,7 +2,9 @@ const FLASH_ID = "__grip_flash__";
 
 export function queryDeep(css: string, root: Document | ShadowRoot = document): Element | null {
   const parts = css.split(" >>> ").map((p) => p.trim());
-  let el: Element | null = root.querySelector(parts[0] ?? "");
+  const first = parts[0];
+  if (!first) return null;
+  let el: Element | null = root.querySelector(first);
   for (let i = 1; i < parts.length && el; i++) {
     const part = parts[i];
     if (!part) break;

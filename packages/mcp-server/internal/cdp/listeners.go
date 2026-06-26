@@ -1,6 +1,7 @@
 package cdp
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -69,7 +70,12 @@ func formatConsoleArgs(args []*runtime.RemoteObject) string {
 	parts := make([]string, 0, len(args))
 	for _, a := range args {
 		if a.Value != nil {
-			parts = append(parts, fmt.Sprint(a.Value))
+			var s string
+			if err := json.Unmarshal(a.Value, &s); err == nil {
+				parts = append(parts, s)
+			} else {
+				parts = append(parts, string(a.Value))
+			}
 		} else if a.Description != "" {
 			parts = append(parts, a.Description)
 		}

@@ -62,9 +62,11 @@ export function clearPicksForUrl(history: StoredPick[], url: string): StoredPick
 export function picksForUrl(history: StoredPick[], url: string): StoredPick[] {
   try {
     const u = new URL(url);
+    const pageKey = u.origin + u.pathname;
     return history.filter((h) => {
       try {
-        return new URL(h.url).origin + new URL(h.url).pathname === u.origin + u.pathname;
+        const hu = new URL(h.url);
+        return hu.origin + hu.pathname === pageKey;
       } catch {
         return h.url === url;
       }
