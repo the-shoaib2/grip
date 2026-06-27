@@ -43,10 +43,21 @@ async function resolveExtensionId(port) {
   }
   throw new Error("Could not resolve Grip extension id from Chrome debug targets");
 }
+/**
+ * @typedef {object} ExtensionWorkerFixtures
+ * @property {import('@playwright/test').Browser} extensionBrowser
+ * @property {import('@playwright/test').BrowserContext} extensionContext
+ * @property {string} extensionId
+ */
 
+/** @type {import('@playwright/test').TestType<
+ *   import('@playwright/test').PlaywrightTestArgs & import('@playwright/test').PlaywrightTestOptions,
+ *   import('@playwright/test').PlaywrightWorkerArgs & import('@playwright/test').PlaywrightWorkerOptions & ExtensionWorkerFixtures
+ * >}
+ */
 export const test = base.extend({
   extensionBrowser: [
-    async ({}, use) => {
+    async (_, use) => {
       const port = debugPort();
       const browser = await chromium.connectOverCDP(`http://127.0.0.1:${port}`);
       await use(browser);
@@ -65,7 +76,7 @@ export const test = base.extend({
   ],
 
   extensionId: [
-    async ({}, use) => {
+    async (_, use) => {
       await use(await resolveExtensionId(debugPort()));
     },
     { scope: "worker" },

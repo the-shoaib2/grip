@@ -15,7 +15,7 @@ export default defineConfig({
   globalTeardown: path.join(e2eDir, "global-teardown.mjs"),
   reporter: [["list"], ["html", { open: "never" }]],
   use: {
-    trace: "on-first-retry",
+    trace: "on",
     screenshot: "only-on-failure",
   },
   webServer: {

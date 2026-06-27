@@ -1,3 +1,4 @@
+console.log("GRIP CONTENT SCRIPT INJECTED");
 import { isExtensionContextValid } from "@/lib/runtime";
 import type { BootstrapFeature } from "@/lib/types";
 import "@/content_scripts/bootstrap-floating";
@@ -7,6 +8,7 @@ export type { BootstrapFeature } from "@/lib/types";
 
 /** Bootstraps are loaded eagerly so content-script dynamic imports never break on page origins. */
 export function ensureBootstrap(_feature: BootstrapFeature = "picker"): Promise<void> {
+  void _feature;
   return Promise.resolve();
 }
 

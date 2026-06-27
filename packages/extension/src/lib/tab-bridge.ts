@@ -252,7 +252,7 @@ export async function registerGripContentScripts(): Promise<void> {
     {
       id: "grip-inject",
       js: [loaderFile],
-      matches: ["http://*/*", "https://*/*"],
+      matches: ["http://*/*", "https://*/*", "http://localhost/*", "http://127.0.0.1/*"],
       runAt: "document_start",
       allFrames: false,
     },

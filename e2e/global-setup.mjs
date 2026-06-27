@@ -1,5 +1,5 @@
 import { execSync, spawn } from "node:child_process";
-import { readFileSync, rmSync, writeFileSync, unlinkSync } from "node:fs";
+import { readFileSync, rmSync, writeFileSync, unlinkSync, openSync } from "node:fs";
 import { createConnection } from "node:net";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -73,7 +73,7 @@ function pickExtensionId(targets) {
 }
 
 export default async function globalSetup() {
-  execSync("pnpm build --filter @grip/extension", {
+  execSync("npx turbo build --filter @grip/extension --force", {
     cwd: root,
     stdio: "inherit",
   });
@@ -99,7 +99,7 @@ export default async function globalSetup() {
     ],
     {
       detached: true,
-      stdio: "ignore",
+      stdio: ["ignore", openSync("/tmp/chrome-e2e.log", "w"), openSync("/tmp/chrome-e2e.log", "w")],
     },
   );
   chrome.unref();

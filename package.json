@@ -25,6 +25,7 @@
     "@eslint/js": "^9.15.0",
     "@playwright/test": "^1.45.0",
     "eslint": "^9.0.0",
+    "globals": "^17.7.0",
     "playwright": "^1.45.0",
     "prettier": "^3.3.3",
     "turbo": "^2.3.3",

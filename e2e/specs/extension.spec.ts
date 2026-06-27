@@ -13,8 +13,20 @@ import {
 test.describe.configure({ mode: "serial" });
 
 test.describe("Grip floating panel", () => {
-  test("injects FAB on http pages", async ({ extensionContext }) => {
+  test("injects FAB on http pages", async ({ extensionContext, extensionId }) => {
+    console.log("RESOLVED EXTENSION ID:", extensionId);
+    extensionContext.on("serviceworker", (worker) => {
+      console.log("SERVICE WORKER SPAWNED:", worker.url());
+      worker.on("console", (msg) => console.log("SW LOG:", msg.type(), msg.text()));
+    });
+    for (const worker of extensionContext.serviceWorkers()) {
+      console.log("ACTIVE SERVICE WORKER FOUND:", worker.url());
+      worker.on("console", (msg) => console.log("SW LOG:", msg.type(), msg.text()));
+    }
     const page = await extensionContext.newPage();
+    page.on("console", (msg) => console.log("PAGE LOG:", msg.type(), msg.text()));
+    page.on("pageerror", (err) => console.log("PAGE ERROR:", err));
+    page.on("requestfailed", (req) => console.log("REQUEST FAILED:", req.url(), req.failure()?.errorText));
     await page.goto(TEST_PAGE_URL);
     await expect(gripTrayToggle(page)).toBeVisible({ timeout: 20_000 });
     await page.close();
