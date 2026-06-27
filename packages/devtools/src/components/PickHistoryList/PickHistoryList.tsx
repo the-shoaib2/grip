@@ -1,4 +1,9 @@
-import { formatAllMcpPrompts, formatMcpPrompt, type StoredPick } from "@grip/core";
+import {
+  formatAllMcpPrompts,
+  formatMcpPrompt,
+  formatStoredPickCommentForDisplay,
+  type StoredPick,
+} from "@grip/core";
 import { CopyButton } from "../CopyButton";
 import { ElementTagBadge } from "../ElementTagBadge";
 import { SessionLabel } from "../SessionLabel";
@@ -68,6 +73,7 @@ export function PickHistoryList({
       <ul className="grip-pick-list">
         {history.map((pick) => {
           const selected = activeId === pick.id;
+          const commentPreview = formatStoredPickCommentForDisplay(pick, history);
 
           return (
             <li
@@ -76,7 +82,7 @@ export function PickHistoryList({
             >
               <ElementTagBadge tagName={pick.tagName} role={pick.role} className="grip-shrink-0" />
               <Tooltip
-                text={pick.comment?.trim() || `Go to ${pick.label}`}
+                text={commentPreview || `Go to ${pick.label}`}
                 position="top"
                 wide
                 className="grip-grow"
@@ -89,8 +95,8 @@ export function PickHistoryList({
                   onClick={() => onSelect(pick)}
                 >
                   <span className="grip-pick-item-label">{pick.label}</span>
-                  {pick.comment?.trim() ? (
-                    <span className="grip-pick-item-comment">{pick.comment.trim()}</span>
+                  {commentPreview ? (
+                    <span className="grip-pick-item-comment">{commentPreview}</span>
                   ) : null}
                 </button>
               </Tooltip>

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   composerStateForStoredPick,
   formatPickIndexLabel,
+  formatStoredPickCommentForDisplay,
 } from "./stored-pick-composer.js";
 import type { StoredPick } from "./types/messages.js";
 
@@ -60,11 +61,30 @@ describe("stored-pick-composer", () => {
     expect(state.comment).toBe("[[grip:h1]][[grip:b1]][[grip:b2]]");
   });
 
-  it("composerStateForStoredPick strips duplicate tag label from plain MCP comment", () => {
-    const main = { ...pick, id: "main-1", tagName: "main", comment: "<main>" };
-    const state = composerStateForStoredPick(main);
-    expect(state.chips).toHaveLength(1);
-    expect(state.chips[0]?.tag).toBe("main");
-    expect(state.comment).toBe("[[grip:main-1]]");
+  it("composerStateForStoredPick maps ephemeral chip ids to session picks by order", () => {
+    const labelPick = { ...pick, id: "p1", tagName: "label", css: ".l1" };
+    const buttonPick = { ...pick, id: "p2", tagName: "button", css: ".btn" };
+    const session = [labelPick, buttonPick];
+    const state = composerStateForStoredPick(
+      { ...labelPick, comment: "[[grip:chip-a]][[grip:chip-b]]" },
+      session,
+    );
+    expect(state.chips[0]?.tag).toBe("label");
+    expect(state.chips[1]?.tag).toBe("button");
+  });
+
+  it("formatStoredPickCommentForDisplay hides duplicate chip-only comments", () => {
+    const labelPick = { ...pick, id: "p1", tagName: "label", comment: "[[grip:p1]][[grip:p2]]" };
+    const session = [
+      labelPick,
+      { ...pick, id: "p2", tagName: "label", comment: "[[grip:p1]][[grip:p2]]" },
+    ];
+    expect(formatStoredPickCommentForDisplay(labelPick, session)).toBe("");
+    expect(
+      formatStoredPickCommentForDisplay(
+        { ...labelPick, comment: "[[grip:p1]] fix spacing" },
+        session,
+      ),
+    ).toBe("fix spacing");
   });
 });

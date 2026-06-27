@@ -110,6 +110,17 @@ export function formatInlineCommentForMcp(
   });
 }
 
+/** Replace ephemeral chip ids in a comment with stable stored pick ids. */
+export function remapCommentChipIds(
+  comment: string,
+  mapping: Record<string, string>,
+): string {
+  return comment.replace(GRIP_CHIP_TOKEN_RE, (_, chipId: string) => {
+    const nextId = mapping[chipId];
+    return gripChipToken(nextId ?? chipId);
+  });
+}
+
 /** Bind ephemeral picker chip ids to the stored pick id (single-chip saves). */
 export function normalizePickCommentForStorage(
   comment: string | undefined,

@@ -20,10 +20,11 @@ const host: PickerHost = {
   setPickerActive(active) {
     void chrome.storage.session.set({ pickerActive: active });
   },
-  sendPick(el, comment) {
+  sendPick(el, comment, options) {
     const payload = {
       ...describeElement(el),
       comment: comment.trim() || undefined,
+      storedPickId: options?.storedPickId,
     };
     safeSendMessage({ type: "PICKER_ELEMENT_SELECTED", payload });
   },

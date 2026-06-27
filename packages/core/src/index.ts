@@ -35,6 +35,7 @@ export {
 export {
   composerStateForStoredPick,
   formatPickIndexLabel,
+  formatStoredPickCommentForDisplay,
   storedPickChipsToInlineRefs,
   storedPickToChipRef,
   type StoredPickChipRef,
@@ -54,6 +55,7 @@ export {
   formatInlineCommentForMcp,
   gripChipToken,
   normalizePickCommentForStorage,
+  remapCommentChipIds,
   GRIP_CHIP_TOKEN_RE,
   newChipId,
   parseInlineComment,

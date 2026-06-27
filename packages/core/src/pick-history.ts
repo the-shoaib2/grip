@@ -21,9 +21,10 @@ export function toStoredPick(
   pageTitle: string,
   sessionId: string,
 ): StoredPick {
+  const { storedPickId, ...payload } = pick;
   return {
-    ...pick,
-    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    ...payload,
+    id: storedPickId ?? `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     sessionId,
     url,
     pageTitle,

@@ -3,6 +3,7 @@ import {
   deepElementFromPoint,
   elementFromComposedEvent,
   elementsAtPoint,
+  remapCommentChipIds,
   storedPickChipsToInlineRefs,
   type OpenContextEditorPayload,
 } from "@grip/core";
@@ -837,9 +838,21 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
       ? (comment || composerPrompt).trim()
       : comment.trim();
 
-    for (const item of pendingElements) {
-      host.sendPick(item.el, raw);
-    }
+    const storedPickIds = pendingElements.map(
+      (_, index) =>
+        `${Date.now() + index}-${Math.random().toString(36).slice(2, 8)}`,
+    );
+    const chipToPickId: Record<string, string> = {};
+    pendingElements.forEach((item, index) => {
+      chipToPickId[item.chipId] = storedPickIds[index]!;
+    });
+    const remappedComment = raw ? remapCommentChipIds(raw, chipToPickId) : raw;
+
+    pendingElements.forEach((item, index) => {
+      host.sendPick(item.el, remappedComment, {
+        storedPickId: storedPickIds[index],
+      });
+    });
 
     host.showTray();
     pendingElements = [];
@@ -992,7 +1005,6 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     }
     if (phase !== "hover" && phase !== "context" && phase !== "edit") return;
     if (isGripChrome(e.target)) return;
-    if (phase === "edit") return;
 
     e.preventDefault();
     e.stopPropagation();
@@ -1016,7 +1028,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
       return;
     }
 
-    if (phase === "context") {
+    if (phase === "context" || phase === "edit") {
       const editor = getComposerEditor();
       const keepTyping = document.activeElement === editor;
       addToPending(el, { keepTyping });

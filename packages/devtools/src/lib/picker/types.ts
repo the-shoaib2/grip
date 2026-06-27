@@ -20,7 +20,7 @@ export interface PendingPick {
 export interface PickerHost {
   isContextValid(): boolean;
   setPickerActive(active: boolean): void;
-  sendPick(el: Element, comment: string): void;
+  sendPick(el: Element, comment: string, options?: { storedPickId?: string }): void;
   updatePickComment(pickId: string, comment: string | undefined): void;
   showTray(options?: { restore?: boolean }): void;
   hideTray?(): void;

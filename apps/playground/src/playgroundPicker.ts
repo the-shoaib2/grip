@@ -44,11 +44,12 @@ const host: PickerHost = {
   hideTray() {
     hideTrayForHandoff();
   },
-  sendPick(el, comment) {
+  sendPick(el, comment, options) {
     if (!onSaveCallback) return;
     onSaveCallback({
       ...describeElement(el),
       comment: comment.trim() || undefined,
+      storedPickId: options?.storedPickId,
     });
   },
   updatePickComment() {},

@@ -1,8 +1,10 @@
 import {
   chipDisplayLabel,
+  formatInlineCommentForMcp,
   gripChipToken,
   parseInlineComment,
 } from "./inline-composer.js";
+import { picksForSession } from "./pick-history.js";
 import type { ElementRect } from "./types/a11y.js";
 import type { FrameworkContext } from "./types/framework.js";
 import type { StoredPick } from "./types/messages.js";
@@ -132,13 +134,54 @@ export function composerStateForStoredPick(
     };
   }
 
+  const sessionOrdered = picksForSession(
+    sessionPicks.length ? sessionPicks : [pick],
+    pick.url,
+    pick.sessionId,
+  );
+
   return {
-    chips: chipIds.map((id) => {
-      const matched = lookup.get(id) ?? pick;
+    chips: chipIds.map((id, index) => {
+      const matched = lookup.get(id) ?? sessionOrdered[index] ?? pick;
       return storedPickToChipRef(matched, id);
     }),
     comment,
   };
+}
+
+/** Human-readable comment preview for pick lists (tokens → `<tag>` labels). */
+export function formatStoredPickCommentForDisplay(
+  pick: StoredPick,
+  sessionPicks: StoredPick[] = [],
+): string {
+  const comment = pick.comment?.trim();
+  if (!comment) return "";
+
+  const textOnly = parseInlineComment(comment)
+    .filter((part): part is { type: "text"; value: string } => part.type === "text")
+    .map((part) => part.value.trim())
+    .filter(Boolean)
+    .join(" ");
+  if (textOnly) return textOnly;
+
+  const chipOnly = !parseInlineComment(comment).some(
+    (part) => part.type === "text" && part.value.trim(),
+  );
+  const session = sessionPicks.length ? sessionPicks : [pick];
+  if (chipOnly && session.filter((entry) => entry.comment === comment).length > 1) {
+    return "";
+  }
+
+  const { chips } = composerStateForStoredPick(pick, session);
+  const chipIds = parseInlineComment(comment)
+    .filter((part): part is { type: "chip"; id: string } => part.type === "chip")
+    .map((part) => part.id);
+  const tagsById: Record<string, string> = {};
+  chipIds.forEach((id, index) => {
+    tagsById[id] = chips[index]?.tag ?? pick.tagName.toLowerCase();
+  });
+
+  return formatInlineCommentForMcp(comment, tagsById);
 }
 
 export function formatPickIndexLabel(index: number, total: number): string {

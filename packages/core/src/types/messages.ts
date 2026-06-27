@@ -38,6 +38,8 @@ export interface PickerElementPayload {
   innerText: string;
   /** User context note — included in MCP prompt for the agent. */
   comment?: string;
+  /** When saving, use this id instead of generating a new one (multi-pick sessions). */
+  storedPickId?: string;
   /** Dev-build framework source hint (React Fiber, Vue __file, etc.). */
   frameworkContext?: FrameworkContext | null;
 }
