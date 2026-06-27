@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from "preact/hooks";
 import type { ComponentChildren } from "preact";
-import { ContextBadgeRegistry } from "@grip/core";
+import { ContextBadgeRegistry, type ContextBadge } from "@grip/core";
 import {
   bindBadgeEditor,
   bindChipTooltipRoot,
@@ -14,7 +14,7 @@ import {
   serializeEditor,
   setEditorFromComment,
   type InlineChipRef,
-} from "@lib";
+} from "@devtools/lib";
 
 interface ContextFieldProps {
   value: string;
@@ -122,7 +122,7 @@ export function ContextField({
       onChange: onInput,
       onChipRemoved: () => onInput(),
       onReplaceRequest,
-      onJumpToSource: (badge) => {
+      onJumpToSource: (badge: ContextBadge | undefined) => {
         if (badge?.filePath) onJumpToSource?.(badge.filePath, badge.lineStart);
       },
     });

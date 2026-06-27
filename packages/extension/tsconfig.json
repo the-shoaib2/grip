@@ -10,6 +10,7 @@
       "@/*": ["./src/*"],
       "@grip/core": ["../core/src/index.ts"],
       "@grip/devtools": ["../devtools/src/index.ts"],
+      "@devtools/*": ["../devtools/src/*"],
       "@grip/devtools-lib": ["../devtools/src/lib/index.ts"],
       "@grip/devtools-floating": ["../devtools/src/floating/index.ts"]
     },

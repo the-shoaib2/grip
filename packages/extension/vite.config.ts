@@ -18,6 +18,7 @@ export default defineConfig({
         "../devtools/src/floating/index.ts",
       ),
       "@grip/devtools": path.resolve(rootDir, "../devtools/src/index.ts"),
+      "@devtools": path.resolve(rootDir, "../devtools/src"),
       "@grip/devtools-css": path.resolve(
         rootDir,
         "../devtools/src/styles/globals.css",
