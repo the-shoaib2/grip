@@ -15,6 +15,7 @@ export const CONTEXT_SAVE_ID = "__grip_context_save__";
 
 export const VIEWPORT_PAD = 8;
 export const PANEL_GAP = 8;
+export const CONTEXT_PANEL_MOTION_MS = 280;
 
 export const COMPOSER_PLACEHOLDER =
   "Select elements on the page, then describe what you need…";

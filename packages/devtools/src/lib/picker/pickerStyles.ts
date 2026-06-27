@@ -133,6 +133,35 @@ export function buildPickerStyleSheet(features: PickerFeatures): string {
       box-shadow:var(--grip-shell-shadow);
       font:12px system-ui,sans-serif;
       color:var(--grip-fg);
+      opacity:0;
+      transform:translateY(8px) scale(0.97);
+      transform-origin:top left;
+      transition:
+        opacity var(--grip-motion-duration-fast) var(--grip-motion-ease),
+        transform var(--grip-motion-duration) var(--grip-motion-ease-out),
+        box-shadow var(--grip-motion-duration-fast) var(--grip-motion-ease);
+    }
+    .grip-context-panel-measuring{
+      opacity:0!important;
+      transform:none!important;
+      transition:none!important;
+    }
+    .grip-context-panel-open{
+      opacity:1;
+      transform:translateY(0) scale(1);
+    }
+    .grip-context-panel-closing{
+      opacity:0;
+      transform:translateY(6px) scale(0.97);
+      pointer-events:none;
+    }
+    @media (prefers-reduced-motion:reduce){
+      .grip-context-panel{
+        transition:opacity 0.01ms!important;
+        transform:none!important;
+      }
+      .grip-context-panel-open{opacity:1}
+      .grip-context-panel-closing{opacity:0}
     }
     .grip-picker-header{
       display:flex;

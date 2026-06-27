@@ -31,6 +31,7 @@ import {
   CONTEXT_COMPOSER_ID,
   CONTEXT_EDITOR_ID,
   CONTEXT_PANEL_ID,
+  CONTEXT_PANEL_MOTION_MS,
   CONTEXT_SAVE_ID,
   COMPOSER_PLACEHOLDER,
   HINT_ID,
@@ -58,6 +59,10 @@ function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(value, max));
 }
 
+const CONTEXT_PANEL_OPEN_CLASS = "grip-context-panel-open";
+const CONTEXT_PANEL_CLOSING_CLASS = "grip-context-panel-closing";
+const CONTEXT_PANEL_MEASURING_CLASS = "grip-context-panel-measuring";
+
 export function createPicker(host: PickerHost, features: PickerFeatures): Picker {
   let phase: PickerPhase = "idle";
   let cycleIndex = 0;
@@ -77,6 +82,10 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
   let editingPickId: string | null = null;
   let onEditSaveCallback: ((pickId: string, comment: string) => void) | null = null;
   let onEditEndCallback: (() => void) | null = null;
+  let lastPositionedElement: Element | null = null;
+  let followPanelRaf = 0;
+  let pendingFollowTarget: Element | null = null;
+  let pendingFollowForce = false;
 
   function getComposerEditor(): HTMLElement | null {
     return document.getElementById(CONTEXT_EDITOR_ID);
@@ -290,14 +299,132 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
       resumeHover();
       return;
     }
+    const previousActive = pendingElements[activePendingIndex]?.el;
     activePendingIndex = Math.min(activePendingIndex, pendingElements.length - 1);
-    highlight(pendingElements[activePendingIndex]!.el);
+    const nextActive = pendingElements[activePendingIndex]!.el;
+    highlight(nextActive);
     updatePendingUI();
+    if (nextActive !== previousActive) {
+      requestContextPanelFollow(nextActive);
+    }
   }
 
   function removePendingByChipId(chipId: string): void {
     const index = pendingElements.findIndex((item) => item.chipId === chipId);
     if (index >= 0) removePendingAt(index);
+  }
+
+  function animateContextPanelOpen(panel: HTMLElement): void {
+    panel.classList.remove(
+      CONTEXT_PANEL_CLOSING_CLASS,
+      CONTEXT_PANEL_MEASURING_CLASS,
+    );
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        panel.classList.add(CONTEXT_PANEL_OPEN_CLASS);
+      });
+    });
+  }
+
+  function dismissContextPanel(onClosed?: () => void): void {
+    cancelPendingContextPanelFollow();
+    lastPositionedElement = null;
+    const panel = document.getElementById(CONTEXT_PANEL_ID);
+    if (!panel || panel.style.display === "none") {
+      onClosed?.();
+      return;
+    }
+    if (panel.dataset.gripClosing === "1") return;
+    panel.dataset.gripClosing = "1";
+
+    let finished = false;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      panel.removeEventListener("transitionend", onTransitionEnd);
+      window.clearTimeout(fallbackId);
+      delete panel.dataset.gripClosing;
+      panel.classList.remove(
+        CONTEXT_PANEL_OPEN_CLASS,
+        CONTEXT_PANEL_CLOSING_CLASS,
+        CONTEXT_PANEL_MEASURING_CLASS,
+      );
+      panel.remove();
+      onClosed?.();
+    };
+
+    const onTransitionEnd = (e: TransitionEvent) => {
+      if (e.target !== panel || e.propertyName !== "opacity") return;
+      finish();
+    };
+
+    panel.classList.remove(CONTEXT_PANEL_OPEN_CLASS);
+    panel.classList.add(CONTEXT_PANEL_CLOSING_CLASS);
+    panel.addEventListener("transitionend", onTransitionEnd);
+    const fallbackId = window.setTimeout(finish, CONTEXT_PANEL_MOTION_MS + 40);
+  }
+
+  function cancelPendingContextPanelFollow(): void {
+    if (followPanelRaf) {
+      cancelAnimationFrame(followPanelRaf);
+      followPanelRaf = 0;
+    }
+    pendingFollowTarget = null;
+    pendingFollowForce = false;
+  }
+
+  function computeContextPanelCoords(
+    anchor: DOMRect,
+    width: number,
+    height: number,
+  ): { top: number; left: number } {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    const belowTop = anchor.bottom + PANEL_GAP;
+    const aboveTop = anchor.top - height - PANEL_GAP;
+    const fitsBelow = belowTop + height <= vh - VIEWPORT_PAD;
+    const fitsAbove = aboveTop >= VIEWPORT_PAD;
+
+    let top: number;
+    if (fitsBelow) {
+      top = belowTop;
+    } else if (fitsAbove) {
+      top = aboveTop;
+    } else {
+      top = clamp(aboveTop, VIEWPORT_PAD, vh - VIEWPORT_PAD - height);
+    }
+
+    let left = anchor.left + (anchor.width - width) / 2;
+    left = clamp(left, VIEWPORT_PAD, vw - VIEWPORT_PAD - width);
+
+    return { top, left };
+  }
+
+  function readContextPanelSize(panel: HTMLElement, wasOpen: boolean): {
+    width: number;
+    height: number;
+  } {
+    if (wasOpen) {
+      return {
+        width: panel.offsetWidth,
+        height: panel.offsetHeight,
+      };
+    }
+
+    panel.classList.add(CONTEXT_PANEL_MEASURING_CLASS);
+    panel.style.display = "block";
+    panel.style.visibility = "hidden";
+    panel.style.top = "-9999px";
+    panel.style.left = "0";
+
+    const size = {
+      width: panel.offsetWidth,
+      height: panel.offsetHeight,
+    };
+
+    panel.classList.remove(CONTEXT_PANEL_MEASURING_CLASS);
+    return size;
   }
 
   function positionContextPanel(
@@ -307,60 +434,79 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
   ): void {
     if (panelManuallyPlaced && !force) return;
 
-    const anchor = el.getBoundingClientRect();
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-
+    const wasOpen = panel.classList.contains(CONTEXT_PANEL_OPEN_CLASS);
     panel.style.display = "block";
-    panel.style.visibility = "hidden";
-    panel.style.transform = "none";
-    panel.style.bottom = "auto";
-    panel.style.right = "auto";
-    panel.style.left = "0";
-    panel.style.top = "0";
+    panel.classList.remove(CONTEXT_PANEL_CLOSING_CLASS);
 
-    const panelRect = panel.getBoundingClientRect();
-    const width = panelRect.width;
-    const height = panelRect.height;
-
-    let top = anchor.bottom + PANEL_GAP;
-    if (top + height > vh - VIEWPORT_PAD) {
-      top = anchor.top - height - PANEL_GAP;
-    }
-    top = clamp(top, VIEWPORT_PAD, vh - VIEWPORT_PAD - height);
-
-    let left = anchor.left;
-    if (left + width > vw - VIEWPORT_PAD) {
-      left = anchor.right - width;
-    }
-    left = clamp(left, VIEWPORT_PAD, vw - VIEWPORT_PAD - width);
+    const anchor = el.getBoundingClientRect();
+    const size = readContextPanelSize(panel, wasOpen);
+    const { top, left } = computeContextPanelCoords(anchor, size.width, size.height);
 
     panel.style.top = `${top}px`;
     panel.style.left = `${left}px`;
     panel.style.visibility = "visible";
+    panel.classList.remove(CONTEXT_PANEL_MEASURING_CLASS);
+
+    if (!wasOpen) {
+      animateContextPanelOpen(panel);
+    } else {
+      panel.classList.add(CONTEXT_PANEL_OPEN_CLASS);
+    }
+
+    lastPositionedElement = el;
+  }
+
+  function requestContextPanelFollow(el: Element, force = false): void {
+    if (panelManuallyPlaced && !force) return;
+    pendingFollowTarget = el;
+    pendingFollowForce = pendingFollowForce || force;
+    if (followPanelRaf) return;
+
+    followPanelRaf = requestAnimationFrame(() => {
+      followPanelRaf = 0;
+      const target = pendingFollowTarget;
+      const shouldForce = pendingFollowForce;
+      pendingFollowTarget = null;
+      pendingFollowForce = false;
+      if (!target) return;
+      if (!shouldForce && target === lastPositionedElement) return;
+
+      const panel = document.getElementById(CONTEXT_PANEL_ID);
+      if (!panel) return;
+      positionContextPanel(panel, target, shouldForce);
+    });
   }
 
   function centerContextPanel(panel: HTMLElement): void {
-    panel.style.display = "block";
-    panel.style.visibility = "hidden";
-    panel.style.left = "0";
-    panel.style.top = "0";
+    const wasOpen = panel.classList.contains(CONTEXT_PANEL_OPEN_CLASS);
 
-    const panelRect = panel.getBoundingClientRect();
+    panel.style.display = "block";
+    panel.classList.remove(CONTEXT_PANEL_CLOSING_CLASS);
+
+    const size = readContextPanelSize(panel, wasOpen);
     const top = clamp(
-      window.innerHeight / 2 - panelRect.height / 2,
+      window.innerHeight / 2 - size.height / 2,
       VIEWPORT_PAD,
-      window.innerHeight - VIEWPORT_PAD - panelRect.height,
+      window.innerHeight - VIEWPORT_PAD - size.height,
     );
     const left = clamp(
-      window.innerWidth / 2 - panelRect.width / 2,
+      window.innerWidth / 2 - size.width / 2,
       VIEWPORT_PAD,
-      window.innerWidth - VIEWPORT_PAD - panelRect.width,
+      window.innerWidth - VIEWPORT_PAD - size.width,
     );
 
     panel.style.top = `${top}px`;
     panel.style.left = `${left}px`;
     panel.style.visibility = "visible";
+    panel.classList.remove(CONTEXT_PANEL_MEASURING_CLASS);
+
+    if (!wasOpen) {
+      animateContextPanelOpen(panel);
+    } else {
+      panel.classList.add(CONTEXT_PANEL_OPEN_CLASS);
+    }
+
+    lastPositionedElement = null;
   }
 
   function setupPanelDrag(panel: HTMLElement): void {
@@ -481,9 +627,14 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
       const chipId = chip.dataset.gripChip;
       const index = pendingElements.findIndex((item) => item.chipId === chipId);
       if (index < 0 || !pendingElements[index]) return;
+      const previousActive = pendingElements[activePendingIndex]?.el;
       activePendingIndex = index;
-      highlight(pendingElements[index]!.el);
+      const nextActive = pendingElements[index]!.el;
+      highlight(nextActive);
       updatePendingUI();
+      if (nextActive !== previousActive) {
+        requestContextPanelFollow(nextActive);
+      }
     });
 
     if (features.composerPromptSnapshot) {
@@ -503,9 +654,14 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
       onReplaceRequest: (chipId) => {
         const index = pendingElements.findIndex((item) => item.chipId === chipId);
         if (index >= 0) {
+          const previousActive = pendingElements[activePendingIndex]?.el;
           activePendingIndex = index;
-          highlight(pendingElements[index]!.el);
+          const nextActive = pendingElements[index]!.el;
+          highlight(nextActive);
           updatePendingUI();
+          if (nextActive !== previousActive) {
+            requestContextPanelFollow(nextActive);
+          }
         }
       },
     });
@@ -589,6 +745,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
   }
 
   function addToPending(el: Element, options?: { keepTyping?: boolean }): void {
+    const previousActive = pendingElements[activePendingIndex]?.el;
     const next = toPendingPick(el);
     const existingIndex = pendingElements.findIndex((item) => item.css === next.css);
     const editor = getComposerEditor();
@@ -612,9 +769,14 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     highlight(el);
     updatePendingUI();
 
-    const panel = document.getElementById(CONTEXT_PANEL_ID);
-    if (panel && !panelManuallyPlaced && !options?.keepTyping) {
-      positionContextPanel(panel, el);
+    const activeEl = pendingElements[activePendingIndex]?.el;
+    if (
+      activeEl &&
+      !panelManuallyPlaced &&
+      !options?.keepTyping &&
+      activeEl !== previousActive
+    ) {
+      requestContextPanelFollow(activeEl);
     }
 
     if (editor && !options?.keepTyping && inserted) {
@@ -657,6 +819,9 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
   function resumeHover(): void {
     hidePickerHint();
     document.getElementById(SELECTED_ID)?.remove();
+    cancelPendingContextPanelFollow();
+    lastPositionedElement = null;
+    dismissContextPanel();
     pendingElements = [];
     activePendingIndex = 0;
     composerPrompt = "";
@@ -676,18 +841,19 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
       host.sendPick(item.el, raw);
     }
 
-    document.getElementById(CONTEXT_PANEL_ID)?.remove();
     host.showTray();
     pendingElements = [];
     activePendingIndex = 0;
     composerPrompt = "";
 
-    if (continueSession) {
-      resumeHover();
-      return;
-    }
-    host.onSessionEnd?.();
-    cleanup();
+    dismissContextPanel(() => {
+      if (continueSession) {
+        resumeHover();
+        return;
+      }
+      host.onSessionEnd?.();
+      cleanup();
+    });
   }
 
   function finishEdit(comment: string): void {
@@ -733,7 +899,6 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     onEditSaveCallback = null;
     onEditEndCallback?.();
     onEditEndCallback = null;
-    document.getElementById(CONTEXT_PANEL_ID)?.remove();
     document.getElementById(SELECTED_ID)?.remove();
     document.getElementById(STYLE_ID)?.remove();
     document.removeEventListener("mousemove", onMove, true);
@@ -746,11 +911,14 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     panelDrag = null;
     phase = "idle";
     host.setPickerActive(false);
-    if (features.panelDrag) {
-      host.showTray();
-    } else {
-      host.showTray({ restore: false });
-    }
+
+    dismissContextPanel(() => {
+      if (features.panelDrag) {
+        host.showTray();
+      } else {
+        host.showTray({ restore: false });
+      }
+    });
   }
 
   function revealContextPanel(panel: HTMLElement): void {
@@ -781,27 +949,20 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     }
 
     addToPending(el);
-    panel.style.display = "block";
 
     bindPanelActions(panel);
 
     hideTrayIfSupported();
 
-    if (!panelManuallyPlaced) {
-      positionContextPanel(panel, el, true);
-    }
-
     if (isNewPanel && !panelManuallyPlaced) {
-      const reposition = () => {
+      const onViewportChange = () => {
         const active = pendingElements[activePendingIndex]?.el;
         if (phase === "context" && active && !panelManuallyPlaced) {
-          highlight(active);
-          updatePendingHighlights();
-          positionContextPanel(panel, active);
+          requestContextPanelFollow(active, true);
         }
       };
-      window.addEventListener("resize", reposition, { once: true });
-      window.addEventListener("scroll", reposition, { once: true, capture: true });
+      window.addEventListener("resize", onViewportChange, { once: true });
+      window.addEventListener("scroll", onViewportChange, { once: true, capture: true });
     }
 
     if (!features.panelDrag) {
@@ -914,6 +1075,8 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
   }
 
   function removeDom(): void {
+    cancelPendingContextPanelFollow();
+    lastPositionedElement = null;
     document.getElementById(HOVER_ID)?.remove();
     document.getElementById(STYLE_ID)?.remove();
     document.getElementById(CONTEXT_PANEL_ID)?.remove();
@@ -1006,6 +1169,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
       panel.style.visibility = "visible";
       panel.style.top = `${Math.max(VIEWPORT_PAD, window.innerHeight / 2 - 80)}px`;
       panel.style.left = `${Math.max(VIEWPORT_PAD, window.innerWidth / 2 - 160)}px`;
+      animateContextPanelOpen(panel);
     } else {
       centerContextPanel(panel);
     }
