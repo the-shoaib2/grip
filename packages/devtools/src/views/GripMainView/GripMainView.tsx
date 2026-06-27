@@ -1,4 +1,4 @@
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import type { LogMessagePayload, PickerElementPayload, StoredPick } from "@grip/core";
 import {
   GripBrand,
@@ -53,9 +53,20 @@ export function GripMainView({
     selectPick,
     savePickComment,
     deleteSession,
+    refresh,
   } = usePickHistory();
   const isPickerActive = usePickerActive(runtime);
   const { pickError, startPicker, stopPicker } = useStartPicker(runtime);
+  const wasPickerActive = useRef(false);
+  const displayPick =
+    activePick ?? (history.length > 0 ? history[history.length - 1] : null);
+
+  useEffect(() => {
+    if (wasPickerActive.current && !isPickerActive) {
+      void refresh();
+    }
+    wasPickerActive.current = isPickerActive;
+  }, [isPickerActive, refresh]);
 
   useEffect(() => {
     void runtime.checkMcp().then((r) => setMcpOk(r.ok));
@@ -176,7 +187,7 @@ export function GripMainView({
         <div className="grip-session-stack">
           <SourceControlView />
         </div>
-      ) : !historyView && activePick ? (
+      ) : !historyView && displayPick ? (
         <div className="grip-session-stack">
           {isPickerActive ? (
             <div className="grip-composing-placeholder" aria-live="polite">
@@ -187,11 +198,11 @@ export function GripMainView({
             </div>
           ) : (
             <SessionPickComposer
-              pick={activePick}
-              pickIndex={history.findIndex((pick) => pick.id === activePick.id) + 1}
+              pick={displayPick}
+              pickIndex={history.findIndex((pick) => pick.id === displayPick.id) + 1}
               pickCount={history.length}
               sessionPicks={history}
-              onCommentChange={(comment) => savePickComment(activePick.id, comment)}
+              onCommentChange={(comment) => savePickComment(displayPick.id, comment)}
               onNavigate={selectPick}
               onEditRequest={onContextEditRequest}
               onSendToAgent={(picks, sessionId) => {

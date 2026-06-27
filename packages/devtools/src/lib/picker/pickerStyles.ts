@@ -166,17 +166,36 @@ export function buildPickerStyleSheet(features: PickerFeatures): string {
     .grip-context-composer{
       min-height:40px;
       max-height:160px;
+      overflow-x:hidden;
       overflow-y:auto;
+      scrollbar-width:thin;
+      scrollbar-color:var(--grip-scrollbar-thumb) transparent;
       border-radius:12px;
       background:var(--grip-inset-bg);
       padding:8px 10px;
       cursor:text;
       line-height:1.45;
+    }
+    .grip-context-composer::-webkit-scrollbar{
+      width:6px;
+      height:6px;
+    }
+    .grip-context-composer::-webkit-scrollbar-track{
+      background:transparent;
+    }
+    .grip-context-composer::-webkit-scrollbar-thumb{
+      background-color:var(--grip-scrollbar-thumb);
+      border-radius:9999px;
+      border:1px solid transparent;
+      background-clip:padding-box;
+    }
+    .grip-context-composer::-webkit-scrollbar-thumb:hover{
+      background-color:var(--grip-scrollbar-thumb-hover);
     }${editorExtras}
     .grip-inline-editor{
       min-height:1.35em;
-      max-height:96px;
-      overflow-y:auto;
+      max-height:none;
+      overflow:visible;
       outline:none;
       white-space:pre-wrap;
       word-break:break-word;
@@ -192,24 +211,39 @@ export function buildPickerStyleSheet(features: PickerFeatures): string {
     .grip-inline-chip{
       display:inline-flex;
       align-items:center;
-      vertical-align:baseline;
+      justify-content:center;
+      vertical-align:middle;
       margin:0 2px;
-      padding:1px 8px;
-      border-radius:9999px;
+      padding:2px 8px;
+      min-height:18px;
+      box-sizing:border-box;
       border:none;
+      border-radius:9999px;
       background:var(--grip-chip-bg);
       color:var(--grip-chip-fg);
       font-size:10px;
       font-weight:500;
       font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
-      line-height:1.35;
+      line-height:1;
       user-select:all;
       cursor:default;
       white-space:nowrap;
     }
-    .grip-inline-chip-active{
-      background:var(--grip-chip-active-bg);
-      color:var(--grip-chip-active-fg);
+    .grip-inline-chip-active,
+    .grip-inline-chip-idle,
+    .grip-inline-chip-ready,
+    .grip-inline-chip-outdated,
+    .grip-inline-chip-missing,
+    .grip-inline-chip-processing,
+    .grip-inline-chip-failed,
+    .grip-inline-chip-pinned,
+    .grip-inline-chip-locked,
+    .grip-inline-chip-selected{
+      background:var(--grip-chip-bg);
+      color:var(--grip-chip-fg);
+      border:none;
+      outline:none;
+      box-shadow:none;
     }${chipTooltip}
     .grip-picker-actions{
       display:flex;

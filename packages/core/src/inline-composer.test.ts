@@ -4,6 +4,7 @@ import {
   formatChipForClipboard,
   formatInlineCommentForMcp,
   gripChipToken,
+  normalizePickCommentForStorage,
   parseInlineComment,
   serializeInlineComment,
 } from "./inline-composer.js";
@@ -24,6 +25,12 @@ describe("inline-composer", () => {
     const text = `[[grip:1]] resize [[grip:2]]`;
     expect(formatInlineCommentForMcp(text, { "1": "button", "2": "h1" })).toBe(
       "<button> resize <h1>",
+    );
+  });
+
+  it("normalizes lone chip token to stored pick id", () => {
+    expect(normalizePickCommentForStorage("[[grip:temp]] fix layout", "pick-9")).toBe(
+      "[[grip:pick-9]] fix layout",
     );
   });
 

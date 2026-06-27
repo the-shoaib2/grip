@@ -354,6 +354,7 @@
 .grip-context-composer {
   min-height: 2.5rem;
   max-height: 10rem;
+  overflow-x: hidden;
   overflow-y: auto;
   border-radius: 0.75rem;
   background: var(--grip-inset-bg);
@@ -364,8 +365,8 @@
 
 .grip-inline-editor {
   min-height: 1.35em;
-  max-height: 6rem;
-  overflow-y: auto;
+  max-height: none;
+  overflow: visible;
   outline: none;
   white-space: pre-wrap;
   word-break: break-word;
@@ -374,6 +375,11 @@
   caret-color: var(--grip-fg);
   user-select: text;
   -webkit-user-select: text;
+  line-height: 1.5;
+}
+
+.grip-inline-editor .grip-inline-chip {
+  vertical-align: middle;
 }
 
 .grip-inline-editor:empty::before {

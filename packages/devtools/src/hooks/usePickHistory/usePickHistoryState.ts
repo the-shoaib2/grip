@@ -39,6 +39,7 @@ export function usePickHistoryState(runtime: GripRuntime): UsePickHistoryResult 
         finalOrder.map((id) => byId.get(id) ?? { sessionId: id, picks: [] }),
       );
       setActivePick((prev) => {
+        if (!items.length) return prev ?? null;
         if (prev && items.some((p) => p.id === prev.id)) return prev;
         return items[items.length - 1] ?? null;
       });

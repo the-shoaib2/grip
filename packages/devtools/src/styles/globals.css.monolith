@@ -205,12 +205,12 @@ body {
   width: 100%;
   min-width: 0;
   max-width: none;
-  height: 32rem;
-  min-height: 32rem;
+  height: auto;
+  min-height: 0;
   border-radius: 0;
-  max-height: min(36rem, calc(100vh - 5rem));
+  max-height: none;
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: visible;
   box-shadow: none;
   border: none;
   background: transparent;

@@ -1,6 +1,5 @@
 import {
   badgeDisplayLabel,
-  badgeStateIndicator,
   chipDisplayLabel,
   newChipId,
   type ContextBadge,
@@ -73,14 +72,9 @@ function applyChipMeta(chip: HTMLSpanElement, meta: InlineChipRef): void {
 
 export function chipLabelText(meta: InlineChipRef): string {
   const component = meta.component ?? meta.frameworkContext?.componentName;
-  const base = component
+  return component
     ? badgeDisplayLabel({ component, tag: meta.tag })
     : chipDisplayLabel(meta.tag);
-  const indicator = meta.state ? badgeStateIndicator(meta.state) : "";
-  const suffix = [indicator, meta.pinned ? "📌" : "", meta.locked ? "🔒" : ""]
-    .filter(Boolean)
-    .join(" ");
-  return suffix ? `${base} ${suffix}` : base;
 }
 
 export function chipMetaFromElement(chip: HTMLElement): InlineChipRef | null {

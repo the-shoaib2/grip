@@ -11,11 +11,14 @@ import {
 import { showTrayAfterHandoff, hideTrayForHandoff } from "./trayBridge";
 
 let setPickerActiveFn: ((active: boolean) => void) | null = null;
+let showTrayFn: ((options?: { restore?: boolean }) => void) | null = null;
 
 export function wirePlaygroundPickerHost(opts: {
   setPickerActive: (active: boolean) => void;
+  showTray?: (options?: { restore?: boolean }) => void;
 }): void {
   setPickerActiveFn = opts.setPickerActive;
+  showTrayFn = opts.showTray ?? null;
 }
 
 const playgroundFeatures: PickerFeatures = {
@@ -50,6 +53,10 @@ const host: PickerHost = {
   },
   updatePickComment() {},
   showTray(options) {
+    if (showTrayFn) {
+      showTrayFn(options);
+      return;
+    }
     showTrayAfterHandoff(Boolean(options?.restore));
   },
   onSessionEnd() {

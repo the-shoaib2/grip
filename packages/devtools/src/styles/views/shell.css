@@ -28,12 +28,12 @@
   width: 100%;
   min-width: 0;
   max-width: none;
-  height: 32rem;
-  min-height: 32rem;
+  height: auto;
+  min-height: 0;
   border-radius: 0;
-  max-height: min(36rem, calc(100vh - 5rem));
+  max-height: none;
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: visible;
   box-shadow: none;
   border: none;
   background: transparent;
@@ -356,7 +356,8 @@
 .grip-session-panel .grip-context-composer {
   min-height: 2.25rem;
   line-height: 1.35;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   box-sizing: border-box;
 }
 
@@ -372,20 +373,18 @@
 }
 
 .grip-session-panel .grip-inline-editor {
-  min-height: 0;
-  line-height: 1.35;
-}
-
-.grip-session-panel .grip-context-readonly .grip-inline-editor {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  column-gap: 0.125rem;
+  gap: 0.125rem;
+  row-gap: 0.25rem;
+  min-height: 0;
+  line-height: 1.5;
 }
 
 .grip-session-panel .grip-inline-chip {
   margin-block: 0;
-  line-height: 1.35;
+  line-height: 1;
   vertical-align: middle;
 }
 

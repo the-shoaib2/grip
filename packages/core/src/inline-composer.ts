@@ -110,6 +110,25 @@ export function formatInlineCommentForMcp(
   });
 }
 
+/** Bind ephemeral picker chip ids to the stored pick id (single-chip saves). */
+export function normalizePickCommentForStorage(
+  comment: string | undefined,
+  pickId: string,
+): string | undefined {
+  const trimmed = comment?.trim();
+  if (!trimmed) return undefined;
+
+  const chipIds = [
+    ...trimmed.matchAll(GRIP_CHIP_TOKEN_RE),
+  ].map((match) => match[1]!);
+
+  if (chipIds.length === 1) {
+    return trimmed.replace(GRIP_CHIP_TOKEN_RE, gripChipToken(pickId));
+  }
+
+  return trimmed;
+}
+
 export function newChipId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return crypto.randomUUID().slice(0, 8);

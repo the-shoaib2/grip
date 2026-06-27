@@ -1,51 +1,47 @@
 .grip-inline-chip {
   display: inline-flex;
   align-items: center;
-  vertical-align: baseline;
+  justify-content: center;
+  vertical-align: middle;
   margin: 0 0.125rem;
   padding: 0.125rem 0.5rem;
+  min-height: 1.25rem;
+  box-sizing: border-box;
+  border: none;
   border-radius: 9999px;
   background: var(--grip-chip-bg);
   color: var(--grip-chip-fg);
   font-size: 10px;
   font-weight: 500;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  line-height: 1.35;
+  line-height: 1;
   user-select: all;
   -webkit-user-select: all;
   cursor: default;
   white-space: nowrap;
 }
 
-.grip-inline-chip-active {
-  background: var(--grip-chip-active-bg);
-  color: var(--grip-chip-active-fg);
-}
-
+/* Unified fill — all lifecycle states share the same chip color */
+.grip-inline-chip-active,
+.grip-inline-chip-idle,
+.grip-inline-chip-ready,
+.grip-inline-chip-outdated,
+.grip-inline-chip-missing,
+.grip-inline-chip-processing,
+.grip-inline-chip-failed,
+.grip-inline-chip-pinned,
+.grip-inline-chip-locked,
 .grip-inline-chip-selected {
-  outline: 1px solid var(--grip-accent-fg);
-  outline-offset: 1px;
-}
-
-.grip-inline-chip-outdated {
-  border: 1px dashed var(--grip-warning);
-}
-
-.grip-inline-chip-missing {
-  border: 1px dashed var(--grip-danger);
-  opacity: 0.85;
-}
-
-.grip-inline-chip-failed {
-  border: 1px solid var(--grip-danger);
-}
-
-.grip-inline-chip-pinned {
-  box-shadow: inset 0 0 0 1px var(--grip-accent-fg);
+  background: var(--grip-chip-bg);
+  color: var(--grip-chip-fg);
+  border: none;
+  outline: none;
+  box-shadow: none;
 }
 
 .grip-inline-chip-locked {
   cursor: not-allowed;
+  opacity: 0.92;
 }
 
 .grip-inline-chip-group {

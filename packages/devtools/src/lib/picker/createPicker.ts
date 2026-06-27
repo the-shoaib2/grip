@@ -3,7 +3,6 @@ import {
   deepElementFromPoint,
   elementFromComposedEvent,
   elementsAtPoint,
-  formatInlineCommentForMcp,
   storedPickChipsToInlineRefs,
   type OpenContextEditorPayload,
 } from "@grip/core";
@@ -419,7 +418,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
       <span class="grip-picker-hint">type · click add · drag</span>
     </div>
     <div class="grip-context-field">
-      <div id="${CONTEXT_COMPOSER_ID}" class="grip-context-composer">
+      <div id="${CONTEXT_COMPOSER_ID}" class="grip-context-composer grip-scrollbar">
         <div
           id="${CONTEXT_EDITOR_ID}"
           class="grip-inline-editor"
@@ -689,13 +688,10 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
 
   function finishEdit(comment: string): void {
     if (!editingPickId) return;
-    const tagsById = Object.fromEntries(
-      pendingElements.map((item) => [item.chipId, item.tag]),
-    );
     const raw = features.composerPromptSnapshot
       ? (comment || composerPrompt).trim()
       : comment.trim();
-    const trimmed = formatInlineCommentForMcp(raw, tagsById);
+    const trimmed = raw.trim();
 
     if (onEditSaveCallback) {
       onEditSaveCallback(editingPickId, trimmed);

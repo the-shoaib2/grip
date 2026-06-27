@@ -1,4 +1,8 @@
-import { gripChipToken, parseInlineComment } from "./inline-composer.js";
+import {
+  chipDisplayLabel,
+  gripChipToken,
+  parseInlineComment,
+} from "./inline-composer.js";
 import type { ElementRect } from "./types/a11y.js";
 import type { FrameworkContext } from "./types/framework.js";
 import type { StoredPick } from "./types/messages.js";
@@ -40,6 +44,64 @@ export function storedPickToChipRef(pick: StoredPick, chipId?: string): StoredPi
   };
 }
 
+function parseLeadingMcpTagSequence(value: string): { tags: string[]; rest: string } | null {
+  const trimmed = value.trim();
+  if (!trimmed.startsWith("<")) return null;
+
+  const tags: string[] = [];
+  let index = 0;
+
+  while (index < trimmed.length) {
+    const match = /^<([a-z][a-z0-9]*)>/i.exec(trimmed.slice(index));
+    if (!match) break;
+    tags.push(match[1]!.toLowerCase());
+    index += match[0].length;
+  }
+
+  if (!tags.length) return null;
+  return { tags, rest: trimmed.slice(index).trim() };
+}
+
+/** Rebuild chip tokens from legacy MCP `<tag>`-only comments saved before token storage. */
+function repairMcpFormattedComment(
+  comment: string,
+  pick: StoredPick,
+  sessionPicks: StoredPick[],
+): { chips: StoredPickChipRef[]; comment: string } | null {
+  const parsed = parseLeadingMcpTagSequence(comment);
+  if (!parsed) return null;
+
+  const picks = sessionPicks.length ? sessionPicks : [pick];
+  const usedByTag = new Map<string, number>();
+  const chips: StoredPickChipRef[] = [];
+  const tokenIds: string[] = [];
+
+  for (const tag of parsed.tags) {
+    const candidates = picks.filter((entry) => entry.tagName.toLowerCase() === tag);
+    const used = usedByTag.get(tag) ?? 0;
+    const matched = candidates[used] ?? candidates[0];
+    if (!matched) return null;
+    usedByTag.set(tag, used + 1);
+    tokenIds.push(matched.id);
+    chips.push(storedPickToChipRef(matched, matched.id));
+  }
+
+  const tokenComment =
+    tokenIds.map((id) => gripChipToken(id)).join("") +
+    (parsed.rest ? ` ${parsed.rest}` : "");
+
+  return { chips, comment: tokenComment };
+}
+
+function stripDuplicateLeadingTagLabel(text: string, tag: string): string {
+  let rest = text.trim();
+  const label = chipDisplayLabel(tag);
+  while (rest.startsWith(label)) {
+    rest = rest.slice(label.length).trimStart();
+  }
+  return rest;
+}
+
 export function composerStateForStoredPick(
   pick: StoredPick,
   sessionPicks: StoredPick[] = [],
@@ -56,11 +118,17 @@ export function composerStateForStoredPick(
   const lookup = new Map<string, StoredPick>(sessionPicks.map((p) => [p.id, p]));
 
   if (!chipIds.length) {
+    const repaired = repairMcpFormattedComment(comment, pick, sessionPicks);
+    if (repaired) return repaired;
+
     const chipId = pick.id;
-    const trimmed = comment.trim();
+    const tag = pick.tagName.toLowerCase();
+    const trimmed = stripDuplicateLeadingTagLabel(comment.trim(), tag);
     return {
       chips: [storedPickToChipRef(pick, chipId)],
-      comment: trimmed ? `${gripChipToken(chipId)} ${trimmed}` : gripChipToken(chipId),
+      comment: trimmed
+        ? `${gripChipToken(chipId)} ${trimmed}`
+        : gripChipToken(chipId),
     };
   }
 

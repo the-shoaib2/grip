@@ -158,7 +158,7 @@ export function ContextField({
   return (
     <div className={`grip-context-field${readOnly ? " grip-context-readonly" : ""}`}>
       <div
-        className={`grip-context-composer${composerActions ? " grip-context-composer-has-actions" : ""}`}
+        className={`grip-context-composer grip-scrollbar${composerActions ? " grip-context-composer-has-actions" : ""}`}
         style={{ maxHeight: `${maxHeight}px` }}
         onMouseDown={(e) => {
           const target = e.target as HTMLElement;

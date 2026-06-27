@@ -67,11 +67,16 @@
 }
 
 .grip-floating-inner.grip-tray-open .grip-floating-menu {
-  display: block;
+  display: flex;
+  flex-direction: column;
 }
 
 .grip-floating-menu .grip-popup.grip-shell-floating {
   box-shadow: none;
   border: none;
   background: transparent;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+  overflow: visible;
 }

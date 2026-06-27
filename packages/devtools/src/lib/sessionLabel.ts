@@ -2,7 +2,7 @@ export const DEFAULT_SESSION_TAB_TITLE = "New Element";
 
 export function formatSessionTabTitle(picks: { label: string }[]): string {
   if (!picks.length) return DEFAULT_SESSION_TAB_TITLE;
-  const label = picks[picks.length - 1].label.trim() || DEFAULT_SESSION_TAB_TITLE;
+  const label = picks[0]!.label.trim() || DEFAULT_SESSION_TAB_TITLE;
   return label.length > 14 ? `${label.slice(0, 11)}…` : label;
 }
 

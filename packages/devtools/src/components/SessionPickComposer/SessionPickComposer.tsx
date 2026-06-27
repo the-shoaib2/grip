@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import {
   composerStateForStoredPick,
   canBuildContextBlock,
+  formatPickIndexLabel,
   formatPickPrompt,
   formatSendToAgentPrompt,
   type StoredPick,
@@ -86,6 +87,12 @@ export function SessionPickComposer({
   return (
     <>
       <div className="grip-context-panel grip-session-panel" aria-label="Current pick">
+        <div className="grip-picker-header">
+          <span className="grip-picker-session">
+            {formatPickIndexLabel(pickIndex, pickCount)}
+          </span>
+          <span className="grip-picker-hint">type · click add · drag</span>
+        </div>
         <div className="grip-session-context-wrap">
           <div
             className="grip-session-context-preview"
@@ -142,6 +149,7 @@ export function SessionPickComposer({
                     tooltip="Send to agent (context + session JSON)"
                     variant="ghost"
                     size="icon"
+                    icon="send"
                     onCopied={() => {
                       const picks = sessionPicks.length ? sessionPicks : [pickWithComment];
                       onSendToAgent?.(picks, pick.sessionId);

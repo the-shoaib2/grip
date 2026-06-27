@@ -53,6 +53,7 @@ export {
   formatChipForClipboard,
   formatInlineCommentForMcp,
   gripChipToken,
+  normalizePickCommentForStorage,
   GRIP_CHIP_TOKEN_RE,
   newChipId,
   parseInlineComment,

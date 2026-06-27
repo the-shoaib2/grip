@@ -4,6 +4,8 @@ import {
   newSessionId,
   lastPickInSession,
   nextSessionIdAfterDelete,
+  normalizePickCommentForStorage,
+  picksForSession,
   removePickFromHistory,
   removeSessionFromOrder,
   clearPicksForSession,
@@ -16,7 +18,17 @@ import {
   GRIP_MCP_DOCS_URL,
 } from "@grip/core";
 import type { GripRuntime, RuntimeMessage, StorageChangeHandler } from "@grip/devtools";
-import { startPlaygroundPicker, stopPlaygroundPicker, openPlaygroundContextEditor, wirePlaygroundPickerHost } from "./playgroundPicker";
+import {
+  startPlaygroundPicker,
+  stopPlaygroundPicker,
+  openPlaygroundContextEditor,
+  wirePlaygroundPickerHost,
+} from "./playgroundPicker";
+import {
+  emitPlaygroundStorage,
+  getPlaygroundState,
+  onPlaygroundStorageChanged,
+} from "./playgroundState";
 import { hideTrayForHandoff, showTrayAfterHandoff } from "./trayBridge";
 
 const TAB_SESSIONS_KEY = "tabSessionIds";
@@ -24,22 +36,19 @@ const HISTORY_KEY = "pickHistory";
 const PICKER_ACTIVE_KEY = "pickerActive";
 const MOCK_TAB_ID = 1;
 
-let pickerActive = false;
+function s() {
+  return getPlaygroundState();
+}
 
-let sessionId = "playground-session";
-let tabSessionIds: Record<string, string> = { [String(MOCK_TAB_ID)]: sessionId };
-let tabSessionOrderIds: Record<string, string[]> = { [String(MOCK_TAB_ID)]: [sessionId] };
-let pickHistory: StoredPick[] = [];
-let lastPick: StoredPick | undefined;
-const storageListeners = new Set<StorageChangeHandler>();
+function pageUrl(): string {
+  return window.location.href.split("#")[0] ?? window.location.href;
+}
 
 function emitStorage(
   area: "local" | "session",
   changes: Record<string, chrome.storage.StorageChange>,
 ) {
-  for (const handler of storageListeners) {
-    handler(changes, area);
-  }
+  emitPlaygroundStorage(area, changes);
 }
 
 function withTabId(msg: RuntimeMessage): RuntimeMessage {
@@ -47,31 +56,51 @@ function withTabId(msg: RuntimeMessage): RuntimeMessage {
 }
 
 function setPickerActive(active: boolean): void {
-  const oldValue = pickerActive;
-  pickerActive = active;
+  const state = s();
+  const oldValue = state.pickerActive;
+  state.pickerActive = active;
   emitStorage("session", {
     pickerActive: { newValue: active, oldValue },
   });
 }
 
-wirePlaygroundPickerHost({ setPickerActive });
-
-function recordPlaygroundPick(payload: PickerElementPayload): void {
-  const stored = toStoredPick(
-    payload,
-    window.location.href,
-    document.title || "Grip Playground",
-    sessionId,
-  );
-  pickHistory = appendPickHistory(pickHistory, stored);
-  lastPick = stored;
+function syncPickHistoryStorage(): void {
+  const state = s();
   emitStorage("local", {
-    pickHistory: { newValue: [...pickHistory], oldValue: undefined },
-  });
-  emitStorage("session", {
-    lastPick: { newValue: lastPick, oldValue: undefined },
+    pickHistory: { newValue: [...state.pickHistory], oldValue: undefined },
   });
 }
+
+function syncLastPickStorage(oldPick?: StoredPick): void {
+  const state = s();
+  emitStorage("session", {
+    lastPick: { newValue: state.lastPick, oldValue: oldPick },
+  });
+}
+
+function recordPlaygroundPick(payload: PickerElementPayload): void {
+  const state = s();
+  const stored = toStoredPick(
+    payload,
+    pageUrl(),
+    document.title || "Grip Playground",
+    state.sessionId,
+  );
+  stored.comment = normalizePickCommentForStorage(stored.comment, stored.id);
+  state.pickHistory = appendPickHistory(state.pickHistory, stored);
+  state.lastPick = stored;
+  syncPickHistoryStorage();
+  syncLastPickStorage();
+}
+
+function showTrayFromPicker(options?: { restore?: boolean }): void {
+  void playgroundRuntime.sendMessage({ type: "SHOW_TRAY", payload: options });
+}
+
+wirePlaygroundPickerHost({
+  setPickerActive,
+  showTray: showTrayFromPicker,
+});
 
 function startMockPicker(): void {
   startPlaygroundPicker({
@@ -89,36 +118,41 @@ function stopMockPicker(): void {
 export const playgroundRuntime: GripRuntime = {
   sendMessage<T>(msg: RuntimeMessage): Promise<T> {
     const m = withTabId(msg);
+    const state = s();
     switch (m.type) {
-      case "GET_PICK_HISTORY":
+      case "GET_PICK_HISTORY": {
+        const url = pageUrl();
+        const history = picksForSession(state.pickHistory, url, state.sessionId);
         return Promise.resolve({
-          history: pickHistory.filter((p) => p.sessionId === sessionId),
-          all: pickHistory,
-          sessionId,
-          sessionOrder: tabSessionOrderIds[String(MOCK_TAB_ID)] ?? [sessionId],
+          history,
+          all: state.pickHistory,
+          sessionId: state.sessionId,
+          sessionOrder: state.tabSessionOrderIds[String(MOCK_TAB_ID)] ?? [state.sessionId],
           tabId: MOCK_TAB_ID,
         } as T);
+      }
       case "NEW_SESSION": {
-        sessionId = newSessionId();
-        tabSessionIds = { ...tabSessionIds, [String(MOCK_TAB_ID)]: sessionId };
-        tabSessionOrderIds = {
-          ...tabSessionOrderIds,
+        state.sessionId = newSessionId();
+        state.tabSessionIds = { ...state.tabSessionIds, [String(MOCK_TAB_ID)]: state.sessionId };
+        state.tabSessionOrderIds = {
+          ...state.tabSessionOrderIds,
           [String(MOCK_TAB_ID)]: appendSessionToOrder(
-            tabSessionOrderIds[String(MOCK_TAB_ID)] ?? [],
-            sessionId,
+            state.tabSessionOrderIds[String(MOCK_TAB_ID)] ?? [],
+            state.sessionId,
           ),
         };
-        lastPick = undefined;
+        const oldPick = state.lastPick;
+        state.lastPick = undefined;
         emitStorage("session", {
-          tabSessionIds: { newValue: { ...tabSessionIds }, oldValue: undefined },
-          lastPick: { newValue: undefined, oldValue: lastPick },
+          tabSessionIds: { newValue: { ...state.tabSessionIds }, oldValue: undefined },
+          lastPick: { newValue: undefined, oldValue: oldPick },
         });
         return Promise.resolve({
           ok: true,
           history: [],
-          all: pickHistory,
-          sessionId,
-          sessionOrder: tabSessionOrderIds[String(MOCK_TAB_ID)],
+          all: state.pickHistory,
+          sessionId: state.sessionId,
+          sessionOrder: state.tabSessionOrderIds[String(MOCK_TAB_ID)],
           tabId: MOCK_TAB_ID,
         } as T);
       }
@@ -137,7 +171,13 @@ export const playgroundRuntime: GripRuntime = {
       case "SHOW_TRAY": {
         const payload = m.payload as ShowTrayPayload | undefined;
         showTrayAfterHandoff(Boolean(payload?.restore));
+        syncPickHistoryStorage();
+        syncLastPickStorage();
         return Promise.resolve({ ok: true } as T);
+      }
+      case "PICKER_ELEMENT_SELECTED": {
+        recordPlaygroundPick(m.payload as PickerElementPayload);
+        return Promise.resolve({ ok: true, pick: state.lastPick } as T);
       }
       case "NAVIGATE_TO_PICK": {
         const payload = m.payload as StoredPick;
@@ -147,11 +187,9 @@ export const playgroundRuntime: GripRuntime = {
           el.classList.add("grip-nav-flash");
           window.setTimeout(() => el.classList.remove("grip-nav-flash"), 1200);
         }
-        if (lastPick?.id !== payload.id) {
-          lastPick = payload;
-          emitStorage("session", {
-            lastPick: { newValue: lastPick, oldValue: undefined },
-          });
+        if (state.lastPick?.id !== payload.id) {
+          state.lastPick = payload;
+          syncLastPickStorage();
         }
         return Promise.resolve({ ok: true } as T);
       }
@@ -160,18 +198,17 @@ export const playgroundRuntime: GripRuntime = {
         openPlaygroundContextEditor(
           payload,
           (pickId, comment) => {
-            pickHistory = updatePickInHistory(pickHistory, pickId, {
+            state.pickHistory = updatePickInHistory(state.pickHistory, pickId, {
               comment: comment.trim() || undefined,
             });
-            if (lastPick?.id === pickId) {
-              lastPick = pickHistory.find((p) => p.id === pickId);
+            if (state.lastPick?.id === pickId) {
+              state.lastPick = state.pickHistory.find((p) => p.id === pickId);
             }
-            emitStorage("local", {
-              pickHistory: { newValue: [...pickHistory], oldValue: undefined },
-            });
+            syncPickHistoryStorage();
+            if (state.lastPick) syncLastPickStorage();
           },
           () => {
-            if (pickerActive) {
+            if (state.pickerActive) {
               stopPlaygroundPicker(false);
               setPickerActive(false);
             }
@@ -181,102 +218,103 @@ export const playgroundRuntime: GripRuntime = {
       }
       case "UPDATE_PICK_COMMENT": {
         const payload = m.payload as { pickId: string; comment?: string };
-        pickHistory = updatePickInHistory(pickHistory, payload.pickId, {
+        state.pickHistory = updatePickInHistory(state.pickHistory, payload.pickId, {
           comment: payload.comment?.trim() || undefined,
         });
-        if (lastPick?.id === payload.pickId) {
-          lastPick = pickHistory.find((p) => p.id === payload.pickId);
+        if (state.lastPick?.id === payload.pickId) {
+          state.lastPick = state.pickHistory.find((p) => p.id === payload.pickId);
         }
-        emitStorage("local", {
-          pickHistory: { newValue: [...pickHistory], oldValue: undefined },
-        });
+        syncPickHistoryStorage();
+        if (state.lastPick) syncLastPickStorage();
         return Promise.resolve({ ok: true } as T);
       }
       case "DELETE_PICK": {
         const payload = m.payload as { pickId: string };
-        const deleted = pickHistory.find((p) => p.id === payload.pickId);
-        pickHistory = removePickFromHistory(pickHistory, payload.pickId);
-        if (lastPick?.id === payload.pickId && deleted) {
-          lastPick = lastPickInSession(pickHistory, deleted.url, deleted.sessionId);
+        const deleted = state.pickHistory.find((p) => p.id === payload.pickId);
+        state.pickHistory = removePickFromHistory(state.pickHistory, payload.pickId);
+        if (state.lastPick?.id === payload.pickId && deleted) {
+          state.lastPick = lastPickInSession(
+            state.pickHistory,
+            deleted.url,
+            deleted.sessionId,
+          );
         }
-        emitStorage("local", {
-          pickHistory: { newValue: [...pickHistory], oldValue: undefined },
-        });
-        emitStorage("session", {
-          lastPick: { newValue: lastPick, oldValue: undefined },
-        });
+        syncPickHistoryStorage();
+        syncLastPickStorage();
         return Promise.resolve({ ok: true } as T);
       }
       case "SET_ACTIVE_SESSION": {
         const payload = m.payload as { sessionId: string };
-        const sessionPicks = pickHistory.filter((p) => p.sessionId === payload.sessionId);
+        const sessionPicks = state.pickHistory.filter((p) => p.sessionId === payload.sessionId);
         if (!sessionPicks.length) {
           return Promise.resolve({ ok: false, error: "Session not found" } as T);
         }
-        sessionId = payload.sessionId;
-        tabSessionIds = { ...tabSessionIds, [String(MOCK_TAB_ID)]: sessionId };
-        lastPick = sessionPicks[sessionPicks.length - 1];
+        state.sessionId = payload.sessionId;
+        state.tabSessionIds = { ...state.tabSessionIds, [String(MOCK_TAB_ID)]: state.sessionId };
+        state.lastPick = sessionPicks[sessionPicks.length - 1];
         emitStorage("session", {
-          tabSessionIds: { newValue: { ...tabSessionIds }, oldValue: undefined },
-          lastPick: { newValue: lastPick, oldValue: undefined },
+          tabSessionIds: { newValue: { ...state.tabSessionIds }, oldValue: undefined },
+          lastPick: { newValue: state.lastPick, oldValue: undefined },
         });
         return Promise.resolve({
           ok: true,
           history: sessionPicks,
-          all: pickHistory,
-          sessionId,
-          sessionOrder: tabSessionOrderIds[String(MOCK_TAB_ID)] ?? [sessionId],
+          all: state.pickHistory,
+          sessionId: state.sessionId,
+          sessionOrder: state.tabSessionOrderIds[String(MOCK_TAB_ID)] ?? [state.sessionId],
           tabId: MOCK_TAB_ID,
         } as T);
       }
       case "DELETE_SESSION": {
         const payload = m.payload as { sessionId: string };
-        pickHistory = clearPicksForSession(
-          pickHistory,
-          window.location.origin + "/",
+        state.pickHistory = clearPicksForSession(
+          state.pickHistory,
+          pageUrl(),
           payload.sessionId,
         );
-        if (sessionId === payload.sessionId) {
+        if (state.sessionId === payload.sessionId) {
           const remainingOrder = removeSessionFromOrder(
-            tabSessionOrderIds[String(MOCK_TAB_ID)] ?? [],
+            state.tabSessionOrderIds[String(MOCK_TAB_ID)] ?? [],
             payload.sessionId,
           );
-          sessionId = nextSessionIdAfterDelete(remainingOrder, newSessionId);
-          tabSessionOrderIds = {
-            ...tabSessionOrderIds,
-            [String(MOCK_TAB_ID)]: appendSessionToOrder(remainingOrder, sessionId),
+          state.sessionId = nextSessionIdAfterDelete(remainingOrder, newSessionId);
+          state.tabSessionOrderIds = {
+            ...state.tabSessionOrderIds,
+            [String(MOCK_TAB_ID)]: appendSessionToOrder(remainingOrder, state.sessionId),
           };
-          tabSessionIds = { ...tabSessionIds, [String(MOCK_TAB_ID)]: sessionId };
-          lastPick = undefined;
+          state.tabSessionIds = { ...state.tabSessionIds, [String(MOCK_TAB_ID)]: state.sessionId };
+          state.lastPick = undefined;
         } else {
-          tabSessionOrderIds = {
-            ...tabSessionOrderIds,
+          state.tabSessionOrderIds = {
+            ...state.tabSessionOrderIds,
             [String(MOCK_TAB_ID)]: removeSessionFromOrder(
-              tabSessionOrderIds[String(MOCK_TAB_ID)] ?? [],
+              state.tabSessionOrderIds[String(MOCK_TAB_ID)] ?? [],
               payload.sessionId,
             ),
           };
         }
-        emitStorage("local", {
-          pickHistory: { newValue: [...pickHistory], oldValue: undefined },
-        });
+        syncPickHistoryStorage();
         emitStorage("session", {
-          tabSessionIds: { newValue: { ...tabSessionIds }, oldValue: undefined },
-          lastPick: { newValue: lastPick, oldValue: undefined },
+          tabSessionIds: { newValue: { ...state.tabSessionIds }, oldValue: undefined },
+          lastPick: { newValue: state.lastPick, oldValue: undefined },
         });
-        const sessionPicks = pickHistory.filter((p) => p.sessionId === sessionId);
+        const sessionPicks = picksForSession(
+          state.pickHistory,
+          pageUrl(),
+          state.sessionId,
+        );
         return Promise.resolve({
           ok: true,
           history: sessionPicks,
-          all: pickHistory,
-          sessionId,
-          sessionOrder: tabSessionOrderIds[String(MOCK_TAB_ID)] ?? [sessionId],
+          all: state.pickHistory,
+          sessionId: state.sessionId,
+          sessionOrder: state.tabSessionOrderIds[String(MOCK_TAB_ID)] ?? [state.sessionId],
           tabId: MOCK_TAB_ID,
         } as T);
       }
       case "PANEL_READY":
         return Promise.resolve({
-          lastPick,
+          lastPick: state.lastPick,
           logs: [
             { level: "log", message: "Playground dev server ready", timestamp: Date.now() },
             { level: "warn", message: "Mock runtime — no extension required", timestamp: Date.now() },
@@ -288,12 +326,11 @@ export const playgroundRuntime: GripRuntime = {
   },
 
   onStorageChanged(handler: StorageChangeHandler) {
-    storageListeners.add(handler);
-    return () => storageListeners.delete(handler);
+    return onPlaygroundStorageChanged(handler);
   },
 
   async getPageUrl() {
-    return window.location.href.split("#")[0];
+    return pageUrl();
   },
 
   getTargetTabId() {
@@ -309,21 +346,21 @@ export const playgroundRuntime: GripRuntime = {
   },
 
   sessionGet(keys: string | string[]) {
+    const state = s();
     const keyList = Array.isArray(keys) ? keys : [keys];
     const out: Record<string, unknown> = {};
-    if (keyList.includes(TAB_SESSIONS_KEY)) out[TAB_SESSIONS_KEY] = tabSessionIds;
-    if (keyList.includes("lastPick")) out.lastPick = lastPick;
-    if (keyList.includes(HISTORY_KEY)) out[HISTORY_KEY] = pickHistory;
-    if (keyList.includes(PICKER_ACTIVE_KEY)) out[PICKER_ACTIVE_KEY] = pickerActive;
+    if (keyList.includes(TAB_SESSIONS_KEY)) out[TAB_SESSIONS_KEY] = state.tabSessionIds;
+    if (keyList.includes("lastPick")) out.lastPick = state.lastPick;
+    if (keyList.includes(HISTORY_KEY)) out[HISTORY_KEY] = state.pickHistory;
+    if (keyList.includes(PICKER_ACTIVE_KEY)) out[PICKER_ACTIVE_KEY] = state.pickerActive;
     return Promise.resolve(out);
   },
 
   sessionSet(items: Record<string, unknown>) {
     if ("lastPick" in items) {
-      lastPick = items.lastPick as StoredPick | undefined;
-      emitStorage("session", {
-        lastPick: { newValue: lastPick, oldValue: undefined },
-      });
+      const state = s();
+      state.lastPick = items.lastPick as StoredPick | undefined;
+      syncLastPickStorage();
     }
     return Promise.resolve();
   },

@@ -1,5 +1,5 @@
 import type { PickerElementPayload, StoredPick } from "@grip/core";
-import { appendPickHistory, picksForSession, toStoredPick } from "@grip/core";
+import { appendPickHistory, picksForSession, toStoredPick, normalizePickCommentForStorage } from "@grip/core";
 import { sendToTabWhenReady } from "@/lib/tab-bridge";
 import { getOrCreateSessionIdForTab } from "./sessionStorage";
 
@@ -46,6 +46,7 @@ export async function savePick(
     title ?? "",
     sessionId,
   );
+  stored.comment = normalizePickCommentForStorage(stored.comment, stored.id);
   const history = appendPickHistory(await getPickHistory(), stored);
   await setPickHistory(history);
   await chrome.storage.session.set({ lastPick: stored });
