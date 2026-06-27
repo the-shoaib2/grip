@@ -37,7 +37,10 @@ export function storedPickToChipRef(pick: StoredPick, chipId?: string): StoredPi
   };
 }
 
-export function composerStateForStoredPick(pick: StoredPick): {
+export function composerStateForStoredPick(
+  pick: StoredPick,
+  sessionPicks: StoredPick[] = [],
+): {
   chips: StoredPickChipRef[];
   comment: string;
 } {
@@ -46,6 +49,8 @@ export function composerStateForStoredPick(pick: StoredPick): {
   const chipIds = parts
     .filter((part): part is { type: "chip"; id: string } => part.type === "chip")
     .map((part) => part.id);
+
+  const lookup = new Map<string, StoredPick>(sessionPicks.map((p) => [p.id, p]));
 
   if (!chipIds.length) {
     const chipId = pick.id;
@@ -57,7 +62,10 @@ export function composerStateForStoredPick(pick: StoredPick): {
   }
 
   return {
-    chips: chipIds.map((id) => storedPickToChipRef(pick, id)),
+    chips: chipIds.map((id) => {
+      const matched = lookup.get(id) ?? pick;
+      return storedPickToChipRef(matched, id);
+    }),
     comment,
   };
 }

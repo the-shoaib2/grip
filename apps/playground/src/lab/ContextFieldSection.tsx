@@ -8,7 +8,7 @@ export function ContextFieldSection({
   pick: StoredPick | null;
   onClose: () => void;
 }) {
-  const { savePickComment, selectPick } = usePickHistory();
+  const { savePickComment, selectPick, history } = usePickHistory();
 
   if (!pick) {
     return (
@@ -21,6 +21,7 @@ export function ContextFieldSection({
   return (
     <ContextEditorPanel
       pick={pick}
+      sessionPicks={history}
       onClose={onClose}
       onSave={(comment) => savePickComment(pick.id, comment)}
       onNavigate={selectPick}

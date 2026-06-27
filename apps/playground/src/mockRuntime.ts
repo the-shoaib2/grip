@@ -26,51 +26,11 @@ const MOCK_TAB_ID = 1;
 
 let pickerActive = false;
 
-const samplePick = toStoredPick(
-  {
-    tagName: "button",
-    css: "#grip-target",
-    xpath: "//button[@id='grip-target']",
-    role: "button",
-    name: "",
-    innerText: "Grip Search",
-    rect: { top: 0, left: 0, width: 120, height: 40 },
-    shadowDOM: false,
-    iframe: "none",
-    comment: "Primary CTA on hero",
-  },
-  "http://localhost:5174/",
-  "Grip Playground",
-  "playground-session-prev",
-);
-
-const samplePickInput = toStoredPick(
-  {
-    tagName: "input",
-    css: "#pg-search-input",
-    xpath: "//input[@id='pg-search-input']",
-    role: "searchbox",
-    name: "Search",
-    innerText: "",
-    rect: { top: 0, left: 0, width: 200, height: 40 },
-    shadowDOM: false,
-    iframe: "none",
-    comment: "Hero search field",
-  },
-  "http://localhost:5174/",
-  "Grip Playground",
-  "playground-session",
-);
-
 let sessionId = "playground-session";
 let tabSessionIds: Record<string, string> = { [String(MOCK_TAB_ID)]: sessionId };
 let tabSessionOrderIds: Record<string, string[]> = { [String(MOCK_TAB_ID)]: [sessionId] };
 let pickHistory: StoredPick[] = [];
 let lastPick: StoredPick | undefined;
-
-pickHistory = appendPickHistory(pickHistory, samplePick);
-pickHistory = appendPickHistory(pickHistory, samplePickInput);
-lastPick = pickHistory.find((p) => p.sessionId === sessionId);
 const storageListeners = new Set<StorageChangeHandler>();
 
 function emitStorage(

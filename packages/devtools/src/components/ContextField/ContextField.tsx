@@ -13,13 +13,11 @@ import {
   setEditorFromComment,
   type InlineChipRef,
 } from "@lib";
-import { ElementTagBadge } from "../ElementTagBadge";
 
 interface ContextFieldProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
-  /** Full chip metadata — same shape as the extension picker composer. */
   chips?: InlineChipRef[];
   tagName?: string;
   role?: string;
@@ -34,9 +32,7 @@ interface ContextFieldProps {
   maxHeight?: number;
   onChipActivate?: () => void;
   readOnly?: boolean;
-  /** Focus the editor with the caret at the end when this key changes. */
   autoFocusKey?: string;
-  /** Overlay actions rendered inside the composer (e.g. copy on hover). */
   composerActions?: ComponentChildren;
 }
 
@@ -85,9 +81,6 @@ export function ContextField({
           iframe,
         },
       ];
-      if (role && role.toLowerCase() !== primary) {
-        refs.push({ id: "static-1", tag: role.toLowerCase() });
-      }
       return refs;
     }
     return [];
@@ -140,12 +133,6 @@ export function ContextField({
 
   return (
     <div className={`grip-context-field${readOnly ? " grip-context-readonly" : ""}`}>
-      {tagName && (
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.375rem" }}>
-          <span style={{ fontSize: "10px", color: "var(--grip-muted)", fontWeight: "500" }}>Selected Element:</span>
-          <ElementTagBadge tagName={tagName} role={role} />
-        </div>
-      )}
       <div
         className={`grip-context-composer${composerActions ? " grip-context-composer-has-actions" : ""}`}
         style={{ maxHeight: `${maxHeight}px` }}

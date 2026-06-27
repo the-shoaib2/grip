@@ -54,6 +54,7 @@ export function setEditorFromComment(
 ): void {
   editor.innerHTML = "";
   const parts = parseInlineComment(value);
+  const hasChipTokens = parts.some((p) => p.type === "chip");
 
   if (!parts.length && chips.length === 1) {
     editor.appendChild(createChipElement(chips[0]!, true));
@@ -77,7 +78,8 @@ export function setEditorFromComment(
     }
   }
 
-  if (isEditorEmpty(editor) && chips.length) {
+  // Only inject chips when no token was present in the original value at all
+  if (!hasChipTokens && isEditorEmpty(editor) && chips.length) {
     for (const chip of chips) {
       editor.appendChild(createChipElement(chip, chip.id === activeChipId));
       editor.appendChild(document.createTextNode(ZWSP));

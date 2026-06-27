@@ -4,6 +4,7 @@ import { ContextField } from "../ContextField";
 
 export interface ContextEditorPanelProps {
   pick: StoredPick;
+  sessionPicks?: StoredPick[];
   onSave: (comment: string) => void | Promise<void>;
   onClose: () => void;
   onNavigate?: (pick: StoredPick) => void;
@@ -12,13 +13,14 @@ export interface ContextEditorPanelProps {
 /** Shared context field for creating and editing pick context (outside the popup shell). */
 export function ContextEditorPanel({
   pick,
+  sessionPicks = [],
   onSave,
   onClose,
   onNavigate,
 }: ContextEditorPanelProps) {
   const { chips, comment: initialComment } = useMemo(
-    () => composerStateForStoredPick(pick),
-    [pick.id, pick.comment],
+    () => composerStateForStoredPick(pick, sessionPicks),
+    [pick.id, pick.comment, sessionPicks],
   );
   const [draft, setDraft] = useState(initialComment);
 
@@ -34,8 +36,6 @@ export function ContextEditorPanel({
         onChange={setDraft}
         autoFocusKey={pick.id}
         placeholder="Select elements on the page, then describe what you need…"
-        tagName={pick.tagName}
-        role={pick.role}
         onChipActivate={() => {
           onNavigate?.(pick);
         }}

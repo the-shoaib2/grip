@@ -14,6 +14,7 @@ export interface SessionPickComposerProps {
   pick: StoredPick;
   pickIndex: number;
   pickCount: number;
+  sessionPicks?: StoredPick[];
   onCommentChange?: (comment: string) => void | Promise<void>;
   onNavigate?: (pick: StoredPick) => void;
   /** After confirm dialog — open the page-level picker comment panel. */
@@ -27,12 +28,13 @@ export function SessionPickComposer({
   pick,
   pickIndex,
   pickCount,
+  sessionPicks = [],
   onCommentChange,
   onNavigate,
   onEditRequest,
 }: SessionPickComposerProps) {
   const baseline = useRef("");
-  const chipsRef = useRef(composerStateForStoredPick(pick).chips);
+  const chipsRef = useRef(composerStateForStoredPick(pick, sessionPicks).chips);
   const [displayComment, setDisplayComment] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
 
@@ -40,17 +42,17 @@ export function SessionPickComposer({
   const copyText = formatMcpPrompt({ ...pick, comment: displayComment });
 
   useEffect(() => {
-    const state = composerStateForStoredPick(pick);
+    const state = composerStateForStoredPick(pick, sessionPicks);
     baseline.current = state.comment;
     chipsRef.current = state.chips;
     setDisplayComment(state.comment);
-  }, [pick.id]);
+  }, [pick.id, sessionPicks]);
 
   useEffect(() => {
-    const state = composerStateForStoredPick(pick);
+    const state = composerStateForStoredPick(pick, sessionPicks);
     chipsRef.current = state.chips;
     setDisplayComment(state.comment);
-  }, [pick.comment, pick.id]);
+  }, [pick.comment, pick.id, sessionPicks]);
 
   const requestEdit = () => {
     if (onEditRequest) setConfirmOpen(true);

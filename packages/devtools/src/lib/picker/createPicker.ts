@@ -50,7 +50,6 @@ import type {
   PickerFeatures,
   PickerHost,
   PickerPhase,
-  PickerStartOptions,
   PickerStopOptions,
 } from "./types";
 
@@ -66,7 +65,6 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
   let stackSize = 1;
   let pendingElements: PendingPick[] = [];
   let activePendingIndex = 0;
-  let sessionPickCount = 0;
   let composerPrompt = "";
   let panelManuallyPlaced = false;
   let panelDrag: {
@@ -642,21 +640,16 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
 
   function finishPick(comment: string, continueSession: boolean): void {
     if (!pendingElements.length) return;
-    const tagsById = Object.fromEntries(
-      pendingElements.map((item) => [item.chipId, item.tag]),
-    );
     const raw = features.composerPromptSnapshot
       ? (comment || composerPrompt).trim()
       : comment.trim();
-    const trimmed = formatInlineCommentForMcp(raw, tagsById);
 
     for (const item of pendingElements) {
-      host.sendPick(item.el, trimmed);
+      host.sendPick(item.el, raw);
     }
 
     document.getElementById(COMMENT_ID)?.remove();
     host.showTray();
-    sessionPickCount += pendingElements.length;
     pendingElements = [];
     activePendingIndex = 0;
     composerPrompt = "";
@@ -930,9 +923,8 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     }
   }
 
-  function start(options?: PickerStartOptions): void {
+  function start(): void {
     cleanup();
-    sessionPickCount = options?.sessionPickCount ?? 0;
     phase = "hover";
     cycleIndex = 0;
     ensureStyle();

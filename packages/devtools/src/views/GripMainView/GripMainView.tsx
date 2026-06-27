@@ -184,6 +184,7 @@ export function GripMainView({
             pick={activePick}
             pickIndex={history.findIndex((pick) => pick.id === activePick.id) + 1}
             pickCount={history.length}
+            sessionPicks={history}
             onCommentChange={(comment) => savePickComment(activePick.id, comment)}
             onNavigate={selectPick}
             onEditRequest={onContextEditRequest}
