@@ -10,7 +10,7 @@ flowchart TD
     classDef server fill:#fff3e0,stroke:#f57c00,stroke-width:2px;
     classDef fs fill:#e8f5e9,stroke:#388e3c,stroke-width:2px;
     
-    U((User)):::user
+    D((Developer)):::user
 
     subgraph GripTool ["Grip Tool (Browser Extension)"]
         UI[UI Overlay / Input]:::extension
@@ -32,7 +32,7 @@ flowchart TD
         GIT[(Git Revision)]:::fs
     end
 
-    U -->|1. Selects DOM Element\n2. Inputs Instruction| UI
+    D -->|1. Selects DOM Element\n2. Inputs Instruction| UI
     UI -->|DOM Node| SM
     SM -->|File Location, Line Range,\nComponent Info| CB
     CB -->|Constructs JSON Payload| Client
@@ -59,7 +59,7 @@ flowchart TD
 ```
 
 ### Flow Breakdown
-1. **User Interaction**: User selects a DOM element and provides a prompt (e.g., "Change this button color to blue").
+1. **Developer Interaction**: Developer selects a DOM element and provides a prompt (e.g., "Change this button color to blue").
 2. **Context Extraction**: The Grip Tool's Source Mapper finds the exact file and line numbers. The Context Builder prepares a precise JSON payload without needing to scan the whole project.
 3. **AI Processing**: The payload is sent to the AI Agent via the Context Tracker. The AI only looks at the provided context, generating a specific code patch.
 4. **Validation & Application**: The Patch Validator checks the patch. If valid, the Code Engine applies it directly to the source file.
