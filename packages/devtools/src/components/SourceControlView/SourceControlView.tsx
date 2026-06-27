@@ -1,4 +1,5 @@
 import { useState } from "preact/hooks";
+import { GitIcon } from "../icons";
 
 interface ChangedFile {
   filename: string;
@@ -78,15 +79,13 @@ const mockGitChanges: ChangedFile[] = [
 export function SourceControlView() {
   const [expandedIdx, setExpandedIdx] = useState<number | null>(0); // Default first one open
 
-  const totalAdditions = mockGitChanges.reduce((sum, f) => sum + f.additions, 0);
-  const totalDeletions = mockGitChanges.reduce((sum, f) => sum + f.deletions, 0);
-
   return (
     <div className="grip-git-view" style={{ display: "flex", flexDirection: "column", gap: "0.75rem", height: "100%", minHeight: "22rem" }}>
       <div className="grip-pick-section-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <span className="grip-label grip-label-plain">Source Control</span>
-        <span style={{ fontSize: "10px", color: "var(--grip-muted)" }}>
-          {mockGitChanges.length} files changed · <span style={{ color: "#4ade80", fontWeight: "600" }}>+{totalAdditions}</span> <span style={{ color: "#f87171", fontWeight: "600" }}>-{totalDeletions}</span>
+        <span style={{ fontSize: "10px", color: "var(--grip-muted)", display: "flex", alignItems: "center", gap: "0.25rem" }}>
+          <GitIcon size={12} />
+          <span>main</span>
         </span>
       </div>
 
@@ -98,7 +97,7 @@ export function SourceControlView() {
               key={file.filename}
               style={{
                 overflow: "hidden",
-                background: "var(--grip-surface)",
+                background: "var(--grip-inset-bg)",
                 display: "flex",
                 flexDirection: "column",
                 border: "none",
@@ -125,14 +124,14 @@ export function SourceControlView() {
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <span style={{ transform: isOpen ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.15s ease", fontSize: "8px", display: "inline-block" }}>
+                  <span style={{ transform: isOpen ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.15s ease", fontSize: "8px", display: "inline-block", color: "var(--grip-muted)" }}>
                     ▶
                   </span>
-                  <span style={{ fontWeight: "600" }}>{file.filename}</span>
+                  <span style={{ fontWeight: "500", color: isOpen ? "var(--grip-accent-fg)" : "var(--grip-fg)", fontSize: "11px" }}>{file.filename}</span>
                 </div>
-                <span style={{ fontSize: "10px" }}>
-                  <span style={{ color: "#4ade80" }}>+{file.additions}</span>
-                  <span style={{ color: "#f87171", marginLeft: "6px" }}>-{file.deletions}</span>
+                <span style={{ fontSize: "10px", fontFamily: "ui-monospace, monospace" }}>
+                  <span style={{ color: "#4ade80", fontWeight: "600" }}>+{file.additions}</span>
+                  <span style={{ color: "#f87171", fontWeight: "600", marginLeft: "6px" }}>-{file.deletions}</span>
                 </span>
               </button>
 

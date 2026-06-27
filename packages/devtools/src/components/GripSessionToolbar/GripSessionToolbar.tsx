@@ -54,13 +54,13 @@ export function GripSessionToolbar({
         <Tooltip text={gitView ? "Hide source control" : "Show source control"}>
           <button
             type="button"
-            className={`grip-btn-ghost grip-btn-toolbar grip-btn-toolbar-git${gitView ? " grip-btn-toolbar-active" : ""}`}
+            className={`grip-btn-ghost grip-btn-toolbar${gitView ? " grip-btn-toolbar-active" : ""}`}
+            aria-label="Source control"
             aria-pressed={gitView ? "true" : "false"}
             onClick={onToggleGitView}
             style={{ flex: 1 }}
           >
             <GitIcon size={16} />
-            <span className="grip-btn-toolbar-pick-label">Git</span>
           </button>
         </Tooltip>
       ) : null}
