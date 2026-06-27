@@ -1,7 +1,9 @@
 import tokensCss from "../../styles/tokens.css?inline";
 import type { PickerFeatures } from "./types";
 import {
-  COMMENT_ID,
+  CONTEXT_CANCEL_ID,
+  CONTEXT_PANEL_ID,
+  CONTEXT_SAVE_ID,
   HINT_ID,
   HOVER_ID,
   SELECTED_ID,
@@ -108,7 +110,7 @@ export function buildPickerStyleSheet(features: PickerFeatures): string {
   const panelPosition = features.panelDrag
     ? ""
     : `
-    .grip-picker-panel{
+    .grip-context-panel{
       position:fixed;
       z-index:2147483647;
     }`;
@@ -117,8 +119,8 @@ export function buildPickerStyleSheet(features: PickerFeatures): string {
     ${themeTokens}
     *{cursor:crosshair!important}
     #${HOVER_ID},#${HINT_ID}{pointer-events:none!important}
-    #${COMMENT_ID}{pointer-events:auto!important}
-    #${COMMENT_ID} *{cursor:auto!important}
+    #${CONTEXT_PANEL_ID}{pointer-events:auto!important}
+    #${CONTEXT_PANEL_ID} *{cursor:auto!important}
     #${HINT_ID}{
       position:fixed;
       z-index:2147483647;
@@ -130,7 +132,7 @@ export function buildPickerStyleSheet(features: PickerFeatures): string {
       border:1px solid var(--grip-shell-border);
       pointer-events:none;
     }
-    .grip-picker-panel{
+    .grip-context-panel{
       width:min(320px,calc(100vw - 16px));
       padding:10px 12px;
       border-radius:16px;
@@ -222,8 +224,8 @@ export function buildPickerStyleSheet(features: PickerFeatures): string {
       font-size:11px;
       cursor:pointer;
     }
-    #__grip_comment_cancel__{background:var(--grip-surface-hover);color:var(--grip-fg)}
-    #__grip_comment_save__{background:var(--grip-accent);color:var(--grip-on-accent)}
+    #${CONTEXT_CANCEL_ID}{background:var(--grip-surface-hover);color:var(--grip-fg)}
+    #${CONTEXT_SAVE_ID}{background:var(--grip-accent);color:var(--grip-on-accent)}
     ${selectedLayer}
     #${HOVER_ID}{
       position:fixed;

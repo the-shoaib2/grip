@@ -86,14 +86,14 @@ test.describe("Grip picker", () => {
 
     await expect(page.locator("#__grip_picker_hover__")).toBeVisible({ timeout: 10_000 });
     await page.locator("#grip-target").click();
-    await expect(page.locator("#__grip_picker_comment__")).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator("#__grip_picker_context__")).toBeVisible({ timeout: 10_000 });
 
-    const composer = page.locator("#__grip_picker_comment__ .grip-inline-editor");
+    const composer = page.locator("#__grip_picker_context__ .grip-inline-editor");
     await composer.click();
     await composer.type("E2E pick target");
 
-    await page.locator("#__grip_picker_comment__ button", { hasText: "Save" }).click();
-    await expect(page.locator("#__grip_picker_comment__")).toBeHidden({ timeout: 10_000 });
+    await page.locator("#__grip_picker_context__ button", { hasText: "Save" }).click();
+    await expect(page.locator("#__grip_picker_context__")).toBeHidden({ timeout: 10_000 });
 
     await expect(gripTrayToggle(page)).toHaveAttribute("aria-expanded", "true", { timeout: 10_000 });
     const panelText = await page.locator(`#${TRAY_ID}`).evaluate(
@@ -117,7 +117,7 @@ test.describe("Grip picker", () => {
 
     await expect(page.locator("#__grip_picker_hover__")).toBeVisible({ timeout: 10_000 });
     await page.locator("#grip-target").click();
-    await page.locator("#__grip_picker_comment__ button", { hasText: "Save" }).click();
+    await page.locator("#__grip_picker_context__ button", { hasText: "Save" }).click();
 
     await expect(gripTrayToggle(page)).toHaveAttribute("aria-expanded", "true", { timeout: 10_000 });
     await page.close();
@@ -150,7 +150,7 @@ test.describe("Grip session", () => {
     await clickGripPickButton(page);
     await expect(page.locator("#__grip_picker_hover__")).toBeVisible({ timeout: 10_000 });
     await page.locator("#grip-target").click();
-    await page.locator("#__grip_picker_comment__ button", { hasText: "Save" }).click();
+    await page.locator("#__grip_picker_context__ button", { hasText: "Save" }).click();
 
     await expect
       .poll(async () => gripShadowText(page))

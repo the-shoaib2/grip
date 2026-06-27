@@ -18,7 +18,7 @@ export function DialogLabDemo() {
         onConfirm={() => setOpen(false)}
       >
         <p class="grip-shell-dialog-lead">
-          Open the comment panel on the page to edit this pick&apos;s context.
+          Open the picker context panel on the page to edit this pick&apos;s context.
         </p>
       </GripShellDialog>
     </GripRootLayout>

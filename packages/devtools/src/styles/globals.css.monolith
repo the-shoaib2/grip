@@ -432,7 +432,7 @@ body {
   margin-bottom: 0.5rem;
 }
 
-.grip-picker-panel {
+.grip-context-panel {
   width: 100%;
   min-width: 0;
   padding: 0.625rem 0.75rem;
@@ -526,7 +526,7 @@ body {
   cursor: not-allowed;
 }
 
-.grip-picker-panel .grip-context-field {
+.grip-context-panel .grip-context-field {
   margin-bottom: 0;
 }
 

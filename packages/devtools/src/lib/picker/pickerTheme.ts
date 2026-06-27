@@ -1,10 +1,10 @@
-import { COMMENT_ID, HINT_ID, TRAY_ID } from "./constants";
+import { CONTEXT_PANEL_ID, HINT_ID, TRAY_ID } from "./constants";
 
 export const CHIP_TOOLTIP_ID = "__grip_chip_tooltip__";
 
 export type GripColorScheme = "light" | "dark";
 
-export const PICKER_THEME_SCOPE = `#${COMMENT_ID}, #${HINT_ID}, #${CHIP_TOOLTIP_ID}`;
+export const PICKER_THEME_SCOPE = `#${CONTEXT_PANEL_ID}, #${HINT_ID}, #${CHIP_TOOLTIP_ID}`;
 
 export function resolveGripColorScheme(): GripColorScheme {
   const trayScheme = document.getElementById(TRAY_ID)?.getAttribute("data-color-scheme");
@@ -35,7 +35,7 @@ export function syncPickerColorScheme(panel: HTMLElement): void {
 }
 
 export function syncAllPickerThemeElements(): void {
-  for (const id of [COMMENT_ID, HINT_ID, CHIP_TOOLTIP_ID]) {
+  for (const id of [CONTEXT_PANEL_ID, HINT_ID, CHIP_TOOLTIP_ID]) {
     const element = document.getElementById(id);
     if (element) syncPickerColorScheme(element);
   }

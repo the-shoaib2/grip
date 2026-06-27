@@ -1,6 +1,6 @@
 export { createPicker } from "./createPicker";
 export {
-  COMMENT_ID,
+  CONTEXT_PANEL_ID,
   COMPOSER_PLACEHOLDER,
   HOVER_ID,
   HINT_ID,

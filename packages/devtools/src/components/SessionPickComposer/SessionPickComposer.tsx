@@ -17,7 +17,7 @@ export interface SessionPickComposerProps {
   sessionPicks?: StoredPick[];
   onCommentChange?: (comment: string) => void | Promise<void>;
   onNavigate?: (pick: StoredPick) => void;
-  /** After confirm dialog — open the page-level picker comment panel. */
+  /** After confirm dialog — open the page-level picker context panel. */
   onEditRequest?: (
     pick: StoredPick,
     meta: { pickIndex: number; pickCount: number },
@@ -72,7 +72,7 @@ export function SessionPickComposer({
 
   return (
     <>
-      <div className="grip-picker-panel grip-session-panel" aria-label="Current pick">
+      <div className="grip-context-panel grip-session-panel" aria-label="Current pick">
         <div className="grip-session-context-wrap">
           <div
             className="grip-session-context-preview"
@@ -139,7 +139,7 @@ export function SessionPickComposer({
         onConfirm={confirmEdit}
       >
         <p className="grip-shell-dialog-lead">
-          Open the comment panel on the page to edit this pick&apos;s context.
+          Open the picker context panel on the page to edit this pick&apos;s context.
         </p>
       </GripShellDialog>
     </>

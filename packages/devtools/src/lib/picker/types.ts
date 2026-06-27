@@ -1,6 +1,6 @@
 import type { OpenContextEditorPayload } from "@grip/core";
 
-export type PickerPhase = "idle" | "hover" | "comment" | "edit";
+export type PickerPhase = "idle" | "hover" | "context" | "edit";
 
 export interface PendingPick {
   chipId: string;

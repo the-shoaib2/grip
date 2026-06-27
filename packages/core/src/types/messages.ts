@@ -57,7 +57,7 @@ export interface ShowTrayPayload {
   restore?: boolean;
 }
 
-/** Open the page-level picker comment panel to edit an existing pick. */
+/** Open the page-level picker context panel to edit an existing pick. */
 export interface OpenContextEditorPayload {
   pick: StoredPick;
   pickIndex?: number;

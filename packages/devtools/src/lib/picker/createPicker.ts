@@ -27,11 +27,11 @@ import {
 } from "../inlineComposerDom";
 import { syncPendingFromStoredChips, toPendingPick } from "./chipSync";
 import {
-  COMMENT_CANCEL_ID,
-  COMMENT_ID,
-  COMMENT_SAVE_ID,
-  COMPOSER_COMPOSER_ID,
-  COMPOSER_EDITOR_ID,
+  CONTEXT_CANCEL_ID,
+  CONTEXT_COMPOSER_ID,
+  CONTEXT_EDITOR_ID,
+  CONTEXT_PANEL_ID,
+  CONTEXT_SAVE_ID,
   COMPOSER_PLACEHOLDER,
   HINT_ID,
   HOVER_ID,
@@ -79,7 +79,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
   let onEditEndCallback: (() => void) | null = null;
 
   function getComposerEditor(): HTMLElement | null {
-    return document.getElementById(COMPOSER_EDITOR_ID);
+    return document.getElementById(CONTEXT_EDITOR_ID);
   }
 
   function ensureStyle(): void {
@@ -160,7 +160,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     const el = target instanceof Element ? target : null;
     if (!el) return false;
     return Boolean(
-      el.closest(`#${TRAY_ID}, #${COMMENT_ID}, #${HOVER_ID}, #${HINT_ID}`),
+      el.closest(`#${TRAY_ID}, #${CONTEXT_PANEL_ID}, #${HOVER_ID}, #${HINT_ID}`),
     );
   }
 
@@ -288,7 +288,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     if (index >= 0) removePendingAt(index);
   }
 
-  function positionCommentPanel(
+  function positionContextPanel(
     panel: HTMLElement,
     el: Element,
     force = false,
@@ -328,7 +328,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     panel.style.visibility = "visible";
   }
 
-  function centerCommentPanel(panel: HTMLElement): void {
+  function centerContextPanel(panel: HTMLElement): void {
     panel.style.display = "block";
     panel.style.visibility = "hidden";
     panel.style.left = "0";
@@ -396,14 +396,15 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     });
   }
 
-  function ensureCommentPanel(): HTMLElement {
-    let panel = document.getElementById(COMMENT_ID);
+  function ensureContextPanel(): HTMLElement {
+    let panel = document.getElementById(CONTEXT_PANEL_ID);
     if (panel) return panel;
 
     const headerTitle = features.panelDrag ? ' title="Drag to move"' : "";
     panel = document.createElement("div");
-    panel.id = COMMENT_ID;
-    panel.className = "grip-picker-panel";
+    panel.id = CONTEXT_PANEL_ID;
+    panel.className = "grip-context-panel";
+    panel.setAttribute("aria-label", "Picker context panel");
     panel.style.cssText = features.panelDrag
       ? "position:fixed;z-index:2147483647;display:none;"
       : "";
@@ -413,9 +414,9 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
       <span class="grip-picker-hint">type · click add · drag</span>
     </div>
     <div class="grip-context-field">
-      <div id="${COMPOSER_COMPOSER_ID}" class="grip-context-composer">
+      <div id="${CONTEXT_COMPOSER_ID}" class="grip-context-composer">
         <div
-          id="${COMPOSER_EDITOR_ID}"
+          id="${CONTEXT_EDITOR_ID}"
           class="grip-inline-editor"
           contenteditable="true"
           role="textbox"
@@ -425,8 +426,8 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
       </div>
     </div>
     <div class="grip-picker-actions">
-      <button type="button" id="${COMMENT_CANCEL_ID}">Cancel</button>
-      <button type="button" id="${COMMENT_SAVE_ID}">Save</button>
+      <button type="button" id="${CONTEXT_CANCEL_ID}">Cancel</button>
+      <button type="button" id="${CONTEXT_SAVE_ID}">Save</button>
     </div>
   `;
     document.documentElement.appendChild(panel);
@@ -444,7 +445,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
   }
 
   function bindComposerEvents(panel: HTMLElement): void {
-    const composer = panel.querySelector(`#${COMPOSER_COMPOSER_ID}`);
+    const composer = panel.querySelector(`#${CONTEXT_COMPOSER_ID}`);
     const editor = getComposerEditor();
     if (!composer || !editor || composer.getAttribute("data-bound") === "1") return;
     composer.setAttribute("data-bound", "1");
@@ -547,13 +548,13 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
 
     const handler = (e: Event) => {
       const target = e.target as HTMLElement;
-      if (target.closest(`#${COMMENT_SAVE_ID}`)) {
+      if (target.closest(`#${CONTEXT_SAVE_ID}`)) {
         e.preventDefault();
         e.stopPropagation();
         commitPanelSave();
         return;
       }
-      if (target.closest(`#${COMMENT_CANCEL_ID}`)) {
+      if (target.closest(`#${CONTEXT_CANCEL_ID}`)) {
         e.stopPropagation();
         commitPanelCancel();
       }
@@ -587,9 +588,9 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     highlight(el);
     updatePendingUI();
 
-    const panel = document.getElementById(COMMENT_ID);
+    const panel = document.getElementById(CONTEXT_PANEL_ID);
     if (panel && (!features.panelDrag || !panelManuallyPlaced) && !options?.keepTyping) {
-      positionCommentPanel(panel, el);
+      positionContextPanel(panel, el);
     }
 
     if (editor && !options?.keepTyping && inserted) {
@@ -604,7 +605,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     if (stack.length && cycleIndex >= stack.length) cycleIndex = 0;
     stackSize = Math.max(stack.length, 1);
     const el = targetAt(x, y, cycleIndex);
-    if (!el || el.closest(`#${COMMENT_ID}`)) return;
+    if (!el || el.closest(`#${CONTEXT_PANEL_ID}`)) return;
     highlight(el);
   }
 
@@ -613,7 +614,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     cycleIndex = (cycleIndex + dir + stackSize) % stackSize;
     const el = targetAt(lastX, lastY, cycleIndex);
     if (!el) return;
-    if (phase === "comment" || phase === "edit") {
+    if (phase === "context" || phase === "edit") {
       highlight(el);
       updatePendingUI();
       return;
@@ -651,7 +652,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
       host.sendPick(item.el, raw);
     }
 
-    document.getElementById(COMMENT_ID)?.remove();
+    document.getElementById(CONTEXT_PANEL_ID)?.remove();
     host.showTray();
     pendingElements = [];
     activePendingIndex = 0;
@@ -698,7 +699,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
       closeContextEditor();
       return;
     }
-    if (phase === "comment") {
+    if (phase === "context") {
       resumeHover();
       return;
     }
@@ -711,7 +712,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     onEditSaveCallback = null;
     onEditEndCallback?.();
     onEditEndCallback = null;
-    document.getElementById(COMMENT_ID)?.remove();
+    document.getElementById(CONTEXT_PANEL_ID)?.remove();
     document.getElementById(SELECTED_ID)?.remove();
     document.getElementById(STYLE_ID)?.remove();
     document.removeEventListener("mousemove", onMove, true);
@@ -731,29 +732,29 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     }
   }
 
-  function revealCommentPanel(panel: HTMLElement): void {
+  function revealContextPanel(panel: HTMLElement): void {
     requestAnimationFrame(() => {
       panel.scrollIntoView({ block: "nearest", inline: "nearest" });
     });
   }
 
-  function showCommentPrompt(el: Element): void {
-    const panel = document.getElementById(COMMENT_ID) ?? ensureCommentPanel();
+  function showContextPanel(el: Element): void {
+    const panel = document.getElementById(CONTEXT_PANEL_ID) ?? ensureContextPanel();
     syncAllPickerThemeElements();
-    const isNewPanel = features.panelDrag ? phase !== "comment" : true;
+    const isNewPanel = features.panelDrag ? phase !== "context" : true;
 
     if (isNewPanel) {
       if (features.panelDrag) {
         panelManuallyPlaced = false;
         panelDrag = null;
-        phase = "comment";
+        phase = "context";
         document.getElementById(HINT_ID)?.remove();
       } else {
-        phase = "comment";
+        phase = "context";
       }
     }
 
-    const editor = panel.querySelector(`#${COMPOSER_EDITOR_ID}`) as HTMLElement;
+    const editor = panel.querySelector(`#${CONTEXT_EDITOR_ID}`) as HTMLElement;
 
     if (isNewPanel && features.panelDrag) {
       pendingElements = [];
@@ -768,16 +769,16 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     bindPanelActions(panel);
 
     if (!features.panelDrag || !panelManuallyPlaced) {
-      positionCommentPanel(panel, el, true);
+      positionContextPanel(panel, el, true);
     }
 
     if (features.panelDrag && isNewPanel) {
       const reposition = () => {
         const active = pendingElements[activePendingIndex]?.el;
-        if (phase === "comment" && active && !panelManuallyPlaced) {
+        if (phase === "context" && active && !panelManuallyPlaced) {
           highlight(active);
           updatePendingHighlights();
-          positionCommentPanel(panel, active);
+          positionContextPanel(panel, active);
         }
       };
       window.addEventListener("resize", reposition, { once: true });
@@ -785,7 +786,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     }
 
     if (!features.panelDrag) {
-      revealCommentPanel(panel);
+      revealContextPanel(panel);
     }
 
     if (isNewPanel || !features.panelDrag) {
@@ -799,7 +800,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
       cleanup();
       return;
     }
-    if (phase !== "hover" && phase !== "comment" && phase !== "edit") return;
+    if (phase !== "hover" && phase !== "context" && phase !== "edit") return;
     if (isGripChrome(e.target)) return;
     updateHover(e.clientX, e.clientY);
   }
@@ -809,7 +810,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
       cleanup();
       return;
     }
-    if (phase !== "hover" && phase !== "comment" && phase !== "edit") return;
+    if (phase !== "hover" && phase !== "context" && phase !== "edit") return;
     if (isGripChrome(e.target)) return;
     if (phase === "edit") return;
 
@@ -835,14 +836,14 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
       return;
     }
 
-    if (phase === "comment") {
+    if (phase === "context") {
       const editor = getComposerEditor();
       const keepTyping = document.activeElement === editor;
       addToPending(el, { keepTyping });
       return;
     }
 
-    showCommentPrompt(el);
+    showContextPanel(el);
   }
 
   function onKey(e: KeyboardEvent): void {
@@ -858,7 +859,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
         closeContextEditor();
         return;
       }
-      if (phase === "comment") {
+      if (phase === "context") {
         if (features.commentEscapeInComposerResumes) {
           if (isEventInComposer(e)) {
             resumeHover();
@@ -879,7 +880,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
       return;
     }
 
-    if ((phase === "comment" || phase === "edit") && isEventInComposer(e)) return;
+    if ((phase === "context" || phase === "edit") && isEventInComposer(e)) return;
 
     if (phase === "idle") return;
 
@@ -896,7 +897,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
   function removeDom(): void {
     document.getElementById(HOVER_ID)?.remove();
     document.getElementById(STYLE_ID)?.remove();
-    document.getElementById(COMMENT_ID)?.remove();
+    document.getElementById(CONTEXT_PANEL_ID)?.remove();
     document.getElementById(HINT_ID)?.remove();
     document.getElementById(SELECTED_ID)?.remove();
     document.removeEventListener("mousemove", onMove, true);
@@ -943,7 +944,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     payload: OpenContextEditorPayload,
     options?: OpenContextEditorOptions,
   ): void {
-    if (phase === "hover" || phase === "comment") {
+    if (phase === "hover" || phase === "context") {
       if (features.commentEscapeInComposerResumes) {
         stop({ notify: false });
       } else {
@@ -957,7 +958,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     onEditEndCallback = options?.onEditEnd ?? null;
     ensureStyle();
     syncAllPickerThemeElements();
-    const panel = ensureCommentPanel();
+    const panel = ensureContextPanel();
     panelManuallyPlaced = false;
     panelDrag = null;
     phase = "edit";
@@ -966,7 +967,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     composerPrompt = "";
 
     const { chips, comment } = composerStateForStoredPick(pick);
-    const editor = panel.querySelector(`#${COMPOSER_EDITOR_ID}`) as HTMLElement;
+    const editor = panel.querySelector(`#${CONTEXT_EDITOR_ID}`) as HTMLElement;
     const inlineChips = storedPickChipsToInlineRefs(chips);
     setEditorFromComment(editor, comment, inlineChips, undefined, { caretAtEnd: true });
     const { pending, anchor } = syncPendingFromStoredChips(chips, pendingElements);
@@ -976,18 +977,18 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     }
 
     if (anchor) {
-      positionCommentPanel(panel, anchor, true);
+      positionContextPanel(panel, anchor, true);
     } else if (features.panelDrag) {
       panel.style.display = "block";
       panel.style.visibility = "visible";
       panel.style.top = `${Math.max(VIEWPORT_PAD, window.innerHeight / 2 - 80)}px`;
       panel.style.left = `${Math.max(VIEWPORT_PAD, window.innerWidth / 2 - 160)}px`;
     } else {
-      centerCommentPanel(panel);
+      centerContextPanel(panel);
     }
 
     bindPanelActions(panel);
-    revealCommentPanel(panel);
+    revealContextPanel(panel);
 
     document.addEventListener("mousemove", onMove, true);
     document.addEventListener("click", onClick, true);

@@ -7,7 +7,7 @@ import {
 export const INLINE_CHIP_CLASS = "grip-inline-chip";
 export const INLINE_EDITOR_CLASS = "grip-inline-editor";
 
-/** Inline chip in the picker comment composer (includes stable id + clipboard metadata). */
+/** Inline chip in the picker context composer (includes stable id + clipboard metadata). */
 export type InlineChipRef = StoredPickChipRef;
 
 function applyChipMeta(chip: HTMLSpanElement, meta: InlineChipRef): void {
