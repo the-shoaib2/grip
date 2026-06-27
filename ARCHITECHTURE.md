@@ -49,7 +49,7 @@ flowchart TD
     CE -->|Applies Diff| FS
     CE -->|Creates Commit| GIT
     
-    GIT -.->|Rollback (if needed)| CE
+    GIT -.->|Rollback if needed| CE
     
     CE -->|Success Event| CT
     CT -->|Status Update| Client
