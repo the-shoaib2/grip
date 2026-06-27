@@ -5,7 +5,6 @@ import {
   type StoredPick,
 } from "@grip/core";
 import { CopyButton } from "../CopyButton";
-import { ElementTagBadge } from "../ElementTagBadge";
 import { SessionLabel } from "../SessionLabel";
 import { Tooltip } from "../Tooltip";
 
@@ -80,7 +79,7 @@ export function PickHistoryList({
               key={pick.id}
               className={`grip-pick-row${selected ? " grip-pick-row-active" : ""}`}
             >
-              <ElementTagBadge tagName={pick.tagName} role={pick.role} className="grip-shrink-0" />
+
               <Tooltip
                 text={commentPreview || `Go to ${pick.label}`}
                 position="top"

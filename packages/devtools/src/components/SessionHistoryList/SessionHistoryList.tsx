@@ -1,5 +1,4 @@
-import { formatAllMcpPrompts, formatStoredPickCommentForDisplay, type SessionPickGroup } from "@grip/core";
-import { ElementTagBadge } from "../ElementTagBadge";
+import { formatAllMcpPrompts, formatStoredPickCommentForDisplay, type SessionPickGroup, type StoredPick } from "@grip/core";
 import { CopyButton } from "../CopyButton";
 import { TrashIcon } from "../icons";
 import { Tooltip } from "../Tooltip";
@@ -52,14 +51,14 @@ export function SessionHistoryList({
                   style={{ display: "flex", flexDirection: "column", gap: "0.375rem", width: "100%", alignItems: "stretch" }}
                 >
                   {group.picks.length > 0 ? (
-                    group.picks.map((pick) => {
+                    group.picks.map((pick: StoredPick) => {
                       const commentPreview = formatStoredPickCommentForDisplay(
                         pick,
                         group.picks,
                       );
                       return (
                       <div key={pick.id} style={{ display: "flex", alignItems: "center", gap: "0.5rem", width: "100%" }}>
-                        <ElementTagBadge tagName={pick.tagName} role={pick.role} className="grip-shrink-0" />
+
                         <div style={{ display: "flex", flexDirection: "column", minWidth: 0, flex: 1 }}>
                           <span className="grip-pick-item-label" style={{ fontWeight: isActive ? "500" : "normal" }}>
                             {pick.label}
