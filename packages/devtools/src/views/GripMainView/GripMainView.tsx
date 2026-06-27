@@ -15,6 +15,7 @@ import {
 import { usePickHistory } from "../../hooks/usePickHistory";
 import { usePickerActive } from "../../hooks/usePickerActive";
 import { useStartPicker } from "../../hooks/useStartPicker";
+import type { PageContextEditorMeta } from "../../hooks/usePageContextEditor";
 import { GripRootLayout, type GripShellVariant } from "../../layout";
 import { useGripStore } from "../../store/gripStore";
 import { useGripRuntime } from "../../runtime/context";
@@ -24,10 +25,7 @@ export interface GripMainViewProps {
   closeOnPickSuccess?: boolean;
   onMinimize?: () => void;
   syncPanelReady?: boolean;
-  onContextEditRequest?: (
-    pick: StoredPick,
-    meta: { pickIndex: number; pickCount: number },
-  ) => void;
+  onContextEditRequest?: (pick: StoredPick, meta: PageContextEditorMeta) => void;
 }
 
 export function GripMainView({
@@ -180,15 +178,30 @@ export function GripMainView({
         </div>
       ) : !historyView && activePick ? (
         <div className="grip-session-stack">
-          <SessionPickComposer
-            pick={activePick}
-            pickIndex={history.findIndex((pick) => pick.id === activePick.id) + 1}
-            pickCount={history.length}
-            sessionPicks={history}
-            onCommentChange={(comment) => savePickComment(activePick.id, comment)}
-            onNavigate={selectPick}
-            onEditRequest={onContextEditRequest}
-          />
+          {isPickerActive ? (
+            <div className="grip-composing-placeholder" aria-live="polite">
+              <p className="grip-empty-state">Composing context on the page…</p>
+              <p className="grip-composing-hint">
+                Edit badges in the page panel, then save or cancel there.
+              </p>
+            </div>
+          ) : (
+            <SessionPickComposer
+              pick={activePick}
+              pickIndex={history.findIndex((pick) => pick.id === activePick.id) + 1}
+              pickCount={history.length}
+              sessionPicks={history}
+              onCommentChange={(comment) => savePickComment(activePick.id, comment)}
+              onNavigate={selectPick}
+              onEditRequest={onContextEditRequest}
+              onSendToAgent={(picks, sessionId) => {
+                void runtime.sendMessage({
+                  type: "REGISTER_SESSION_CONTEXT",
+                  payload: { sessionId, picks },
+                });
+              }}
+            />
+          )}
         </div>
       ) : !historyView ? (
         <p className="grip-empty-state">No picks yet</p>

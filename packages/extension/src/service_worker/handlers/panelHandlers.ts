@@ -69,6 +69,7 @@ export function handleOpenContextEditor(
     const tab = await resolveTargetTab(sender, msg);
     if (!tab?.id) return;
     try {
+      await sendToTabWhenReady(tab.id, { type: "HIDE_TRAY" });
       await sendToTabWhenReady(tab.id, {
         type: "OPEN_CONTEXT_EDITOR",
         payload,

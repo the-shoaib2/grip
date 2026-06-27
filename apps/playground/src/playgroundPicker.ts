@@ -8,7 +8,15 @@ import {
   type PickerFeatures,
   type PickerHost,
 } from "@grip/devtools-lib";
-import { showTrayAfterHandoff } from "./trayBridge";
+import { showTrayAfterHandoff, hideTrayForHandoff } from "./trayBridge";
+
+let setPickerActiveFn: ((active: boolean) => void) | null = null;
+
+export function wirePlaygroundPickerHost(opts: {
+  setPickerActive: (active: boolean) => void;
+}): void {
+  setPickerActiveFn = opts.setPickerActive;
+}
 
 const playgroundFeatures: PickerFeatures = {
   panelDrag: false,
@@ -27,7 +35,12 @@ let onStopCallback: (() => void) | null = null;
 
 const host: PickerHost = {
   isContextValid: () => true,
-  setPickerActive() {},
+  setPickerActive(active) {
+    setPickerActiveFn?.(active);
+  },
+  hideTray() {
+    hideTrayForHandoff();
+  },
   sendPick(el, comment) {
     if (!onSaveCallback) return;
     onSaveCallback({

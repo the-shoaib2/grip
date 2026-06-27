@@ -5,6 +5,7 @@ import { useGripRuntime } from "../../runtime/context";
 export interface PageContextEditorMeta {
   pickIndex: number;
   pickCount: number;
+  sessionPicks?: StoredPick[];
 }
 
 export function usePageContextEditor() {
@@ -16,6 +17,7 @@ export function usePageContextEditor() {
         pick,
         pickIndex: meta?.pickIndex,
         pickCount: meta?.pickCount,
+        sessionPicks: meta?.sessionPicks,
       };
       void (async () => {
         await runtime.sendMessage({ type: "HIDE_TRAY" });

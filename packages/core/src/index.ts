@@ -78,7 +78,79 @@ export type {
   OpenContextEditorPayload,
   PickerElementPayload,
   PickerStartPayload,
+  PatchAppliedPayload,
+  PatchFailedPayload,
+  RegisterSessionContextPayload,
   ShowTrayPayload,
   StoredPick,
+  FrameworkContext,
 } from "./types/messages.js";
 export { applyPatch, type PatchOptions } from "./patch-engine.js";
+export {
+  buildContextBlockFromPick,
+  buildContextBlocksFromSession,
+  canBuildContextBlock,
+  componentNameFromPick,
+  enrichContextBlock,
+  formatAllContextEnginePrompts,
+  formatContextEnginePrompt,
+  formatEnrichedContextEnginePrompt,
+  formatPickPrompt,
+  formatSendToAgentPrompt,
+  parseInstructions,
+  type BuildContextBlockOptions,
+  type ContextBlock,
+  type ContextBlockFramework,
+} from "./context-block.js";
+export {
+  badgeDisplayLabel,
+  badgeStateIndicator,
+  chipRefToContextBadge,
+  computeSourceHash,
+  contextBadgeToChipRef,
+  ContextBadgeRegistry,
+  duplicateBadge,
+  gripGroupToken,
+  GRIP_GROUP_END_TOKEN,
+  GRIP_GROUP_TOKEN_RE,
+  markBadgeOutdatedIfHashChanged,
+  mergeBadgeRefresh,
+  type ContextBadge,
+  type ContextBadgeGroup,
+  type ContextBadgeState,
+  type ContextInstructionBlock,
+  type GripDocument,
+} from "./context-badge.js";
+export {
+  isBlockedPatchPath,
+  parseContextEnginePatches,
+  validateContextEnginePatch,
+  type ContextEnginePatch,
+  type ContextEnginePatchBody,
+  type PatchValidationResult,
+  type ValidatePatchOptions,
+} from "./patch-validator.js";
+export {
+  clearSessionContext,
+  getSessionContext,
+  listSessionContexts,
+  loadSessionContextFromDisk,
+  persistSessionContext,
+  registerSessionContext,
+  type SessionContextRecord,
+} from "./session-registry.js";
+export { applyContextEnginePatch, type ApplyContextEnginePatchResult } from "./apply-context-patch.js";
+export {
+  clearAppliedPatchHistory,
+  getAppliedPatchHistory,
+  recordAppliedPatch,
+  type AppliedPatchRecord,
+} from "./patch-history.js";
+export {
+  expandLineRange,
+  normalizeSourcePath,
+  readSourceSnippet,
+  resolveSourcePath,
+  type ReadSourceSnippetOptions,
+  type SourceSnippetResult,
+} from "./source-mapper/index.js";

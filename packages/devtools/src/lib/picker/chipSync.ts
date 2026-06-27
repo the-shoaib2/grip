@@ -15,6 +15,7 @@ export function toPendingPick(el: Element): PendingPick {
     rect: desc.rect,
     shadowDOM: desc.shadowDOM,
     iframe: desc.iframe,
+    frameworkContext: desc.frameworkContext,
   };
 }
 

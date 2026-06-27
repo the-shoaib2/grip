@@ -1,23 +1,23 @@
 import { useState } from "preact/hooks";
 import { GitIcon } from "../icons";
-
-interface ChangedFile {
-  filename: string;
-  additions: number;
-  deletions: number;
-  diffLines: {
-    type: "addition" | "deletion" | "normal";
-    oldLine?: number;
-    newLine?: number;
-    content: string;
-  }[];
-}
-
-const mockGitChanges: ChangedFile[] = [];
-
+import { usePatchHistory } from "../../hooks/usePatchHistory";
 
 export function SourceControlView() {
-  const [expandedIdx, setExpandedIdx] = useState<number | null>(0); // Default first one open
+  const patchHistory = usePatchHistory();
+  const [expandedIdx, setExpandedIdx] = useState<number | null>(patchHistory.length ? 0 : null);
+
+  const changes = patchHistory.map((entry) => ({
+    filename: entry.filePath.replace(/\\/g, "/"),
+    additions: Math.max(1, entry.endLine - entry.startLine + 1),
+    deletions: Math.max(1, entry.endLine - entry.startLine + 1),
+    summary: entry.summary,
+    diffLines: [
+      {
+        type: "normal" as const,
+        content: `${entry.context ? `${entry.context}: ` : ""}${entry.summary || "Applied patch"} (lines ${entry.startLine}-${entry.endLine})`,
+      },
+    ],
+  }));
 
   return (
     <div className="grip-git-view" style={{ display: "flex", flexDirection: "column", gap: "0.75rem", height: "100%", minHeight: "22rem" }}>
@@ -25,29 +25,30 @@ export function SourceControlView() {
         <span className="grip-label grip-label-plain">Source Control</span>
         <span style={{ fontSize: "10px", color: "var(--grip-muted)", display: "flex", alignItems: "center", gap: "0.25rem" }}>
           <GitIcon size={12} />
-          <span>main</span>
+          <span>patches</span>
         </span>
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem", flex: 1, overflowY: "auto" }}>
-        {mockGitChanges.length === 0 ? (
-          <p className="grip-empty-state" style={{ margin: "auto", textAlign: "center", color: "var(--grip-muted)" }}>No changes detected</p>
+        {changes.length === 0 ? (
+          <p className="grip-empty-state" style={{ margin: "auto", textAlign: "center", color: "var(--grip-muted)" }}>
+            No applied patches yet. Use apply_context_patch MCP tool to record changes.
+          </p>
         ) : (
-          mockGitChanges.map((file, idx) => {
+          changes.map((file, idx) => {
             const isOpen = expandedIdx === idx;
             return (
               <div
-                key={file.filename}
+                key={`${file.filename}-${idx}`}
                 style={{
                   overflow: "hidden",
                   background: "var(--grip-inset-bg)",
                   display: "flex",
                   flexDirection: "column",
                   border: "none",
-                  borderRadius: "6px"
+                  borderRadius: "6px",
                 }}
               >
-                {/* Accordion Header */}
                 <button
                   type="button"
                   onClick={() => setExpandedIdx(isOpen ? null : idx)}
@@ -63,7 +64,7 @@ export function SourceControlView() {
                     justifyContent: "space-between",
                     alignItems: "center",
                     fontSize: "12px",
-                    transition: "background 0.15s ease"
+                    transition: "background 0.15s ease",
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
@@ -78,7 +79,6 @@ export function SourceControlView() {
                   </span>
                 </button>
 
-                {/* Accordion Content (Diff) */}
                 <div
                   className="grip-git-diff-container grip-scrollbar"
                   style={{
@@ -91,36 +91,18 @@ export function SourceControlView() {
                     fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
                     fontSize: "11px",
                     lineHeight: "1.5",
-                    borderTop: isOpen ? "1px solid var(--grip-border)" : "none"
+                    borderTop: isOpen ? "1px solid var(--grip-border)" : "none",
                   }}
                 >
                   <table style={{ width: "100%", borderCollapse: "collapse" }}>
                     <tbody>
-                      {file.diffLines.map((line, index) => {
-                        let bg = "transparent";
-                        let color = "var(--grip-fg)";
-                        if (line.type === "addition") {
-                          bg = "rgba(74, 222, 128, 0.12)";
-                          color = "#4ade80";
-                        } else if (line.type === "deletion") {
-                          bg = "rgba(248, 113, 113, 0.12)";
-                          color = "#f87171";
-                        }
-
-                        return (
-                          <tr key={index} style={{ background: bg }}>
-                            <td style={{ width: "24px", color: "var(--grip-muted)", textAlign: "right", paddingRight: "0.5rem", userSelect: "none" }}>
-                              {line.oldLine || ""}
-                            </td>
-                            <td style={{ width: "24px", color: "var(--grip-muted)", textAlign: "right", paddingRight: "0.5rem", userSelect: "none", borderRight: "1px solid var(--grip-border)" }}>
-                              {line.newLine || ""}
-                            </td>
-                            <td style={{ paddingLeft: "0.5rem", whiteSpace: "pre-wrap", wordBreak: "break-all", color: color }}>
-                              {line.content}
-                            </td>
-                          </tr>
-                        );
-                      })}
+                      {file.diffLines.map((line, index) => (
+                        <tr key={index}>
+                          <td style={{ paddingLeft: "0.5rem", whiteSpace: "pre-wrap", wordBreak: "break-all", color: "var(--grip-fg)" }}>
+                            {line.content}
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>

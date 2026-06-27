@@ -22,12 +22,15 @@ export {
 } from "./picker";
 export {
   chipMetaFromElement,
+  bindBadgeEditor,
   createChipElement,
   createDefaultChip,
   bindEditorClipboard,
+  bindChipDragDrop,
   focusEditor,
   handleEditorKeydown,
   INLINE_CHIP_CLASS,
+  INLINE_CHIP_GROUP_CLASS,
   INLINE_EDITOR_CLASS,
   insertChipAtSelection,
   isEditorEmpty,
@@ -40,5 +43,12 @@ export {
   setEditorFromComment,
   toInlineChipRef,
   updateChipActiveStates,
+  updateChipSelectedStates,
   type InlineChipRef,
 } from "./inlineComposerDom";
+export {
+  badgeFromChipRef,
+  executeBadgeAction,
+  refreshBadge,
+  type BadgeAction,
+} from "./contextBadge";

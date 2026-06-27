@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import {
   composerStateForStoredPick,
-  formatMcpPrompt,
+  canBuildContextBlock,
+  formatPickPrompt,
+  formatSendToAgentPrompt,
   type StoredPick,
 } from "@grip/core";
 import { ContextField } from "../ContextField";
@@ -20,8 +22,9 @@ export interface SessionPickComposerProps {
   /** After confirm dialog — open the page-level picker context panel. */
   onEditRequest?: (
     pick: StoredPick,
-    meta: { pickIndex: number; pickCount: number },
+    meta: { pickIndex: number; pickCount: number; sessionPicks?: StoredPick[] },
   ) => void;
+  onSendToAgent?: (picks: StoredPick[], sessionId: string) => void;
 }
 
 export function SessionPickComposer({
@@ -32,6 +35,7 @@ export function SessionPickComposer({
   onCommentChange,
   onNavigate,
   onEditRequest,
+  onSendToAgent,
 }: SessionPickComposerProps) {
   const baseline = useRef("");
   const chipsRef = useRef(composerStateForStoredPick(pick, sessionPicks).chips);
@@ -39,7 +43,16 @@ export function SessionPickComposer({
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const canUndo = displayComment !== baseline.current;
-  const copyText = formatMcpPrompt({ ...pick, comment: displayComment });
+  const pickWithComment = { ...pick, comment: displayComment };
+  const useContextFormat = canBuildContextBlock(pickWithComment);
+  const copyText = formatPickPrompt(pickWithComment, {
+    sessionPicks,
+    mode: "auto",
+  });
+  const sendText = formatSendToAgentPrompt(
+    sessionPicks.length ? sessionPicks : [pickWithComment],
+    { sessionId: pick.sessionId },
+  );
 
   useEffect(() => {
     const state = composerStateForStoredPick(pick, sessionPicks);
@@ -60,7 +73,7 @@ export function SessionPickComposer({
 
   const confirmEdit = () => {
     setConfirmOpen(false);
-    onEditRequest?.(pick, { pickIndex, pickCount });
+    onEditRequest?.(pick, { pickIndex, pickCount, sessionPicks });
   };
 
   const undoToBaseline = (e: Event) => {
@@ -119,9 +132,20 @@ export function SessionPickComposer({
                   <CopyButton
                     label="Copy"
                     text={copyText}
-                    tooltip="Copy prompt"
+                    tooltip={useContextFormat ? "Copy Context Block" : "Copy prompt"}
                     variant="ghost"
                     size="icon"
+                  />
+                  <CopyButton
+                    label="Send"
+                    text={sendText}
+                    tooltip="Send to agent (context + session JSON)"
+                    variant="ghost"
+                    size="icon"
+                    onCopied={() => {
+                      const picks = sessionPicks.length ? sessionPicks : [pickWithComment];
+                      onSendToAgent?.(picks, pick.sessionId);
+                    }}
                   />
                 </>
               }

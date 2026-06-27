@@ -11,6 +11,7 @@ import {
   bindChipTooltipRoot,
 } from "../chipTooltip";
 import {
+  bindBadgeEditor,
   bindEditorClipboard,
   chipMetaFromElement,
   findChipElement,
@@ -162,6 +163,10 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     return Boolean(
       el.closest(`#${TRAY_ID}, #${CONTEXT_PANEL_ID}, #${HOVER_ID}, #${HINT_ID}`),
     );
+  }
+
+  function hideTrayIfSupported(): void {
+    host.hideTray?.();
   }
 
   function formatPickerIndexLabel(): string {
@@ -486,6 +491,22 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
 
     bindEditorClipboard(editor);
 
+    bindBadgeEditor(editor, {
+      onChange: () => syncComposerEditor(editor),
+      onChipRemoved: (chipId) => {
+        removePendingByChipId(chipId);
+        syncComposerEditor(editor);
+      },
+      onReplaceRequest: (chipId) => {
+        const index = pendingElements.findIndex((item) => item.chipId === chipId);
+        if (index >= 0) {
+          activePendingIndex = index;
+          highlight(pendingElements[index]!.el);
+          updatePendingUI();
+        }
+      },
+    });
+
     editor.addEventListener("keydown", (e) => {
       e.stopPropagation();
       if (
@@ -724,8 +745,8 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     panelManuallyPlaced = false;
     panelDrag = null;
     phase = "idle";
+    host.setPickerActive(false);
     if (features.panelDrag) {
-      host.setPickerActive(false);
       host.showTray();
     } else {
       host.showTray({ restore: false });
@@ -767,6 +788,8 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     panel.style.display = "block";
 
     bindPanelActions(panel);
+
+    hideTrayIfSupported();
 
     if (!features.panelDrag || !panelManuallyPlaced) {
       positionContextPanel(panel, el, true);
@@ -938,6 +961,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     document.addEventListener("click", onClick, true);
     document.addEventListener("keydown", onKey, true);
     host.setPickerActive(true);
+    hideTrayIfSupported();
   }
 
   function openContextEditor(
@@ -952,7 +976,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
       }
     }
 
-    const { pick } = payload;
+    const { pick, sessionPicks = [] } = payload;
     editingPickId = pick.id;
     onEditSaveCallback = options?.onEditSave ?? null;
     onEditEndCallback = options?.onEditEnd ?? null;
@@ -965,8 +989,10 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     pendingElements = [];
     activePendingIndex = 0;
     composerPrompt = "";
+    host.setPickerActive(true);
+    hideTrayIfSupported();
 
-    const { chips, comment } = composerStateForStoredPick(pick);
+    const { chips, comment } = composerStateForStoredPick(pick, sessionPicks);
     const editor = panel.querySelector(`#${CONTEXT_EDITOR_ID}`) as HTMLElement;
     const inlineChips = storedPickChipsToInlineRefs(chips);
     setEditorFromComment(editor, comment, inlineChips, undefined, { caretAtEnd: true });

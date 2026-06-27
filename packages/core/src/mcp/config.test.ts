@@ -44,9 +44,11 @@ describe("createGripMcpClientConfig", () => {
 });
 
 describe("GRIP_MCP_TOOLS", () => {
-  it("lists ten server tools", () => {
-    expect(GRIP_MCP_TOOLS).toHaveLength(10);
+  it("lists registered server tools", () => {
+    expect(GRIP_MCP_TOOLS).toHaveLength(14);
     expect(GRIP_MCP_TOOLS).toContain("snapshot");
     expect(GRIP_MCP_TOOLS).toContain("pick_element");
+    expect(GRIP_MCP_TOOLS).toContain("resolve_context_block");
+    expect(GRIP_MCP_TOOLS).toContain("apply_context_patch");
   });
 });

@@ -25,6 +25,11 @@ import {
   handleNewSession,
   handleSetActiveSession,
 } from "./handlers/sessionHandlers";
+import {
+  handlePatchApplied,
+  handlePatchFailed,
+  handleRegisterSessionContext,
+} from "./handlers/contextHandlers";
 
 export function routeMessage(
   msg: GripMessage,
@@ -68,6 +73,12 @@ export function routeMessage(
       return handleGripPing(msg, sender, sendResponse);
     case "GRIP_BOOTSTRAP_ERROR":
       return handleGripBootstrapError(msg, sender, sendResponse);
+    case "REGISTER_SESSION_CONTEXT":
+      return handleRegisterSessionContext(msg, sender, sendResponse);
+    case "PATCH_APPLIED":
+      return handlePatchApplied(msg, sender, sendResponse);
+    case "PATCH_FAILED":
+      return handlePatchFailed(msg, sender, sendResponse);
     default:
       return undefined;
   }

@@ -61,12 +61,17 @@ Registered in `packages/mcp-server/internal/tools/register.go`:
 | `pick_element` | Programmatic pick at coordinates |
 | `navigate` | Go to URL |
 | `eval` | Run JavaScript in page context |
+| `resolve_context_block` | Enrich Context Block with source snippet from workspace |
+| `apply_context_patch` | Apply line-range Context Engine patch to a file |
+| `register_session_context` | Register session picks for agent handshake |
+| `get_session_context` | Retrieve registered session picks by sessionId |
 
 ### Environment
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `GRIP_CHROME_PORT` | `9222` | Chrome remote debugging port |
+| `GRIP_WORKSPACE_ROOT` | cwd | Workspace root for source read / patch apply |
 | `GRIP_LOG_LEVEL` | `info` | Server log level (`debug`, `info`, `warn`, `error`) |
 
 CLI flag `--port` also sets the CDP port (see `.cursor/mcp.json` for combined `args` + `env` pattern).

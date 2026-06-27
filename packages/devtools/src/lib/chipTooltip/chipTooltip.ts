@@ -1,4 +1,4 @@
-import { chipDisplayLabel } from "@grip/core";
+import { badgeDisplayLabel, badgeStateIndicator, chipDisplayLabel } from "@grip/core";
 
 const TOOLTIP_ID = "__grip_chip_tooltip__";
 const SHOW_MS = 220;
@@ -12,6 +12,23 @@ export interface ChipTooltipMeta {
   css?: string;
   text?: string;
   name?: string;
+  component?: string;
+  filePath?: string;
+  lineStart?: number;
+  lineEnd?: number;
+  framework?: string;
+  state?: string;
+  parentComponents?: string[];
+  childComponents?: string[];
+  createdAt?: number;
+  updatedAt?: number;
+  id?: string;
+  frameworkContext?: {
+    framework: string;
+    file?: string;
+    line?: number;
+    componentName?: string;
+  } | null;
 }
 
 let showTimer: ReturnType<typeof setTimeout> | null = null;
@@ -31,6 +48,11 @@ function truncate(value: string, max: number): string {
   return `${trimmed.slice(0, max - 1)}…`;
 }
 
+function formatTs(ts?: number): string {
+  if (!ts) return "—";
+  return new Date(ts).toLocaleString();
+}
+
 function ensureTooltip(): HTMLElement {
   let tip = document.getElementById(TOOLTIP_ID);
   if (tip) return tip;
@@ -45,17 +67,48 @@ function ensureTooltip(): HTMLElement {
 }
 
 function renderTooltip(tip: HTMLElement, meta: ChipTooltipMeta): void {
-  const tag = chipDisplayLabel(meta.tag);
+  const component = meta.component ?? meta.frameworkContext?.componentName ?? meta.tag;
+  const tag = component
+    ? badgeDisplayLabel({ component, tag: meta.tag })
+    : chipDisplayLabel(meta.tag);
   const role = meta.role?.trim().toLowerCase() ?? "";
   const showRole = Boolean(role && role !== meta.tag.toLowerCase());
   const snippet = truncate(meta.text?.trim() || meta.name?.trim() || "", 72);
   const css = truncate(meta.css?.trim() || "", 96);
 
+  const file =
+    meta.filePath ??
+    meta.frameworkContext?.file;
+  const lineStart = meta.lineStart ?? meta.frameworkContext?.line;
+  const lineEnd = meta.lineEnd ?? lineStart;
+  const framework = meta.framework ?? meta.frameworkContext?.framework;
+  const state = meta.state ? badgeStateIndicator(meta.state as never) : "";
+
   const roleHtml = showRole
-    ? `<span class="grip-chip-tooltip-role">${role}</span>`
+    ? `<span class="grip-chip-tooltip-role">${escapeHtml(role)}</span>`
     : "";
   const textHtml = snippet
     ? `<p class="grip-chip-tooltip-text">"${escapeHtml(snippet)}"</p>`
+    : "";
+  const sourceHtml = file
+    ? `<p class="grip-chip-tooltip-row"><span class="grip-chip-tooltip-k">File</span> ${escapeHtml(file)}</p>`
+    : "";
+  const lineHtml =
+    lineStart !== undefined
+      ? `<p class="grip-chip-tooltip-row"><span class="grip-chip-tooltip-k">Lines</span> ${lineStart}${lineEnd !== lineStart ? `–${lineEnd}` : ""}</p>`
+      : "";
+  const fwHtml = framework
+    ? `<p class="grip-chip-tooltip-row"><span class="grip-chip-tooltip-k">Framework</span> ${escapeHtml(framework)}${state ? ` ${state}` : ""}</p>`
+    : "";
+  const parentHtml = meta.parentComponents?.length
+    ? `<p class="grip-chip-tooltip-row"><span class="grip-chip-tooltip-k">Parent</span> ${escapeHtml(meta.parentComponents.join(", "))}</p>`
+    : "";
+  const childHtml = meta.childComponents?.length
+    ? `<p class="grip-chip-tooltip-row"><span class="grip-chip-tooltip-k">Children</span> ${escapeHtml(meta.childComponents.join(", "))}</p>`
+    : "";
+  const metaHtml = `<p class="grip-chip-tooltip-row grip-chip-tooltip-meta"><span class="grip-chip-tooltip-k">Updated</span> ${escapeHtml(formatTs(meta.updatedAt))}</p>`;
+  const idHtml = meta.id
+    ? `<p class="grip-chip-tooltip-row grip-chip-tooltip-meta"><span class="grip-chip-tooltip-k">ID</span> ${escapeHtml(meta.id)}</p>`
     : "";
   const cssHtml = css
     ? `<p class="grip-chip-tooltip-css">${escapeHtml(css)}</p>`
@@ -67,6 +120,13 @@ function renderTooltip(tip: HTMLElement, meta: ChipTooltipMeta): void {
       ${roleHtml}
     </div>
     ${textHtml}
+    ${sourceHtml}
+    ${lineHtml}
+    ${fwHtml}
+    ${parentHtml}
+    ${childHtml}
+    ${metaHtml}
+    ${idHtml}
     ${cssHtml}
   `;
 }

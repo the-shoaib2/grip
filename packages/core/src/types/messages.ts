@@ -1,4 +1,5 @@
 import type { ElementRect } from "./a11y.js";
+import type { FrameworkContext } from "./framework.js";
 
 export type GripMessageType =
   | "START_PICKER"
@@ -20,7 +21,10 @@ export type GripMessageType =
   | "DELETE_SESSION"
   | "GRIP_PING"
   | "GRIP_BOOTSTRAP_PING"
-  | "GRIP_BOOTSTRAP_ERROR";
+  | "GRIP_BOOTSTRAP_ERROR"
+  | "REGISTER_SESSION_CONTEXT"
+  | "PATCH_APPLIED"
+  | "PATCH_FAILED";
 
 export interface PickerElementPayload {
   tagName: string;
@@ -34,6 +38,8 @@ export interface PickerElementPayload {
   innerText: string;
   /** User context note — included in MCP prompt for the agent. */
   comment?: string;
+  /** Dev-build framework source hint (React Fiber, Vue __file, etc.). */
+  frameworkContext?: FrameworkContext | null;
 }
 
 /** Sent with START_PICKER so the content script knows the active chat session. */
@@ -62,6 +68,8 @@ export interface OpenContextEditorPayload {
   pick: StoredPick;
   pickIndex?: number;
   pickCount?: number;
+  /** Session picks for resolving multi-badge chip tokens. */
+  sessionPicks?: StoredPick[];
 }
 
 export interface GripMessage<T = unknown> {
@@ -82,3 +90,23 @@ export interface NetworkMessagePayload {
   method: string;
   status?: number;
 }
+
+/** Register picks for MCP session handshake (host-side mirror). */
+export interface RegisterSessionContextPayload {
+  sessionId: string;
+  picks: StoredPick[];
+}
+
+export interface PatchAppliedPayload {
+  filePath: string;
+  startLine: number;
+  endLine: number;
+  summary?: string;
+}
+
+export interface PatchFailedPayload {
+  filePath: string;
+  error: string;
+}
+
+export type { FrameworkContext } from "./framework.js";

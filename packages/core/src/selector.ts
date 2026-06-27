@@ -1,5 +1,6 @@
 import { finder } from "@medv/finder";
 import type { SelectorResult } from "./types/a11y.js";
+import type { FrameworkContext } from "./types/framework.js";
 
 function escapeCssIdent(value: string): string {
   if (typeof CSS !== "undefined" && typeof CSS.escape === "function") {
@@ -167,6 +168,7 @@ interface ReactFiber {
     lineNumber: number;
   };
   return?: ReactFiber | null;
+  type?: string | { displayName?: string; name?: string };
 }
 
 interface SvelteMeta {
@@ -190,7 +192,20 @@ interface FrameworkElement extends Element {
   __svelte_meta?: SvelteMeta;
 }
 
-function getFrameworkContext(el: Element) {
+function reactComponentName(fiber: ReactFiber | null | undefined): string | undefined {
+  while (fiber) {
+    const t = fiber.type;
+    if (typeof t === "function" || typeof t === "object") {
+      const named = (t as { displayName?: string; name?: string }).displayName
+        ?? (t as { displayName?: string; name?: string }).name;
+      if (named && named !== "Fragment") return named;
+    }
+    fiber = fiber.return ?? null;
+  }
+  return undefined;
+}
+
+function getFrameworkContext(el: Element): FrameworkContext | null {
   const fwEl = el as FrameworkElement;
 
   // 1. React (Fiber) detection
@@ -206,6 +221,7 @@ function getFrameworkContext(el: Element) {
           framework: "React",
           file: current._debugSource.fileName,
           line: current._debugSource.lineNumber,
+          componentName: reactComponentName(current),
         };
       }
       current = current.return;
@@ -231,7 +247,7 @@ function getFrameworkContext(el: Element) {
   if (ngContextKey) {
     return {
       framework: "Angular",
-      file: fwEl.getAttribute("ng-reflect-file"),
+      file: fwEl.getAttribute("ng-reflect-file") ?? undefined,
     };
   }
 

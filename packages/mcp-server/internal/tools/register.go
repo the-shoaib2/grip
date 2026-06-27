@@ -28,4 +28,8 @@ func Register(server *mcp.Server, s *cdp.Session) {
 	RegisterPickElement(server, s)
 	RegisterNavigate(server, s)
 	RegisterEval(server, s)
+	RegisterResolveContextBlock(server, s)
+	RegisterApplyContextPatch(server, s)
+	RegisterRegisterSessionContext(server, s)
+	RegisterGetSessionContext(server, s)
 }

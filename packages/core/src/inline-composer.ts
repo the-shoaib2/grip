@@ -21,6 +21,12 @@ export interface ChipClipboardMeta {
   rect?: { top: number; left: number; width: number; height: number };
   shadowDOM?: boolean;
   iframe?: string;
+  frameworkContext?: {
+    framework: string;
+    file?: string;
+    line?: number;
+    componentName?: string;
+  } | null;
 }
 
 /** Format chip element metadata for clipboard (matches MCP prompt element block). */
@@ -42,6 +48,15 @@ export function formatChipForClipboard(meta: ChipClipboardMeta): string {
     lines.push(`Shadow DOM: ${meta.shadowDOM ? "yes" : "no"}`);
   }
   if (meta.iframe) lines.push(`iframe: ${meta.iframe}`);
+  const fw = meta.frameworkContext;
+  if (fw?.file) {
+    const loc = `${fw.file}${fw.line ? `:${fw.line}` : ""}`;
+    lines.push(
+      fw.componentName
+        ? `Source: ${fw.componentName} (${fw.framework}) · ${loc}`
+        : `Source: ${fw.framework} · ${loc}`,
+    );
+  }
 
   return lines.join("\n");
 }

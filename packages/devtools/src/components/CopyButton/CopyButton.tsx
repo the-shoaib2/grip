@@ -8,6 +8,7 @@ interface CopyButtonProps {
   variant?: "secondary" | "ghost";
   size?: "default" | "icon";
   disabled?: boolean;
+  onCopied?: () => void;
 }
 
 export function CopyButton({
@@ -17,6 +18,7 @@ export function CopyButton({
   variant = "secondary",
   size = "default",
   disabled = false,
+  onCopied,
 }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
 
@@ -26,6 +28,7 @@ export function CopyButton({
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
+      onCopied?.();
       setTimeout(() => setCopied(false), 1500);
     } catch {
       /* clipboard blocked */

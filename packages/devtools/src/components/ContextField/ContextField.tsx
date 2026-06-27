@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef } from "preact/hooks";
 import type { ComponentChildren } from "preact";
+import { ContextBadgeRegistry } from "@grip/core";
 import {
+  bindBadgeEditor,
   bindChipTooltipRoot,
   bindEditorClipboard,
   chipMetaFromElement,
@@ -31,6 +33,8 @@ interface ContextFieldProps {
   tags?: string[];
   maxHeight?: number;
   onChipActivate?: () => void;
+  onReplaceRequest?: (badgeId: string) => void;
+  onJumpToSource?: (filePath: string, line?: number) => void;
   readOnly?: boolean;
   autoFocusKey?: string;
   composerActions?: ComponentChildren;
@@ -53,11 +57,14 @@ export function ContextField({
   tags,
   maxHeight = 160,
   onChipActivate,
+  onReplaceRequest,
+  onJumpToSource,
   readOnly = false,
   autoFocusKey,
   composerActions,
 }: ContextFieldProps) {
   const editorRef = useRef<HTMLDivElement>(null);
+  const registryRef = useRef<ContextBadgeRegistry | null>(null);
   const lastEmitted = useRef(value);
 
   const chipRefs = useMemo<InlineChipRef[]>(() => {
@@ -87,6 +94,11 @@ export function ContextField({
   }, [chips, tagName, role, css, xpath, innerText, name, rect, shadowDOM, iframe, tags]);
 
   useEffect(() => {
+    if (!registryRef.current) registryRef.current = new ContextBadgeRegistry();
+    registryRef.current.loadFromChipRefs(chipRefs);
+  }, [chipRefs]);
+
+  useEffect(() => {
     const editor = editorRef.current;
     if (!editor || readOnly) return;
 
@@ -104,14 +116,25 @@ export function ContextField({
     editor.addEventListener("keydown", onKeyDown);
     const unbindTooltip = bindChipTooltipRoot(editor, (chip: HTMLElement) => chipMetaFromElement(chip));
     const unbindClipboard = bindEditorClipboard(editor);
+    const unbindBadge = bindBadgeEditor(editor, {
+      registry: registryRef.current ?? undefined,
+      readOnly: false,
+      onChange: onInput,
+      onChipRemoved: () => onInput(),
+      onReplaceRequest,
+      onJumpToSource: (badge) => {
+        if (badge?.filePath) onJumpToSource?.(badge.filePath, badge.lineStart);
+      },
+    });
 
     return () => {
       editor.removeEventListener("input", onInput);
       editor.removeEventListener("keydown", onKeyDown);
       unbindTooltip();
       unbindClipboard();
+      unbindBadge();
     };
-  }, [onChange, readOnly]);
+  }, [onChange, onJumpToSource, onReplaceRequest, readOnly]);
 
   useEffect(() => {
     if (!autoFocusKey || readOnly) return;
@@ -129,6 +152,7 @@ export function ContextField({
     if (value === lastEmitted.current && !isEditorEmpty(editor)) return;
     setEditorFromComment(editor, value, chipRefs);
     lastEmitted.current = value;
+    registryRef.current?.loadFromChipRefs(chipRefs);
   }, [value, chipRefs]);
 
   return (

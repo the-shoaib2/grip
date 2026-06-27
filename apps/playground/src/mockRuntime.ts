@@ -16,7 +16,7 @@ import {
   GRIP_MCP_DOCS_URL,
 } from "@grip/core";
 import type { GripRuntime, RuntimeMessage, StorageChangeHandler } from "@grip/devtools";
-import { startPlaygroundPicker, stopPlaygroundPicker, openPlaygroundContextEditor } from "./playgroundPicker";
+import { startPlaygroundPicker, stopPlaygroundPicker, openPlaygroundContextEditor, wirePlaygroundPickerHost } from "./playgroundPicker";
 import { hideTrayForHandoff, showTrayAfterHandoff } from "./trayBridge";
 
 const TAB_SESSIONS_KEY = "tabSessionIds";
@@ -53,6 +53,8 @@ function setPickerActive(active: boolean): void {
     pickerActive: { newValue: active, oldValue },
   });
 }
+
+wirePlaygroundPickerHost({ setPickerActive });
 
 function recordPlaygroundPick(payload: PickerElementPayload): void {
   const stored = toStoredPick(

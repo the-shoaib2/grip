@@ -10,6 +10,10 @@ export const GRIP_MCP_TOOLS = [
   "pick_element",
   "navigate",
   "eval",
+  "resolve_context_block",
+  "apply_context_patch",
+  "register_session_context",
+  "get_session_context",
 ] as const;
 
 export type GripMcpToolName = (typeof GRIP_MCP_TOOLS)[number];

@@ -6,7 +6,7 @@ import {
   type PickerHost,
 } from "@grip/devtools-lib";
 import { isExtensionContextValid, safeSendMessage } from "@/lib";
-import { showFloatingTray } from "@/content_scripts/tray-control";
+import { showFloatingTray, hideFloatingTray } from "@/content_scripts/tray-control";
 
 const extensionFeatures: PickerFeatures = {
   panelDrag: true,
@@ -36,6 +36,10 @@ const host: PickerHost = {
   showTray(options) {
     showFloatingTray(options);
     safeSendMessage({ type: "SHOW_TRAY", payload: options });
+  },
+  hideTray() {
+    hideFloatingTray();
+    safeSendMessage({ type: "HIDE_TRAY" });
   },
 };
 

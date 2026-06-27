@@ -1,15 +1,25 @@
 export {
   INLINE_CHIP_CLASS,
+  INLINE_CHIP_GROUP_CLASS,
   INLINE_EDITOR_CLASS,
+  chipLabelText,
   chipMetaFromElement,
   createChipElement,
+  createChipGroupElement,
   createDefaultChip,
   findChipElement,
+  listChipElements,
   removeChipElement,
   toInlineChipRef,
   updateChipActiveStates,
+  updateChipElement,
+  updateChipSelectedStates,
   type InlineChipRef,
 } from "./chips";
+export { DEFAULT_BADGE_MENU_ITEMS, hideBadgeMenu, showBadgeMenu } from "./badgeMenu";
+export { bindBadgeEditor, insertBadgeAtCursor, serializeEditorWithRegistry } from "./badgeEditor";
+export { bindChipDragDrop } from "./dragDrop";
+export { ChipMultiSelect } from "./multiSelect";
 export {
   bindEditorClipboard,
   serializeSelectionForClipboard,

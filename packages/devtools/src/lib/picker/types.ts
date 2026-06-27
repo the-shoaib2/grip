@@ -1,4 +1,4 @@
-import type { OpenContextEditorPayload } from "@grip/core";
+import type { FrameworkContext, OpenContextEditorPayload } from "@grip/core";
 
 export type PickerPhase = "idle" | "hover" | "context" | "edit";
 
@@ -14,6 +14,7 @@ export interface PendingPick {
   rect: { top: number; left: number; width: number; height: number };
   shadowDOM: boolean;
   iframe: string;
+  frameworkContext?: FrameworkContext | null;
 }
 
 export interface PickerHost {
@@ -22,6 +23,7 @@ export interface PickerHost {
   sendPick(el: Element, comment: string): void;
   updatePickComment(pickId: string, comment: string | undefined): void;
   showTray(options?: { restore?: boolean }): void;
+  hideTray?(): void;
   /** Called when a pick session ends after save (not on explicit stop/cleanup). */
   onSessionEnd?(): void;
 }
