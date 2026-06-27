@@ -305,7 +305,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     el: Element,
     force = false,
   ): void {
-    if (features.panelDrag && panelManuallyPlaced && !force) return;
+    if (panelManuallyPlaced && !force) return;
 
     const anchor = el.getBoundingClientRect();
     const vw = window.innerWidth;
@@ -364,7 +364,6 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
   }
 
   function setupPanelDrag(panel: HTMLElement): void {
-    if (!features.panelDrag) return;
     const header = panel.querySelector(".grip-picker-header") as HTMLElement | null;
     if (!header || header.dataset.dragBound === "1") return;
     header.dataset.dragBound = "1";
@@ -410,18 +409,14 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
 
   function ensureContextPanel(): HTMLElement {
     let panel = document.getElementById(CONTEXT_PANEL_ID);
-    if (panel) return panel;
-
-    const headerTitle = features.panelDrag ? ' title="Drag to move"' : "";
-    panel = document.createElement("div");
-    panel.id = CONTEXT_PANEL_ID;
-    panel.className = "grip-context-panel";
-    panel.setAttribute("aria-label", "Picker context panel");
-    panel.style.cssText = features.panelDrag
-      ? "position:fixed;z-index:2147483647;display:none;"
-      : "";
-    panel.innerHTML = `
-    <div class="grip-picker-header"${headerTitle}>
+    if (!panel) {
+      panel = document.createElement("div");
+      panel.id = CONTEXT_PANEL_ID;
+      panel.className = "grip-context-panel";
+      panel.setAttribute("aria-label", "Picker context panel");
+      panel.style.display = "none";
+      panel.innerHTML = `
+    <div class="grip-picker-header" title="Drag to move">
       <span id="${SESSION_LABEL_ID}" class="grip-picker-session">[1:1]</span>
       <span class="grip-picker-hint">type · click add · drag</span>
     </div>
@@ -442,8 +437,9 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
       <button type="button" id="${CONTEXT_SAVE_ID}">Save</button>
     </div>
   `;
-    document.documentElement.appendChild(panel);
-    syncPickerColorScheme(panel);
+      document.documentElement.appendChild(panel);
+      syncPickerColorScheme(panel);
+    }
     setupPanelDrag(panel);
     return panel;
   }
@@ -617,7 +613,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     updatePendingUI();
 
     const panel = document.getElementById(CONTEXT_PANEL_ID);
-    if (panel && (!features.panelDrag || !panelManuallyPlaced) && !options?.keepTyping) {
+    if (panel && !panelManuallyPlaced && !options?.keepTyping) {
       positionContextPanel(panel, el);
     }
 
@@ -791,11 +787,11 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
 
     hideTrayIfSupported();
 
-    if (!features.panelDrag || !panelManuallyPlaced) {
+    if (!panelManuallyPlaced) {
       positionContextPanel(panel, el, true);
     }
 
-    if (features.panelDrag && isNewPanel) {
+    if (isNewPanel && !panelManuallyPlaced) {
       const reposition = () => {
         const active = pendingElements[activePendingIndex]?.el;
         if (phase === "context" && active && !panelManuallyPlaced) {

@@ -17,7 +17,7 @@ export function LabShellWorkspace({
     <div class={`lab-shell-workspace${narrow ? " lab-shell-workspace-narrow" : ""}`}>
       {children}
       <section
-        class="lab-block lab-context-editor-block"
+        class={`lab-block lab-context-editor-block${editorPick ? " lab-context-editor-open" : ""}`}
       >
         <h3 class="lab-block-title">Context field</h3>
         <ContextFieldSection pick={editorPick} onClose={onCloseEditor} />

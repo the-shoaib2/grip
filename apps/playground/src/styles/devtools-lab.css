@@ -88,8 +88,15 @@
   max-width: 100%;
 }
 
+.lab-context-editor-block {
+  transition:
+    outline-color var(--grip-motion-duration-fast) var(--grip-motion-ease),
+    outline-offset var(--grip-motion-duration-fast) var(--grip-motion-ease);
+}
+
 .lab-context-editor-open {
   outline: 2px solid var(--grip-accent-soft);
+  outline-offset: 2px;
 }
 
 .lab-preview {
@@ -110,10 +117,21 @@
   min-width: 0;
   max-width: 100%;
   border: 1px solid var(--grip-shell-border);
+  animation: grip-shell-enter var(--grip-motion-duration) var(--grip-motion-ease-out) both;
 }
 
 .lab-preview-panel .grip-shell-devtools {
   border: 1px solid var(--grip-shell-border);
+  max-height: 40rem;
+  transition:
+    opacity var(--grip-motion-duration-fast) var(--grip-motion-ease),
+    transform var(--grip-motion-duration) var(--grip-motion-ease),
+    max-height var(--grip-motion-duration) var(--grip-motion-ease),
+    min-height var(--grip-motion-duration) var(--grip-motion-ease),
+    padding var(--grip-motion-duration) var(--grip-motion-ease),
+    border-color var(--grip-motion-duration-fast) var(--grip-motion-ease),
+    box-shadow var(--grip-motion-duration-fast) var(--grip-motion-ease);
+  transform-origin: top center;
 }
 
 .lab-preview-floating-stage .grip-floating-menu {
@@ -125,6 +143,8 @@
   min-width: 0;
   max-width: 100%;
   min-height: 32rem;
+  overflow: hidden;
+  transition: min-height var(--grip-motion-duration) var(--grip-motion-ease);
 }
 
 .lab-preview-panel-collapsed {
@@ -132,13 +152,17 @@
 }
 
 .lab-preview-panel-collapsed .grip-shell-devtools {
-  visibility: hidden;
-  height: 0;
+  opacity: 0;
+  min-height: 0;
+  max-height: 0;
   overflow: hidden;
   margin: 0;
-  padding: 0;
-  border: none;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-color: transparent;
   box-shadow: none;
+  pointer-events: none;
+  transform: scale(0.985) translateY(-6px);
 }
 
 .lab-preview-floating {

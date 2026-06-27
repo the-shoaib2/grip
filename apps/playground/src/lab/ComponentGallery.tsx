@@ -75,7 +75,9 @@ export function ComponentGallery({
         <PickHistoryLabDemo onContextEditRequest={onContextEditRequest} />
       </section>
 
-      <section class="lab-block lab-context-editor-block">
+      <section
+        class={`lab-block lab-context-editor-block${editorPick ? " lab-context-editor-open" : ""}`}
+      >
         <h3 class="lab-block-title">Context editor panel</h3>
         <ContextFieldSection pick={editorPick} onClose={onCloseEditor} />
       </section>

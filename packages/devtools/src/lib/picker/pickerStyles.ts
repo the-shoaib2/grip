@@ -12,15 +12,13 @@ import { buildScopedThemeTokens, PICKER_THEME_SCOPE } from "./pickerTheme";
 
 export function buildPickerStyleSheet(features: PickerFeatures): string {
   const themeTokens = buildScopedThemeTokens(PICKER_THEME_SCOPE, tokensCss);
-  const dragHeader = features.panelDrag
-    ? `
-    .grip-picker-header{
-      cursor:grab;
+  const dragHeader = `
+    #${CONTEXT_PANEL_ID} .grip-picker-header{
+      cursor:grab!important;
       user-select:none;
       touch-action:none;
     }
-    .grip-picker-header.grip-picker-dragging{cursor:grabbing}`
-    : "";
+    #${CONTEXT_PANEL_ID} .grip-picker-header.grip-picker-dragging{cursor:grabbing!important}`;
 
   const selectedLayer = features.pendingHighlights
     ? `
@@ -107,14 +105,6 @@ export function buildPickerStyleSheet(features: PickerFeatures): string {
     }`
     : "";
 
-  const panelPosition = features.panelDrag
-    ? ""
-    : `
-    .grip-context-panel{
-      position:fixed;
-      z-index:2147483647;
-    }`;
-
   return `
     ${themeTokens}
     *{cursor:crosshair!important}
@@ -133,6 +123,8 @@ export function buildPickerStyleSheet(features: PickerFeatures): string {
       pointer-events:none;
     }
     .grip-context-panel{
+      position:fixed;
+      z-index:2147483647;
       width:min(320px,calc(100vw - 16px));
       padding:10px 12px;
       border-radius:16px;
@@ -141,7 +133,7 @@ export function buildPickerStyleSheet(features: PickerFeatures): string {
       box-shadow:var(--grip-shell-shadow);
       font:12px system-ui,sans-serif;
       color:var(--grip-fg);
-    }${panelPosition}
+    }
     .grip-picker-header{
       display:flex;
       align-items:center;

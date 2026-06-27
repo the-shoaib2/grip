@@ -35,6 +35,10 @@
   --grip-warning-soft: #fef3c7;
   --grip-danger: #dc2626;
   --grip-danger-soft: #fee2e2;
+  --grip-motion-duration: 0.28s;
+  --grip-motion-duration-fast: 0.18s;
+  --grip-motion-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --grip-motion-ease-out: cubic-bezier(0, 0, 0.2, 1);
 }
 
 :root[data-color-scheme="dark"],

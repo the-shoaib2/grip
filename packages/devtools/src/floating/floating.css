@@ -53,22 +53,37 @@
 }
 
 .grip-floating-menu {
-  display: none;
+  display: flex;
+  flex-direction: column;
   width: 24rem;
-  height: 32rem;
-  min-height: 32rem;
-  max-height: min(80vh, 640px);
-  overflow-x: hidden;
-  overflow-y: auto;
+  height: auto;
+  min-height: 0;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
   order: -1;
   border-radius: 1rem;
   background: var(--grip-shell-bg);
   box-shadow: var(--grip-shell-shadow);
+  transform: translateY(10px) scale(0.97);
+  transform-origin: bottom right;
+  transition:
+    max-height var(--grip-motion-duration) var(--grip-motion-ease),
+    min-height var(--grip-motion-duration) var(--grip-motion-ease),
+    opacity var(--grip-motion-duration-fast) var(--grip-motion-ease),
+    transform var(--grip-motion-duration) var(--grip-motion-ease),
+    box-shadow var(--grip-motion-duration-fast) var(--grip-motion-ease);
 }
 
 .grip-floating-inner.grip-tray-open .grip-floating-menu {
-  display: flex;
-  flex-direction: column;
+  min-height: 32rem;
+  max-height: min(80vh, 640px);
+  opacity: 1;
+  pointer-events: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  transform: translateY(0) scale(1);
 }
 
 .grip-floating-menu .grip-popup.grip-shell-floating {

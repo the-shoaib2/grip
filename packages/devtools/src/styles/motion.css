@@ -1,0 +1,49 @@
+@keyframes grip-shell-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes grip-overlay-enter {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.grip-shell-dialog-overlay {
+  animation: grip-overlay-enter var(--grip-motion-duration-fast) var(--grip-motion-ease-out) both;
+}
+
+.grip-shell-dialog {
+  animation: grip-shell-enter var(--grip-motion-duration) var(--grip-motion-ease-out) both;
+}
+
+.grip-context-editor-host,
+.lab-context-editor-block .grip-empty-state {
+  animation: grip-shell-enter var(--grip-motion-duration) var(--grip-motion-ease-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grip-floating-menu,
+  .lab-preview-panel,
+  .lab-preview-panel .grip-shell-devtools,
+  .grip-shell-dialog-overlay,
+  .grip-shell-dialog,
+  .grip-context-editor-host,
+  .lab-context-editor-block .grip-empty-state,
+  .lab-preview .grip-popup,
+  .grip-context-panel {
+    transition: none !important;
+    animation: none !important;
+  }
+}

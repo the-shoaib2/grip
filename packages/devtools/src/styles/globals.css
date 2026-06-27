@@ -1,5 +1,6 @@
 @import "./tailwind.css";
 @import "./tokens.css";
+@import "./motion.css";
 @import "./base.css";
 @import "./views/shell.css";
 @import "./views/panel.css";
