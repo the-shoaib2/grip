@@ -1,4 +1,4 @@
-export { CommentField } from "./CommentField";
+export { ContextField } from "./ContextField";
 export { ContextEditorPanel, type ContextEditorPanelProps } from "./ContextEditorPanel";
 export { CopyButton } from "./CopyButton";
 export { ElementTagBadge } from "./ElementTagBadge";

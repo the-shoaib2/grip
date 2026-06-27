@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { composerStateForStoredPick, type StoredPick } from "@grip/core";
-import { CommentField } from "../CommentField";
+import { ContextField } from "../ContextField";
 
 export interface ContextEditorPanelProps {
   pick: StoredPick;
@@ -9,7 +9,7 @@ export interface ContextEditorPanelProps {
   onNavigate?: (pick: StoredPick) => void;
 }
 
-/** Shared comment field for creating and editing pick context (outside the popup shell). */
+/** Shared context field for creating and editing pick context (outside the popup shell). */
 export function ContextEditorPanel({
   pick,
   onSave,
@@ -28,7 +28,7 @@ export function ContextEditorPanel({
 
   return (
     <div className="grip-context-editor-host">
-      <CommentField
+      <ContextField
         chips={chips}
         value={draft}
         onChange={setDraft}

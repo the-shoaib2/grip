@@ -4,7 +4,7 @@ import {
   formatMcpPrompt,
   type StoredPick,
 } from "@grip/core";
-import { CommentField } from "../CommentField";
+import { ContextField } from "../ContextField";
 import { CopyButton } from "../CopyButton";
 import { GripShellDialog } from "../GripShellDialog";
 import { Tooltip } from "../Tooltip";
@@ -90,7 +90,7 @@ export function SessionPickComposer({
               }
             }}
           >
-            <CommentField
+            <ContextField
               chips={chipsRef.current}
               value={displayComment}
               onChange={() => {}}
