@@ -34,6 +34,8 @@ export function ContextEditorPanel({
         onChange={setDraft}
         autoFocusKey={pick.id}
         placeholder="Select elements on the page, then describe what you need…"
+        tagName={pick.tagName}
+        role={pick.role}
         onChipActivate={() => {
           onNavigate?.(pick);
         }}

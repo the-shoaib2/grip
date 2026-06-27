@@ -95,6 +95,8 @@ export function SessionPickComposer({
               value={displayComment}
               onChange={() => {}}
               readOnly
+              tagName={pick.tagName}
+              role={pick.role}
               onChipActivate={() => {
                 onNavigate?.(pick);
               }}

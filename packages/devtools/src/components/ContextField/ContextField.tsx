@@ -13,6 +13,7 @@ import {
   setEditorFromComment,
   type InlineChipRef,
 } from "@lib";
+import { ElementTagBadge } from "../ElementTagBadge";
 
 interface ContextFieldProps {
   value: string;
@@ -139,6 +140,12 @@ export function ContextField({
 
   return (
     <div className={`grip-context-field${readOnly ? " grip-context-readonly" : ""}`}>
+      {tagName && (
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.375rem" }}>
+          <span style={{ fontSize: "10px", color: "var(--grip-muted)", fontWeight: "500" }}>Selected Element:</span>
+          <ElementTagBadge tagName={tagName} role={role} />
+        </div>
+      )}
       <div
         className={`grip-context-composer${composerActions ? " grip-context-composer-has-actions" : ""}`}
         style={{ maxHeight: `${maxHeight}px` }}
