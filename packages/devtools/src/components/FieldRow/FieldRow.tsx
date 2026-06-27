@@ -1,4 +1,4 @@
-import { CopyButton } from "@/components/CopyButton";
+import { CopyButton } from "@devtools/components/CopyButton";
 
 interface FieldRowProps {
   label: string;

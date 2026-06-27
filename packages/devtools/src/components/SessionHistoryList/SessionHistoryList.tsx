@@ -1,7 +1,7 @@
 import { formatAllMcpPrompts, formatStoredPickCommentForDisplay, type SessionPickGroup, type StoredPick } from "@grip/core";
-import { CopyButton } from "@/components/CopyButton";
-import { TrashIcon } from "@/components/icons";
-import { Tooltip } from "@/components/Tooltip";
+import { CopyButton } from "@devtools/components/CopyButton";
+import { TrashIcon } from "@devtools/components/icons";
+import { Tooltip } from "@devtools/components/Tooltip";
 
 export interface SessionHistoryListProps {
   groups: SessionPickGroup[];

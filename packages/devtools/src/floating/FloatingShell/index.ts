@@ -1,1 +1,1 @@
-export { FloatingShell } from "@/floating/FloatingShell/FloatingShell";
+export { FloatingShell } from "@devtools/floating/FloatingShell/FloatingShell";

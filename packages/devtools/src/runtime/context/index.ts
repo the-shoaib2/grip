@@ -1,1 +1,1 @@
-export { GripRuntimeProvider, useGripRuntime } from "@/runtime/context/context";
+export { GripRuntimeProvider, useGripRuntime } from "@devtools/runtime/context/context";

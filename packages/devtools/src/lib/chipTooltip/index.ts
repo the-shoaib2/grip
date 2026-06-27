@@ -1,1 +1,1 @@
-export * from "@/lib/chipTooltip/chipTooltip";
+export * from "@devtools/lib/chipTooltip/chipTooltip";

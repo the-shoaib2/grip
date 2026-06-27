@@ -1,4 +1,4 @@
-import { INLINE_CHIP_CLASS, updateChipSelectedStates } from "@/lib/inlineComposerDom/chips";
+import { INLINE_CHIP_CLASS, updateChipSelectedStates } from "@devtools/lib/inlineComposerDom/chips";
 
 export class ChipMultiSelect {
   private selected = new Set<string>();

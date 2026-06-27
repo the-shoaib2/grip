@@ -1,2 +1,2 @@
-export * from "@/layout/GripRootLayout";
-export * from "@/layout/GripShellContext";
+export * from "@devtools/layout/GripRootLayout";
+export * from "@devtools/layout/GripShellContext";

@@ -1,6 +1,6 @@
 import { useCallback } from "preact/hooks";
 import type { OpenContextEditorPayload, StoredPick } from "@grip/core";
-import { useGripRuntime } from "@/runtime/context";
+import { useGripRuntime } from "@devtools/runtime/context";
 
 export interface PageContextEditorMeta {
   pickIndex: number;

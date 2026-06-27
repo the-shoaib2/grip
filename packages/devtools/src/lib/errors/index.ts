@@ -1,1 +1,1 @@
-export * from "@/lib/errors/errors";
+export * from "@devtools/lib/errors/errors";

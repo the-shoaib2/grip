@@ -4,8 +4,8 @@ import {
   type StoredPick,
 } from "@grip/core";
 import type { Dispatch, StateUpdater } from "preact/hooks";
-import type { GripRuntime } from "@/runtime/types";
-import type { HistoryResponse } from "@/hooks/usePickHistory/types";
+import type { GripRuntime } from "@devtools/runtime/types";
+import type { HistoryResponse } from "@devtools/hooks/usePickHistory/types";
 
 export interface PickHistoryActionDeps {
   runtime: GripRuntime;

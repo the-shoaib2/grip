@@ -1,1 +1,1 @@
-export { GripView, type GripViewProps, type GripViewVariant } from "@/views/GripView/GripView";
+export { GripView, type GripViewProps, type GripViewVariant } from "@devtools/views/GripView/GripView";

@@ -1,8 +1,8 @@
 import { groupPicksBySession, mergeSessionOrder, type StoredPick } from "@grip/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "preact/hooks";
-import type { GripRuntime } from "@/runtime/types";
-import { createPickHistoryActions } from "@/hooks/usePickHistory/pickHistoryActions";
-import type { HistoryResponse, UsePickHistoryResult } from "@/hooks/usePickHistory/types";
+import type { GripRuntime } from "@devtools/runtime/types";
+import { createPickHistoryActions } from "@devtools/hooks/usePickHistory/pickHistoryActions";
+import type { HistoryResponse, UsePickHistoryResult } from "@devtools/hooks/usePickHistory/types";
 
 export function usePickHistoryState(runtime: GripRuntime): UsePickHistoryResult {
   const [history, setHistory] = useState<StoredPick[]>([]);

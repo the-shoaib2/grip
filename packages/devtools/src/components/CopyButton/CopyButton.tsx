@@ -1,5 +1,5 @@
 import { useState } from "preact/hooks";
-import { Tooltip } from "@/components/Tooltip";
+import { Tooltip } from "@devtools/components/Tooltip";
 
 interface CopyButtonProps {
   label: string;

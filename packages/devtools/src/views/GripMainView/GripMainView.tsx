@@ -11,14 +11,14 @@ import {
   SessionTabBar,
   Tooltip,
   SourceControlView,
-} from "@/components";
-import { usePickHistory } from "@/hooks/usePickHistory";
-import { usePickerActive } from "@/hooks/usePickerActive";
-import { useStartPicker } from "@/hooks/useStartPicker";
-import type { PageContextEditorMeta } from "@/hooks/usePageContextEditor";
-import { GripRootLayout, type GripShellVariant } from "@/layout";
-import { useGripStore } from "@/store/gripStore";
-import { useGripRuntime } from "@/runtime/context";
+} from "@devtools/components";
+import { usePickHistory } from "@devtools/hooks/usePickHistory";
+import { usePickerActive } from "@devtools/hooks/usePickerActive";
+import { useStartPicker } from "@devtools/hooks/useStartPicker";
+import type { PageContextEditorMeta } from "@devtools/hooks/usePageContextEditor";
+import { GripRootLayout, type GripShellVariant } from "@devtools/layout";
+import { useGripStore } from "@devtools/store/gripStore";
+import { useGripRuntime } from "@devtools/runtime/context";
 
 export interface GripMainViewProps {
   variant?: GripShellVariant;

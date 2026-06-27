@@ -1,4 +1,4 @@
-import type { IconProps } from "@/components/icons/Icon";
+import type { IconProps } from "@devtools/components/icons/Icon";
 
 /** Official Model Context Protocol mark (modelcontextprotocol/docs favicon). */
 export function McpIcon({ size = 12, className = "" }: IconProps) {

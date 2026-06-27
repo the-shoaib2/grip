@@ -1,5 +1,5 @@
-import { createBaseGripRuntime, promisifySend } from "@/runtime/createBaseGripRuntime";
-import type { RuntimeMessage } from "@/runtime/types";
+import { createBaseGripRuntime, promisifySend } from "@devtools/runtime/createBaseGripRuntime";
+import type { RuntimeMessage } from "@devtools/runtime/types";
 
 function inspectedTabId(): number | undefined {
   const id = chrome.devtools?.inspectedWindow?.tabId;

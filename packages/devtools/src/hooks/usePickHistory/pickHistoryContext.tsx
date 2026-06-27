@@ -1,8 +1,8 @@
 import { createContext } from "preact";
 import { useContext } from "preact/hooks";
-import type { UsePickHistoryResult } from "@/hooks/usePickHistory/types";
+import type { UsePickHistoryResult } from "@devtools/hooks/usePickHistory/types";
 
-export type { UsePickHistoryResult } from "@/hooks/usePickHistory/types";
+export type { UsePickHistoryResult } from "@devtools/hooks/usePickHistory/types";
 
 export const PickHistoryContext = createContext<UsePickHistoryResult | null>(null);
 

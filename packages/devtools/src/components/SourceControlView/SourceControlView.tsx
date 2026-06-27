@@ -1,6 +1,6 @@
 import { useState } from "preact/hooks";
-import { GitIcon } from "@/components/icons";
-import { usePatchHistory } from "@/hooks/usePatchHistory";
+import { GitIcon } from "@devtools/components/icons";
+import { usePatchHistory } from "@devtools/hooks/usePatchHistory";
 
 export function SourceControlView() {
   const patchHistory = usePatchHistory();

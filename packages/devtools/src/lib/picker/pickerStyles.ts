@@ -1,5 +1,5 @@
-import tokensCss from "@/styles/tokens.css?inline";
-import type { PickerFeatures } from "@/lib/picker/types";
+import tokensCss from "@devtools/styles/tokens.css?inline";
+import type { PickerFeatures } from "@devtools/lib/picker/types";
 import {
   CONTEXT_CANCEL_ID,
   CONTEXT_PANEL_ID,
@@ -7,8 +7,8 @@ import {
   HINT_ID,
   HOVER_ID,
   SELECTED_ID,
-} from "@/lib/picker/constants";
-import { buildScopedThemeTokens, PICKER_THEME_SCOPE } from "@/lib/picker/pickerTheme";
+} from "@devtools/lib/picker/constants";
+import { buildScopedThemeTokens, PICKER_THEME_SCOPE } from "@devtools/lib/picker/pickerTheme";
 
 export function buildPickerStyleSheet(features: PickerFeatures): string {
   const themeTokens = buildScopedThemeTokens(PICKER_THEME_SCOPE, tokensCss);

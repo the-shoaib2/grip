@@ -1,4 +1,4 @@
-import { formatSessionLabel } from "@/lib/sessionLabel";
+import { formatSessionLabel } from "@devtools/lib/sessionLabel";
 
 export interface SessionLabelProps {
   pickCount: number;

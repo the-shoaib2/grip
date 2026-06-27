@@ -1,4 +1,4 @@
-import { Icon, type IconProps } from "@/components/icons/Icon";
+import { Icon, type IconProps } from "@devtools/components/icons/Icon";
 
 /** Lucide GitBranch */
 export function GitIcon({ size, className }: IconProps) {

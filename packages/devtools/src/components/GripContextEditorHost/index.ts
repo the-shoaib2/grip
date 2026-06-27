@@ -1,4 +1,4 @@
 export {
   GripContextEditorHost,
   type GripContextEditorHostProps,
-} from "@/components/GripContextEditorHost/GripContextEditorHost";
+} from "@devtools/components/GripContextEditorHost/GripContextEditorHost";

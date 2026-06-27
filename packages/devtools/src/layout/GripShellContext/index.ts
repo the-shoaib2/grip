@@ -1,1 +1,1 @@
-export { GripShellRefContext, useGripShellRef } from "@/layout/GripShellContext/GripShellContext";
+export { GripShellRefContext, useGripShellRef } from "@devtools/layout/GripShellContext/GripShellContext";

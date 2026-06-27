@@ -1,1 +1,1 @@
-export { GripIcon } from "@/components/GripIcon/GripIcon";
+export { GripIcon } from "@devtools/components/GripIcon/GripIcon";

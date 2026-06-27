@@ -1,4 +1,4 @@
-import { useGripRuntime } from "@/runtime/context";
+import { useGripRuntime } from "@devtools/runtime/context";
 
 interface GripIconProps {
   size?: number;

@@ -1,1 +1,1 @@
-export { SourceControlView } from "@/components/SourceControlView/SourceControlView";
+export { SourceControlView } from "@devtools/components/SourceControlView/SourceControlView";

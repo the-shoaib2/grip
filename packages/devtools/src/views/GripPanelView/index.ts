@@ -1,1 +1,1 @@
-export { GripPanelView } from "@/views/GripPanelView/GripPanelView";
+export { GripPanelView } from "@devtools/views/GripPanelView/GripPanelView";

@@ -1,1 +1,1 @@
-export { GripMainView, type GripMainViewProps } from "@/views/GripMainView/GripMainView";
+export { GripMainView, type GripMainViewProps } from "@devtools/views/GripMainView/GripMainView";

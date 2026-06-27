@@ -1,5 +1,5 @@
-import { MousePointerClickIcon, PlusIcon, GitIcon } from "@/components/icons";
-import { Tooltip } from "@/components/Tooltip";
+import { MousePointerClickIcon, PlusIcon, GitIcon } from "@devtools/components/icons";
+import { Tooltip } from "@devtools/components/Tooltip";
 
 export interface GripSessionToolbarProps {
   variant: "popup" | "compact";

@@ -3,4 +3,4 @@ export {
   mountFloatingGrip,
   TRAY_ID,
   type FloatingGripController,
-} from "@/floating/mountFloatingGrip/mountFloatingGrip";
+} from "@devtools/floating/mountFloatingGrip/mountFloatingGrip";

@@ -1,1 +1,1 @@
-export { GripBrand, type GripBrandProps } from "@/components/GripBrand/GripBrand";
+export { GripBrand, type GripBrandProps } from "@devtools/components/GripBrand/GripBrand";

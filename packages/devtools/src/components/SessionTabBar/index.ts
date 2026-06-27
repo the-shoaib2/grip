@@ -1,1 +1,1 @@
-export { SessionTabBar, type SessionTabBarProps } from "@/components/SessionTabBar/SessionTabBar";
+export { SessionTabBar, type SessionTabBarProps } from "@devtools/components/SessionTabBar/SessionTabBar";

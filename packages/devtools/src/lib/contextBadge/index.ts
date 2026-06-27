@@ -8,4 +8,4 @@ export {
   refreshBadge,
   type BadgeAction,
   type BadgeActionContext,
-} from "@/lib/contextBadge/badgeActions";
+} from "@devtools/lib/contextBadge/badgeActions";

@@ -1,6 +1,6 @@
 import type { StoredPick } from "@grip/core";
-import type { PageContextEditorMeta } from "@/hooks/usePageContextEditor";
-import { GripView } from "@/views/GripView";
+import type { PageContextEditorMeta } from "@devtools/hooks/usePageContextEditor";
+import { GripView } from "@devtools/views/GripView";
 
 export interface GripPanelViewProps {
   layout?: "panel" | "floating";

@@ -1,7 +1,7 @@
 import type { ComponentChildren } from "preact";
 import { createPortal } from "preact/compat";
 import { useEffect, useRef } from "preact/hooks";
-import { useGripShellRef } from "@/layout/GripShellContext";
+import { useGripShellRef } from "@devtools/layout/GripShellContext";
 
 export interface GripShellDialogProps {
   open: boolean;

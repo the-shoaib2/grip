@@ -1,1 +1,1 @@
-export { useStartPicker } from "@/hooks/useStartPicker/useStartPicker";
+export { useStartPicker } from "@devtools/hooks/useStartPicker/useStartPicker";

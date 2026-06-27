@@ -1,1 +1,1 @@
-export { usePatchHistory, type PatchHistoryEntry } from "@/hooks/usePatchHistory/usePatchHistory";
+export { usePatchHistory, type PatchHistoryEntry } from "@devtools/hooks/usePatchHistory/usePatchHistory";

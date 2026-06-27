@@ -1,5 +1,5 @@
-export { GripMainView } from "@/views/GripMainView";
-export { GripPanelView } from "@/views/GripPanelView";
-export { GripPopupView } from "@/views/GripPopupView";
-export { GripView } from "@/views/GripView";
-export { LogPanel } from "@/views/LogPanel";
+export { GripMainView } from "@devtools/views/GripMainView";
+export { GripPanelView } from "@devtools/views/GripPanelView";
+export { GripPopupView } from "@devtools/views/GripPopupView";
+export { GripView } from "@devtools/views/GripView";
+export { LogPanel } from "@devtools/views/LogPanel";

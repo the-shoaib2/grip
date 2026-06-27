@@ -10,7 +10,7 @@ import {
   type ContextBadge,
   type ContextBadgeGroup,
 } from "@grip/core";
-import type { InlineChipRef } from "@/lib/inlineComposerDom/chips";
+import type { InlineChipRef } from "@devtools/lib/inlineComposerDom/chips";
 
 export type BadgeAction =
   | "remove"

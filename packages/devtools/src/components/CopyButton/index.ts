@@ -1,1 +1,1 @@
-export { CopyButton } from "@/components/CopyButton/CopyButton";
+export { CopyButton } from "@devtools/components/CopyButton/CopyButton";

@@ -8,7 +8,7 @@ import {
 } from "@grip/core";
 import {
   bindChipTooltipRoot,
-} from "@/lib/chipTooltip";
+} from "@devtools/lib/chipTooltip";
 import {
   bindBadgeEditor,
   bindEditorClipboard,
@@ -24,8 +24,8 @@ import {
   setEditorFromComment,
   toInlineChipRef,
   updateChipActiveStates,
-} from "@/lib/inlineComposerDom";
-import { syncPendingFromStoredChips, toPendingPick } from "@/lib/picker/chipSync";
+} from "@devtools/lib/inlineComposerDom";
+import { syncPendingFromStoredChips, toPendingPick } from "@devtools/lib/picker/chipSync";
 import {
   CONTEXT_CANCEL_ID,
   CONTEXT_COMPOSER_ID,
@@ -42,9 +42,9 @@ import {
   STYLE_ID,
   TRAY_ID,
   VIEWPORT_PAD,
-} from "@/lib/picker/constants";
-import { buildPickerStyleSheet } from "@/lib/picker/pickerStyles";
-import { syncAllPickerThemeElements, syncPickerColorScheme } from "@/lib/picker/pickerTheme";
+} from "@devtools/lib/picker/constants";
+import { buildPickerStyleSheet } from "@devtools/lib/picker/pickerStyles";
+import { syncAllPickerThemeElements, syncPickerColorScheme } from "@devtools/lib/picker/pickerTheme";
 import type {
   OpenContextEditorOptions,
   PendingPick,
@@ -53,7 +53,7 @@ import type {
   PickerHost,
   PickerPhase,
   PickerStopOptions,
-} from "@/lib/picker/types";
+} from "@devtools/lib/picker/types";
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(value, max));

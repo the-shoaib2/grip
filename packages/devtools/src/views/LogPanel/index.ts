@@ -1,1 +1,1 @@
-export { LogPanel } from "@/views/LogPanel/LogPanel";
+export { LogPanel } from "@devtools/views/LogPanel/LogPanel";

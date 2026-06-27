@@ -1,5 +1,5 @@
 import { useEffect, useState } from "preact/hooks";
-import type { GripRuntime } from "@/runtime/types";
+import type { GripRuntime } from "@devtools/runtime/types";
 
 const PICKER_ACTIVE_KEY = "pickerActive";
 
