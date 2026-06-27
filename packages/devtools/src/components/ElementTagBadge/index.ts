@@ -1,1 +1,1 @@
-export { ElementTagBadge } from "./ElementTagBadge";
+export { ElementTagBadge } from "@/components/ElementTagBadge/ElementTagBadge";

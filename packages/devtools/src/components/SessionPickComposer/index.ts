@@ -1,4 +1,4 @@
 export {
   SessionPickComposer,
   type SessionPickComposerProps,
-} from "./SessionPickComposer";
+} from "@/components/SessionPickComposer/SessionPickComposer";

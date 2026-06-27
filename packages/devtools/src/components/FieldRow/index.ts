@@ -1,1 +1,1 @@
-export { FieldRow } from "./FieldRow";
+export { FieldRow } from "@/components/FieldRow/FieldRow";

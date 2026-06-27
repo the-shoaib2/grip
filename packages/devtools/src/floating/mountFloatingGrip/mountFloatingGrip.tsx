@@ -1,12 +1,12 @@
 import { render } from "preact";
 import { useCallback, useState } from "preact/hooks";
-import type { GripRuntime } from "../../runtime/types";
-import { GripRuntimeProvider } from "../../runtime/context";
-import { usePageContextEditor } from "../../hooks/usePageContextEditor";
-import { GripPanelView } from "../../views/GripPanelView";
-import { FloatingShell } from "../FloatingShell";
-import devtoolsCss from "../../styles/globals.css?inline";
-import floatingCss from "../floating.css?inline";
+import type { GripRuntime } from "@/runtime/types";
+import { GripRuntimeProvider } from "@/runtime/context";
+import { usePageContextEditor } from "@/hooks/usePageContextEditor";
+import { GripPanelView } from "@/views/GripPanelView";
+import { FloatingShell } from "@/floating/FloatingShell";
+import devtoolsCss from "@/styles/globals.css?inline";
+import floatingCss from "@/floating/floating.css?inline";
 
 export const TRAY_ID = "__grip_tray__";
 

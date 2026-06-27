@@ -1,6 +1,6 @@
 import { useCallback, useState } from "preact/hooks";
-import { gripUserError } from "../../lib/errors";
-import type { GripRuntime } from "../../runtime/types";
+import { gripUserError } from "@/lib/errors";
+import type { GripRuntime } from "@/runtime/types";
 
 interface StartPickerOptions {
   closeOnSuccess?: boolean;

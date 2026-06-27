@@ -1,1 +1,1 @@
-export { GripShellDialog, type GripShellDialogProps } from "./GripShellDialog";
+export { GripShellDialog, type GripShellDialogProps } from "@/components/GripShellDialog/GripShellDialog";

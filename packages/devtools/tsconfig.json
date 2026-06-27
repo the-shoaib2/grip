@@ -7,6 +7,7 @@
     "types": ["chrome", "vite/client"],
     "noEmit": true,
     "paths": {
+      "@/*": ["./src/*"],
       "@grip/core": ["../../packages/core/src/index.ts"],
       "@lib": ["./src/lib/index.ts"]
     }

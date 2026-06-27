@@ -1,5 +1,5 @@
-import { McpIcon } from "../icons";
-import { Tooltip } from "../Tooltip";
+import { McpIcon } from "@/components/icons";
+import { Tooltip } from "@/components/Tooltip";
 
 export interface GripMcpChipProps {
   connected: boolean;

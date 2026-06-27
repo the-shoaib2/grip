@@ -12,8 +12,8 @@ import {
   formatBadgeClipboardJson,
   parseBadgeClipboardJson,
   type BadgeAction,
-} from "../contextBadge";
-import { DEFAULT_BADGE_MENU_ITEMS, hideBadgeMenu, showBadgeMenu } from "./badgeMenu";
+} from "@/lib/contextBadge";
+import { DEFAULT_BADGE_MENU_ITEMS, hideBadgeMenu, showBadgeMenu } from "@/lib/inlineComposerDom/badgeMenu";
 import {
   chipMetaFromElement,
   findChipElement,
@@ -22,11 +22,11 @@ import {
   removeChipElement,
   updateChipElement,
   ZWSP,
-} from "./chips";
-import { bindChipDragDrop } from "./dragDrop";
-import { ChipMultiSelect } from "./multiSelect";
-import { insertChipAtSelection } from "./selection";
-import { serializeEditor } from "./serialize";
+} from "@/lib/inlineComposerDom/chips";
+import { bindChipDragDrop } from "@/lib/inlineComposerDom/dragDrop";
+import { ChipMultiSelect } from "@/lib/inlineComposerDom/multiSelect";
+import { insertChipAtSelection } from "@/lib/inlineComposerDom/selection";
+import { serializeEditor } from "@/lib/inlineComposerDom/serialize";
 
 export interface BindBadgeEditorOptions {
   registry?: ContextBadgeRegistry;

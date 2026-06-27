@@ -1,4 +1,4 @@
-import { Icon, type IconProps } from "./Icon";
+import { Icon, type IconProps } from "@/components/icons/Icon";
 
 /** Lucide Minus */
 export function MinusIcon({ size, className }: IconProps) {

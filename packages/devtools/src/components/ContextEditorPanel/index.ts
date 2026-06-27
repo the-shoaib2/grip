@@ -1,1 +1,1 @@
-export { ContextEditorPanel, type ContextEditorPanelProps } from "./ContextEditorPanel";
+export { ContextEditorPanel, type ContextEditorPanelProps } from "@/components/ContextEditorPanel/ContextEditorPanel";

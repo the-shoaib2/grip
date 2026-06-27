@@ -1,4 +1,4 @@
-import { Icon, type IconProps } from "./Icon";
+import { Icon, type IconProps } from "@/components/icons/Icon";
 
 /** Lucide Plus */
 export function PlusIcon({ size, className }: IconProps) {

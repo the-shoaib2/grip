@@ -3,4 +3,4 @@ export {
   gripShellClassName,
   type GripRootLayoutProps,
   type GripShellVariant,
-} from "./GripRootLayout";
+} from "@/layout/GripRootLayout/GripRootLayout";

@@ -1,4 +1,4 @@
-import { INLINE_CHIP_CLASS, ZWSP } from "./chips";
+import { INLINE_CHIP_CLASS, ZWSP } from "@/lib/inlineComposerDom/chips";
 
 export function bindChipDragDrop(
   editor: HTMLElement,

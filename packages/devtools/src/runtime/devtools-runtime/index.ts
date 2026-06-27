@@ -1,1 +1,1 @@
-export { devtoolsRuntime } from "./devtools-runtime";
+export { devtoolsRuntime } from "@/runtime/devtools-runtime/devtools-runtime";

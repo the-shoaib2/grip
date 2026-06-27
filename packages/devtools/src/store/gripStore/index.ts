@@ -1,1 +1,1 @@
-export { useGripStore } from "./gripStore";
+export { useGripStore } from "@/store/gripStore/gripStore";

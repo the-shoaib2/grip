@@ -1,1 +1,1 @@
-export { GripSessionToolbar, type GripSessionToolbarProps } from "./GripSessionToolbar";
+export { GripSessionToolbar, type GripSessionToolbarProps } from "@/components/GripSessionToolbar/GripSessionToolbar";

@@ -4,9 +4,9 @@ import {
   formatStoredPickCommentForDisplay,
   type StoredPick,
 } from "@grip/core";
-import { CopyButton } from "../CopyButton";
-import { SessionLabel } from "../SessionLabel";
-import { Tooltip } from "../Tooltip";
+import { CopyButton } from "@/components/CopyButton";
+import { SessionLabel } from "@/components/SessionLabel";
+import { Tooltip } from "@/components/Tooltip";
 
 interface PickHistoryListProps {
   history: StoredPick[];

@@ -1,4 +1,4 @@
-import { Icon, type IconProps } from "./Icon";
+import { Icon, type IconProps } from "@/components/icons/Icon";
 
 /** Cursor pointer — Lucide MousePointer2 */
 export function MousePointerClickIcon({ size, className }: IconProps) {

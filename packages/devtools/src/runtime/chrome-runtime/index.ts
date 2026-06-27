@@ -1,1 +1,1 @@
-export { chromeRuntime } from "./chrome-runtime";
+export { chromeRuntime } from "@/runtime/chrome-runtime/chrome-runtime";

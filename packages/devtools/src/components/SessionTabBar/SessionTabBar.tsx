@@ -1,7 +1,7 @@
 import type { SessionPickGroup } from "@grip/core";
-import { formatSessionTabTitle } from "../../lib/sessionLabel";
-import { CloseIcon, HistoryIcon, PlusIcon } from "../icons";
-import { Tooltip } from "../Tooltip";
+import { formatSessionTabTitle } from "@/lib/sessionLabel";
+import { CloseIcon, HistoryIcon, PlusIcon } from "@/components/icons";
+import { Tooltip } from "@/components/Tooltip";
 
 export interface SessionTabBarProps {
   groups: SessionPickGroup[];

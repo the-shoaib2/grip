@@ -1,5 +1,5 @@
-import { createChipElement, INLINE_CHIP_CLASS, type InlineChipRef, ZWSP } from "./chips";
-import { serializeEditor } from "./serialize";
+import { createChipElement, INLINE_CHIP_CLASS, type InlineChipRef, ZWSP } from "@/lib/inlineComposerDom/chips";
+import { serializeEditor } from "@/lib/inlineComposerDom/serialize";
 
 export function placeCaretAfter(node: Node): void {
   const sel = window.getSelection();

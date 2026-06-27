@@ -1,4 +1,4 @@
-export { createPicker } from "./createPicker";
+export { createPicker } from "@/lib/picker/createPicker";
 export {
   CONTEXT_PANEL_ID,
   COMPOSER_PLACEHOLDER,
@@ -7,9 +7,9 @@ export {
   SELECTED_ID,
   STYLE_ID,
   TRAY_ID,
-} from "./constants";
-export { syncPendingFromStoredChips, toPendingPick } from "./chipSync";
-export { buildPickerStyleSheet } from "./pickerStyles";
+} from "@/lib/picker/constants";
+export { syncPendingFromStoredChips, toPendingPick } from "@/lib/picker/chipSync";
+export { buildPickerStyleSheet } from "@/lib/picker/pickerStyles";
 export type {
   OpenContextEditorOptions,
   PendingPick,
@@ -19,4 +19,4 @@ export type {
   PickerPhase,
   PickerStartOptions,
   PickerStopOptions,
-} from "./types";
+} from "@/lib/picker/types";

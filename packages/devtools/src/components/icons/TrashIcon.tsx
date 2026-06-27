@@ -1,4 +1,4 @@
-import { Icon, type IconProps } from "./Icon";
+import { Icon, type IconProps } from "@/components/icons/Icon";
 
 /** Lucide Trash2 */
 export function TrashIcon({ size, className }: IconProps) {

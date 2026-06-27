@@ -1,4 +1,4 @@
 export {
   usePageContextEditor,
   type PageContextEditorMeta,
-} from "./usePageContextEditor";
+} from "@/hooks/usePageContextEditor/usePageContextEditor";

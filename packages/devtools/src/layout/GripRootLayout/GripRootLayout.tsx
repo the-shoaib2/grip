@@ -1,6 +1,6 @@
 import type { ComponentChildren } from "preact";
 import { useRef } from "preact/hooks";
-import { GripShellRefContext } from "../GripShellContext";
+import { GripShellRefContext } from "@/layout/GripShellContext";
 
 export type GripShellVariant = "popup" | "panel" | "floating";
 

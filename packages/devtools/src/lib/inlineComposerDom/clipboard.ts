@@ -1,6 +1,6 @@
 import { formatChipForClipboard } from "@grip/core";
-import { chipMetaFromElement, INLINE_CHIP_CLASS, ZWSP, type InlineChipRef } from "./chips";
-import { selectionRangeInEditor } from "./selection";
+import { chipMetaFromElement, INLINE_CHIP_CLASS, ZWSP, type InlineChipRef } from "@/lib/inlineComposerDom/chips";
+import { selectionRangeInEditor } from "@/lib/inlineComposerDom/selection";
 
 function serializeFragmentForClipboard(root: ParentNode): string {
   let out = "";

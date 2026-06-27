@@ -1,5 +1,5 @@
 import { checkChromeDebugPort, GRIP_MCP_DOCS_URL } from "@grip/core";
-import type { GripRuntime, RuntimeMessage, StorageChangeHandler } from "./types/types";
+import type { GripRuntime, RuntimeMessage, StorageChangeHandler } from "@/runtime/types/types";
 
 export function promisifySend<T>(msg: RuntimeMessage): Promise<T> {
   return new Promise((resolve, reject) => {

@@ -1,9 +1,9 @@
 import { useState } from "preact/hooks";
 import type { ComponentChildren } from "preact";
 import type { StoredPick } from "@grip/core";
-import { usePickHistory } from "../../hooks/usePickHistory";
-import type { PageContextEditorMeta } from "../../hooks/usePageContextEditor";
-import { ContextEditorPanel } from "../ContextEditorPanel";
+import { usePickHistory } from "@/hooks/usePickHistory";
+import type { PageContextEditorMeta } from "@/hooks/usePageContextEditor";
+import { ContextEditorPanel } from "@/components/ContextEditorPanel";
 
 export interface GripContextEditorHostProps {
   children: (onContextEditRequest: (pick: StoredPick, meta: PageContextEditorMeta) => void) => ComponentChildren;

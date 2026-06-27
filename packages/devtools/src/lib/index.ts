@@ -1,10 +1,10 @@
-export { gripUserError } from "./errors";
+export { gripUserError } from "@/lib/errors";
 export {
   bindChipTooltipRoot,
   bindTrayBadgeTooltips,
   hideChipTooltip,
   type ChipTooltipMeta,
-} from "./chipTooltip";
+} from "@/lib/chipTooltip";
 export {
   createPicker,
   buildPickerStyleSheet,
@@ -19,7 +19,7 @@ export {
   type PickerStopOptions,
   type OpenContextEditorOptions,
   type PendingPick,
-} from "./picker";
+} from "@/lib/picker";
 export {
   chipMetaFromElement,
   bindBadgeEditor,
@@ -45,10 +45,10 @@ export {
   updateChipActiveStates,
   updateChipSelectedStates,
   type InlineChipRef,
-} from "./inlineComposerDom";
+} from "@/lib/inlineComposerDom";
 export {
   badgeFromChipRef,
   executeBadgeAction,
   refreshBadge,
   type BadgeAction,
-} from "./contextBadge";
+} from "@/lib/contextBadge";

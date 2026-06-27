@@ -6,11 +6,11 @@ import {
   formatPickPrompt,
   type StoredPick,
 } from "@grip/core";
-import { ContextField } from "../ContextField";
-import { CopyButton } from "../CopyButton";
-import { GripShellDialog } from "../GripShellDialog";
-import { Tooltip } from "../Tooltip";
-import { UndoIcon } from "../icons";
+import { ContextField } from "@/components/ContextField";
+import { CopyButton } from "@/components/CopyButton";
+import { GripShellDialog } from "@/components/GripShellDialog";
+import { Tooltip } from "@/components/Tooltip";
+import { UndoIcon } from "@/components/icons";
 
 export interface SessionPickComposerProps {
   pick: StoredPick;

@@ -1,3 +1,3 @@
-export { chromeRuntime } from "./chrome-runtime";
-export { devtoolsRuntime } from "./devtools-runtime";
-export type { GripRuntime, RuntimeMessage, StorageChangeHandler } from "./types";
+export { chromeRuntime } from "@/runtime/chrome-runtime";
+export { devtoolsRuntime } from "@/runtime/devtools-runtime";
+export type { GripRuntime, RuntimeMessage, StorageChangeHandler } from "@/runtime/types";

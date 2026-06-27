@@ -1,1 +1,1 @@
-export { PickHistoryList } from "./PickHistoryList";
+export { PickHistoryList } from "@/components/PickHistoryList/PickHistoryList";

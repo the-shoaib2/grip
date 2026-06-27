@@ -1,4 +1,4 @@
-import { CONTEXT_PANEL_ID, HINT_ID, TRAY_ID } from "./constants";
+import { CONTEXT_PANEL_ID, HINT_ID, TRAY_ID } from "@/lib/picker/constants";
 
 export const CHIP_TOOLTIP_ID = "__grip_chip_tooltip__";
 

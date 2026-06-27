@@ -1,1 +1,1 @@
-export { SessionLabel, type SessionLabelProps } from "./SessionLabel";
+export { SessionLabel, type SessionLabelProps } from "@/components/SessionLabel/SessionLabel";

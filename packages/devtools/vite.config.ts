@@ -7,6 +7,7 @@ const rootDir = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   resolve: {
     alias: {
+      "@": path.resolve(rootDir, "./src"),
       "@grip/core": path.resolve(rootDir, "../core/src/index.ts"),
       "@lib": path.resolve(rootDir, "./src/lib/index.ts"),
     },

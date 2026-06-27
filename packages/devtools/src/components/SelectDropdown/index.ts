@@ -1,1 +1,1 @@
-export { SelectDropdown } from "./SelectDropdown";
+export { SelectDropdown } from "@/components/SelectDropdown/SelectDropdown";

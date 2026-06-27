@@ -1,5 +1,5 @@
 import type { ComponentChildren } from "preact";
-import { GripIcon } from "../../components/GripIcon";
+import { GripIcon } from "@/components/GripIcon";
 
 export interface FloatingShellProps {
   open: boolean;

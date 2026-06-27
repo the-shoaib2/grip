@@ -1,8 +1,8 @@
 import { createContext } from "preact";
 import { useContext } from "preact/hooks";
 import type { ComponentChildren } from "preact";
-import { PickHistoryContext, usePickHistoryState } from "../../hooks/usePickHistory";
-import type { GripRuntime } from "../types";
+import { PickHistoryContext, usePickHistoryState } from "@/hooks/usePickHistory";
+import type { GripRuntime } from "@/runtime/types";
 
 const GripRuntimeContext = createContext<GripRuntime | null>(null);
 

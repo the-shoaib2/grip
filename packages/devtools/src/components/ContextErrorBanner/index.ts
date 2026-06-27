@@ -1,1 +1,1 @@
-export { ContextErrorBanner } from "./ContextErrorBanner";
+export { ContextErrorBanner } from "@/components/ContextErrorBanner/ContextErrorBanner";

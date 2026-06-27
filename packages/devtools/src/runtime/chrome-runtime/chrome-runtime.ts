@@ -1,4 +1,4 @@
-import { createBaseGripRuntime, promisifySend } from "../createBaseGripRuntime";
+import { createBaseGripRuntime, promisifySend } from "@/runtime/createBaseGripRuntime";
 
 export const chromeRuntime = createBaseGripRuntime({
   sendMessage: promisifySend,

@@ -15,21 +15,21 @@ export {
   updateChipElement,
   updateChipSelectedStates,
   type InlineChipRef,
-} from "./chips";
-export { DEFAULT_BADGE_MENU_ITEMS, hideBadgeMenu, showBadgeMenu } from "./badgeMenu";
-export { bindBadgeEditor, insertBadgeAtCursor, serializeEditorWithRegistry } from "./badgeEditor";
-export { bindChipDragDrop } from "./dragDrop";
-export { ChipMultiSelect } from "./multiSelect";
+} from "@/lib/inlineComposerDom/chips";
+export { DEFAULT_BADGE_MENU_ITEMS, hideBadgeMenu, showBadgeMenu } from "@/lib/inlineComposerDom/badgeMenu";
+export { bindBadgeEditor, insertBadgeAtCursor, serializeEditorWithRegistry } from "@/lib/inlineComposerDom/badgeEditor";
+export { bindChipDragDrop } from "@/lib/inlineComposerDom/dragDrop";
+export { ChipMultiSelect } from "@/lib/inlineComposerDom/multiSelect";
 export {
   bindEditorClipboard,
   serializeSelectionForClipboard,
-} from "./clipboard";
+} from "@/lib/inlineComposerDom/clipboard";
 export {
   deleteSelectionInEditor,
   handleEditorKeydown,
   isPrimaryMod,
   isPrimaryModShortcut,
-} from "./keyboard";
+} from "@/lib/inlineComposerDom/keyboard";
 export {
   chipAdjacentToCaret,
   focusEditor,
@@ -41,10 +41,10 @@ export {
   serializeEditorSelection,
   type FocusEditorCaret,
   type FocusEditorOptions,
-} from "./selection";
+} from "@/lib/inlineComposerDom/selection";
 export {
   isEditorEmpty,
   serializeEditor,
   setEditorFromComment,
   type SetEditorFromCommentOptions,
-} from "./serialize";
+} from "@/lib/inlineComposerDom/serialize";

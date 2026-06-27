@@ -1,1 +1,1 @@
-export { usePickerActive } from "./usePickerActive";
+export { usePickerActive } from "@/hooks/usePickerActive/usePickerActive";

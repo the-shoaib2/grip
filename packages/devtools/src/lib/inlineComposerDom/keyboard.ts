@@ -1,10 +1,10 @@
-import { INLINE_CHIP_CLASS, removeChipElement } from "./chips";
-import { serializeSelectionForClipboard, writeClipboardText } from "./clipboard";
+import { INLINE_CHIP_CLASS, removeChipElement } from "@/lib/inlineComposerDom/chips";
+import { serializeSelectionForClipboard, writeClipboardText } from "@/lib/inlineComposerDom/clipboard";
 import {
   chipAdjacentToCaret,
   selectAllInEditor,
   selectionRangeInEditor,
-} from "./selection";
+} from "@/lib/inlineComposerDom/selection";
 
 function syncEditorInput(editor: HTMLElement): void {
   editor.dispatchEvent(new InputEvent("input", { bubbles: true }));

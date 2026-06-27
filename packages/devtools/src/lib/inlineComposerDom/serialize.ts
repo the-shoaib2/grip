@@ -4,8 +4,8 @@ import {
   INLINE_CHIP_CLASS,
   type InlineChipRef,
   ZWSP,
-} from "./chips";
-import { placeCaretAtEnd } from "./selection";
+} from "@/lib/inlineComposerDom/chips";
+import { placeCaretAtEnd } from "@/lib/inlineComposerDom/selection";
 
 export function serializeEditor(editor: HTMLElement): string {
   let out = "";

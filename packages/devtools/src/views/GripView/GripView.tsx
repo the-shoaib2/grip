@@ -1,7 +1,7 @@
 import type { StoredPick } from "@grip/core";
-import type { GripShellVariant } from "../../layout";
-import type { PageContextEditorMeta } from "../../hooks/usePageContextEditor";
-import { GripMainView } from "../GripMainView";
+import type { GripShellVariant } from "@/layout";
+import type { PageContextEditorMeta } from "@/hooks/usePageContextEditor";
+import { GripMainView } from "@/views/GripMainView";
 
 export type GripViewVariant = GripShellVariant;
 

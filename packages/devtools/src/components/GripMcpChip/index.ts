@@ -1,1 +1,1 @@
-export { GripMcpChip, type GripMcpChipProps } from "./GripMcpChip";
+export { GripMcpChip, type GripMcpChipProps } from "@/components/GripMcpChip/GripMcpChip";

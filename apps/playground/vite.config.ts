@@ -71,6 +71,7 @@ export default defineConfig({
       "@grip/devtools-lib": path.resolve(devtoolsDir, "src/lib/index.ts"),
       "@grip/devtools-floating": path.resolve(devtoolsDir, "src/floating/index.ts"),
       "@grip/devtools-css": path.resolve(devtoolsDir, "src/styles/globals.css"),
+      "@": path.resolve(devtoolsDir, "src"),
       "@lib": path.resolve(devtoolsDir, "src/lib/index.ts"),
       react: "preact/compat",
       "react-dom": "preact/compat",

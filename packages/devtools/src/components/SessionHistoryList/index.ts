@@ -1,1 +1,1 @@
-export { SessionHistoryList, type SessionHistoryListProps } from "./SessionHistoryList";
+export { SessionHistoryList, type SessionHistoryListProps } from "@/components/SessionHistoryList/SessionHistoryList";
