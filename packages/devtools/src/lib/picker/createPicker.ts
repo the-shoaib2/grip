@@ -90,6 +90,10 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     document.documentElement.appendChild(s);
   }
 
+  function hidePickerHint(): void {
+    document.getElementById(HINT_ID)?.remove();
+  }
+
   function ensureHint(): HTMLElement {
     let hint = document.getElementById(HINT_ID);
     if (!hint) {
@@ -134,8 +138,12 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
       const tag = el.tagName.toLowerCase();
       const cycle = stackSize > 1 ? ` [${cycleIndex + 1}:${stackSize}]` : "";
       hint.textContent = `${tag}${cycle} · [ ] parent/child`;
-      hint.style.top = `${Math.max(4, r.top - 24)}px`;
-      hint.style.left = `${clamp(r.left, 4, window.innerWidth - 160)}px`;
+      const centerX = r.left + r.width / 2;
+      hint.style.left = `${clamp(centerX, 8, window.innerWidth - 8)}px`;
+      hint.style.top = `${Math.max(4, r.top - 8)}px`;
+      hint.style.transform = "translate(-50%, -100%)";
+    } else {
+      hidePickerHint();
     }
   }
 
@@ -651,7 +659,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
   }
 
   function resumeHover(): void {
-    document.getElementById(HINT_ID)?.remove();
+    hidePickerHint();
     document.getElementById(SELECTED_ID)?.remove();
     pendingElements = [];
     activePendingIndex = 0;
@@ -761,14 +769,10 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     const isNewPanel = features.panelDrag ? phase !== "context" : true;
 
     if (isNewPanel) {
-      if (features.panelDrag) {
-        panelManuallyPlaced = false;
-        panelDrag = null;
-        phase = "context";
-        document.getElementById(HINT_ID)?.remove();
-      } else {
-        phase = "context";
-      }
+      panelManuallyPlaced = false;
+      panelDrag = null;
+      phase = "context";
+      hidePickerHint();
     }
 
     const editor = panel.querySelector(`#${CONTEXT_EDITOR_ID}`) as HTMLElement;
@@ -917,7 +921,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     document.getElementById(HOVER_ID)?.remove();
     document.getElementById(STYLE_ID)?.remove();
     document.getElementById(CONTEXT_PANEL_ID)?.remove();
-    document.getElementById(HINT_ID)?.remove();
+    hidePickerHint();
     document.getElementById(SELECTED_ID)?.remove();
     document.removeEventListener("mousemove", onMove, true);
     document.removeEventListener("click", onClick, true);
@@ -982,6 +986,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     panelManuallyPlaced = false;
     panelDrag = null;
     phase = "edit";
+    hidePickerHint();
     pendingElements = [];
     activePendingIndex = 0;
     composerPrompt = "";
