@@ -7,12 +7,16 @@ export function newSessionId(): string {
 }
 
 export function pickLabel(pick: PickerElementPayload): string {
+  const tag = pick.tagName.toLowerCase();
   const text = pick.innerText.trim().slice(0, 24);
   const id = pick.css.match(/#([a-zA-Z][\w-]*)/)?.[1];
-  if (text) return `${pick.tagName} "${text}"`;
-  if (id) return `${pick.tagName}#${id}`;
-  if (pick.name) return `${pick.tagName} [${pick.name.slice(0, 20)}]`;
-  return pick.tagName;
+  const cls = pick.css.match(/\.([a-zA-Z][\w-]*)/)?.[1];
+  if (text) return `${tag} "${text}"`;
+  if (id) return `${tag}#${id}`;
+  if (pick.name) return `${tag} [${pick.name.slice(0, 20)}]`;
+  if (pick.role && pick.role !== tag) return `${tag} (${pick.role})`;
+  if (cls) return `${tag}.${cls}`;
+  return `<${tag}>`;
 }
 
 export function toStoredPick(
