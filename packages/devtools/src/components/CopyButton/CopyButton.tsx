@@ -1,5 +1,4 @@
 import { useState } from "preact/hooks";
-import { SendIcon } from "../icons/SendIcon";
 import { Tooltip } from "../Tooltip";
 
 interface CopyButtonProps {
@@ -8,7 +7,6 @@ interface CopyButtonProps {
   tooltip?: string;
   variant?: "secondary" | "ghost";
   size?: "default" | "icon";
-  icon?: "copy" | "send";
   disabled?: boolean;
   onCopied?: () => void;
 }
@@ -19,7 +17,6 @@ export function CopyButton({
   tooltip,
   variant = "secondary",
   size = "default",
-  icon = "copy",
   disabled = false,
   onCopied,
 }: CopyButtonProps) {
@@ -63,8 +60,6 @@ export function CopyButton({
         {size === "icon" ? (
           copied ? (
             <span className="grip-copy-check">✓</span>
-          ) : icon === "send" ? (
-            <SendIcon size={12} />
           ) : (
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden>
               <rect x="9" y="9" width="13" height="13" rx="1" />

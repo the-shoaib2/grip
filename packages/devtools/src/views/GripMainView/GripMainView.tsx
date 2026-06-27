@@ -205,12 +205,6 @@ export function GripMainView({
               onCommentChange={(comment) => savePickComment(displayPick.id, comment)}
               onNavigate={selectPick}
               onEditRequest={onContextEditRequest}
-              onSendToAgent={(picks, sessionId) => {
-                void runtime.sendMessage({
-                  type: "REGISTER_SESSION_CONTEXT",
-                  payload: { sessionId, picks },
-                });
-              }}
             />
           )}
         </div>

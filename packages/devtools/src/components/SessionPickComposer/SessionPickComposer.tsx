@@ -4,7 +4,6 @@ import {
   canBuildContextBlock,
   formatPickIndexLabel,
   formatPickPrompt,
-  formatSendToAgentPrompt,
   type StoredPick,
 } from "@grip/core";
 import { ContextField } from "../ContextField";
@@ -25,7 +24,6 @@ export interface SessionPickComposerProps {
     pick: StoredPick,
     meta: { pickIndex: number; pickCount: number; sessionPicks?: StoredPick[] },
   ) => void;
-  onSendToAgent?: (picks: StoredPick[], sessionId: string) => void;
 }
 
 export function SessionPickComposer({
@@ -36,7 +34,6 @@ export function SessionPickComposer({
   onCommentChange,
   onNavigate,
   onEditRequest,
-  onSendToAgent,
 }: SessionPickComposerProps) {
   const baseline = useRef("");
   const chipsRef = useRef(composerStateForStoredPick(pick, sessionPicks).chips);
@@ -50,11 +47,6 @@ export function SessionPickComposer({
     sessionPicks,
     mode: "auto",
   });
-  const sendText = formatSendToAgentPrompt(
-    sessionPicks.length ? sessionPicks : [pickWithComment],
-    { sessionId: pick.sessionId },
-  );
-
   useEffect(() => {
     const state = composerStateForStoredPick(pick, sessionPicks);
     baseline.current = state.comment;
@@ -142,18 +134,6 @@ export function SessionPickComposer({
                     tooltip={useContextFormat ? "Copy Context Block" : "Copy prompt"}
                     variant="ghost"
                     size="icon"
-                  />
-                  <CopyButton
-                    label="Send"
-                    text={sendText}
-                    tooltip="Send to agent (context + session JSON)"
-                    variant="ghost"
-                    size="icon"
-                    icon="send"
-                    onCopied={() => {
-                      const picks = sessionPicks.length ? sessionPicks : [pickWithComment];
-                      onSendToAgent?.(picks, pick.sessionId);
-                    }}
                   />
                 </>
               }

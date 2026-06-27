@@ -8,5 +8,3 @@ export { MinusIcon } from "./MinusIcon";
 export { PlusIcon } from "./PlusIcon";
 export { TrashIcon } from "./TrashIcon";
 export { GitIcon } from "./GitIcon";
-export { SendIcon } from "./SendIcon";
-
