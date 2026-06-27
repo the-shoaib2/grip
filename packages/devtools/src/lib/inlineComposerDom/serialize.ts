@@ -59,7 +59,12 @@ export function setEditorFromComment(
   if (!parts.length && chips.length === 1) {
     editor.appendChild(createChipElement(chips[0]!, true));
     editor.appendChild(document.createTextNode(ZWSP));
-    if (options?.caretAtEnd) placeCaretAtEnd(editor);
+    if (options?.caretAtEnd) {
+      requestAnimationFrame(() => {
+        editor.focus({ preventScroll: true });
+        placeCaretAtEnd(editor);
+      });
+    }
     return;
   }
 
@@ -90,5 +95,10 @@ export function setEditorFromComment(
     editor.appendChild(document.createTextNode(""));
   }
 
-  if (options?.caretAtEnd) placeCaretAtEnd(editor);
+  if (options?.caretAtEnd) {
+    requestAnimationFrame(() => {
+      editor.focus({ preventScroll: true });
+      placeCaretAtEnd(editor);
+    });
+  }
 }
