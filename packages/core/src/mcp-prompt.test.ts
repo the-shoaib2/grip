@@ -34,6 +34,28 @@ describe("formatMcpPrompt", () => {
     });
     expect(out).toContain("Context: Submit the login form");
   });
+
+  it("includes framework source when available", () => {
+    const out = formatMcpPrompt({
+      tagName: "button",
+      css: "#go",
+      xpath: "//button[1]",
+      role: "button",
+      name: "Go",
+      innerText: "Click me",
+      rect: { top: 0, left: 0, width: 100, height: 40 },
+      shadowDOM: false,
+      iframe: "none",
+      frameworkContext: {
+        framework: "React",
+        file: "apps/playground/src/App.tsx",
+        line: 12,
+        componentName: "GoButton",
+      },
+    });
+    expect(out).toContain("Component: GoButton");
+    expect(out).toContain("Source: apps/playground/src/App.tsx:12");
+  });
 });
 
 describe("formatAllMcpPrompts", () => {

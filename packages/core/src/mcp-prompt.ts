@@ -20,6 +20,17 @@ export function formatMcpPrompt(pick: PickerElementDetails): string {
     lines.push(`Context: ${context}`, "");
   }
 
+  const fw = pick.frameworkContext;
+  if (fw) {
+    lines.push(`Framework: ${fw.framework}`);
+    if (fw.componentName) lines.push(`Component: ${fw.componentName}`);
+    if (fw.file) {
+      const loc = fw.line ? `${fw.file}:${fw.line}` : fw.file;
+      lines.push(`Source: ${loc}`);
+    }
+    lines.push("");
+  }
+
   lines.push(
     `Element: ${pick.tagName} · role: ${pick.role}`,
     `Text: "${pick.innerText}"`,

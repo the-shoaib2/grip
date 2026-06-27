@@ -1,5 +1,6 @@
 import {
   describeElement,
+  logPickedElementWithSource,
   type OpenContextEditorPayload,
   type PickerElementPayload,
 } from "@grip/core";
@@ -46,11 +47,13 @@ const host: PickerHost = {
   },
   sendPick(el, comment, options) {
     if (!onSaveCallback) return;
-    onSaveCallback({
+    const payload: PickerElementPayload = {
       ...describeElement(el),
       comment: comment.trim() || undefined,
       storedPickId: options?.storedPickId,
-    });
+    };
+    void logPickedElementWithSource(payload);
+    onSaveCallback(payload);
   },
   updatePickComment() {},
   showTray(options) {

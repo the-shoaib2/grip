@@ -208,3 +208,98 @@ describe("elementFromComposedEvent", () => {
     expect(elementFromComposedEvent(event, 0)).toBe(button);
   });
 });
+
+describe("hover/click cross-match", () => {
+  beforeEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  it("matches for every cycle index on a two-element stack", () => {
+    const parent = document.createElement("div");
+    const child = document.createElement("span");
+    parent.appendChild(child);
+    document.body.appendChild(parent);
+
+    rect(parent, { top: 0, left: 0, width: 100, height: 100 });
+    rect(child, { top: 25, left: 25, width: 50, height: 50 });
+
+    expectHoverClickCrossMatch(50, 50, [child, parent], { maxCycles: 4 });
+  });
+
+  it("matches on label + wrapper stacks even when event.target is the parent", () => {
+    const root = mount(`
+      <form>
+        <label for="name">Name</label>
+        <input id="name" type="text" />
+      </form>
+    `);
+    const form = root.querySelector("form")!;
+    const label = root.querySelector("label")!;
+    const input = root.querySelector("input")!;
+
+    rect(form, { top: 0, left: 0, width: 220, height: 90 });
+    rect(label, { top: 8, left: 8, width: 48, height: 18 });
+    rect(input, { top: 34, left: 8, width: 180, height: 28 });
+
+    expectHoverClickCrossMatch(32, 17, [label, form], { eventTarget: form });
+    expectHoverClickCrossMatch(100, 48, [input, form], { eventTarget: form });
+  });
+
+  it("matches on three-deep stacks with wrap-around cycling", () => {
+    const grand = document.createElement("section");
+    const parent = document.createElement("div");
+    const child = document.createElement("button");
+    parent.appendChild(child);
+    grand.appendChild(parent);
+    document.body.appendChild(grand);
+
+    rect(grand, { top: 0, left: 0, width: 160, height: 160 });
+    rect(parent, { top: 20, left: 20, width: 120, height: 120 });
+    rect(child, { top: 40, left: 40, width: 80, height: 32 });
+
+    expectHoverClickCrossMatch(80, 56, [child, parent, grand], { maxCycles: 6 });
+  });
+
+  it("matches when grip UI is filtered from the stack", () => {
+    const button = document.createElement("button");
+    const tray = document.createElement("div");
+    tray.id = "__grip_tray";
+    document.body.append(button, tray);
+
+    rect(button, { top: 0, left: 0, width: 96, height: 36 });
+    rect(tray, { top: 0, left: 0, width: 96, height: 36 });
+
+    expectHoverClickCrossMatch(48, 18, [button], { eventTarget: tray });
+  });
+
+  it("prefers hit stack over event.target when they disagree (regression)", () => {
+    const parent = document.createElement("div");
+    const child = document.createElement("em");
+    parent.appendChild(child);
+    document.body.appendChild(parent);
+
+    rect(parent, { top: 0, left: 0, width: 80, height: 80 });
+    rect(child, { top: 30, left: 30, width: 20, height: 20 });
+
+    const x = 40;
+    const y = 40;
+    mockElementsFromPoint(new Map([[x * 10_000 + y, [child, parent]]]));
+
+    const hover = hoverTargetAt(x, y, 0);
+    const click = clickTargetFromEvent(clickEvent(x, y, parent), 0);
+
+    expect(hover).toBe(child);
+    expect(click).toBe(child);
+    expect(click).not.toBe(parent);
+  });
+
+  it("matches single-element picks at index 0", () => {
+    const link = document.createElement("a");
+    link.href = "#";
+    link.textContent = "Docs";
+    document.body.appendChild(link);
+    rect(link, { top: 12, left: 12, width: 64, height: 20 });
+
+    expectHoverClickCrossMatch(40, 22, [link], { eventTarget: link });
+  });
+});

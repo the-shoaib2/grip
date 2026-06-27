@@ -48,6 +48,15 @@ export {
   formatMcpPrompt,
   GRIP_MCP_DEFAULT_PORT,
 } from "./mcp-prompt.js";
+export {
+  fetchPickSourceSnippet,
+  formatPickLogLines,
+  logPickedElement,
+  logPickedElementWithSource,
+  pickLogLabel,
+  type PickLogOptions,
+  type PickLogSnippet,
+} from "./pick-log.js";
 export { GRIP_MCP_DOCS_URL } from "./mcp-docs.js";
 export {
   chipDisplayLabel,

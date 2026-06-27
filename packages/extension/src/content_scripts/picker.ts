@@ -1,5 +1,5 @@
 import type { OpenContextEditorPayload, PickerStartPayload } from "@grip/core";
-import { describeElement } from "@grip/core";
+import { describeElement, logPickedElement } from "@grip/core";
 import {
   createPicker,
   type PickerFeatures,
@@ -26,6 +26,7 @@ const host: PickerHost = {
       comment: comment.trim() || undefined,
       storedPickId: options?.storedPickId,
     };
+    logPickedElement(payload);
     safeSendMessage({ type: "PICKER_ELEMENT_SELECTED", payload });
   },
   updatePickComment(pickId, comment) {
