@@ -56,6 +56,7 @@ packages/*/dist/
 # Next.js docs
 apps/docs/.next/
 apps/docs/out/
+apps/playground/dist/
 
 # Chrome extension (Vite + CRXJS)
 packages/extension/dist/

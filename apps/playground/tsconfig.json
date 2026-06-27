@@ -5,7 +5,7 @@
     "jsx": "react-jsx",
     "jsxImportSource": "preact",
     "noEmit": true,
-    "types": ["chrome", "vite/client"],
+    "types": ["chrome", "vite/client", "node"],
     "paths": {
       "@grip/core": ["../../packages/core/src/index.ts"],
       "@grip/devtools": ["../../packages/devtools/src/index.ts"],

@@ -4,7 +4,7 @@
     "jsx": "react-jsx",
     "jsxImportSource": "preact",
     "lib": ["ES2022", "DOM"],
-    "types": ["chrome"],
+    "types": ["chrome", "node"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],

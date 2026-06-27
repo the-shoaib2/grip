@@ -161,6 +161,96 @@ export function generateSelector(el: Element): SelectorResult {
   };
 }
 
+interface ReactFiber {
+  _debugSource?: {
+    fileName: string;
+    lineNumber: number;
+  };
+  return?: ReactFiber | null;
+}
+
+interface SvelteMeta {
+  loc?: {
+    file?: string;
+    line?: number;
+  };
+}
+
+interface VueVNode {
+  type?: {
+    __file?: string;
+  };
+  __file?: string;
+}
+
+interface FrameworkElement extends Element {
+  [key: string]: unknown;
+  __vnode?: VueVNode;
+  __vue__?: VueVNode;
+  __svelte_meta?: SvelteMeta;
+}
+
+function getFrameworkContext(el: Element) {
+  const fwEl = el as FrameworkElement;
+
+  // 1. React (Fiber) detection
+  const fiberKey = Object.keys(fwEl).find(
+    (k) => k.startsWith("__reactFiber$") || k.startsWith("__reactInternalInstance$")
+  );
+  if (fiberKey) {
+    const fiber = fwEl[fiberKey] as ReactFiber | undefined;
+    let current: ReactFiber | null | undefined = fiber;
+    while (current) {
+      if (current._debugSource) {
+        return {
+          framework: "React",
+          file: current._debugSource.fileName,
+          line: current._debugSource.lineNumber,
+        };
+      }
+      current = current.return;
+    }
+    return { framework: "React" };
+  }
+
+  // 2. Vue (Vnode) detection
+  if (fwEl.__vnode || fwEl.__vue__) {
+    const vnode = fwEl.__vnode || fwEl.__vue__;
+    const file = vnode?.type?.__file || vnode?.__file;
+    if (file) {
+      return {
+        framework: "Vue",
+        file,
+      };
+    }
+    return { framework: "Vue" };
+  }
+
+  // 3. Angular detection
+  const ngContextKey = Object.keys(fwEl).find((k) => k.startsWith("__ngContext__"));
+  if (ngContextKey) {
+    return {
+      framework: "Angular",
+      file: fwEl.getAttribute("ng-reflect-file"),
+    };
+  }
+
+  // 4. Svelte detection
+  if (fwEl.__svelte_meta) {
+    const meta = fwEl.__svelte_meta;
+    if (meta.loc && meta.loc.file) {
+      return {
+        framework: "Svelte",
+        file: meta.loc.file,
+        line: meta.loc.line,
+      };
+    }
+    return { framework: "Svelte" };
+  }
+
+  return null;
+}
+
 export function describeElement(el: Element) {
   const { css, xpath, inShadowDom } = generateSelector(el);
   const r = el.getBoundingClientRect();
@@ -179,5 +269,6 @@ export function describeElement(el: Element) {
     shadowDOM: inShadowDom,
     iframe: window !== window.top ? location.href : "none",
     innerText,
+    frameworkContext: getFrameworkContext(el),
   };
 }

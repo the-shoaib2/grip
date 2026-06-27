@@ -2,7 +2,6 @@
 
 import {
   applyColorSchemePreference,
-  getColorSchemePreference,
   initPlaygroundColorScheme,
   type ColorSchemePreference,
 } from "./theme";
@@ -39,6 +38,7 @@ document.querySelectorAll(".pg-nav-item").forEach((link) => {
   });
 });
 
+
 /** Hint when the extension FAB is missing (stale build or Grip not loaded). */
 window.setTimeout(() => {
   if (document.getElementById("__grip_tray__")) return;
@@ -64,3 +64,17 @@ window.setTimeout(() => {
   });
   document.body.appendChild(hint);
 }, 4000);
+
+import { mountReactDemoButton } from "./frameworks/ReactDemoButton";
+import { mountVueDemoButton } from "./frameworks/VueDemoButton";
+import { mountAngularDemoButton } from "./frameworks/AngularDemoButton";
+import { mountSvelteDemoButton } from "./frameworks/SvelteDemoButton";
+
+const frameworksContainer = document.getElementById("frameworks-container");
+if (frameworksContainer) {
+  mountReactDemoButton(frameworksContainer);
+  mountVueDemoButton(frameworksContainer);
+  mountAngularDemoButton(frameworksContainer);
+  mountSvelteDemoButton(frameworksContainer);
+}
+

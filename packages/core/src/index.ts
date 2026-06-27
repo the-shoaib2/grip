@@ -81,3 +81,4 @@ export type {
   ShowTrayPayload,
   StoredPick,
 } from "./types/messages.js";
+export { applyPatch, type PatchOptions } from "./patch-engine.js";
