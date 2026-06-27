@@ -12,7 +12,7 @@ import {
   serializeEditor,
   setEditorFromComment,
   type InlineChipRef,
-} from "../../lib";
+} from "@lib";
 
 interface ContextFieldProps {
   value: string;
@@ -108,7 +108,7 @@ export function ContextField({
 
     editor.addEventListener("input", onInput);
     editor.addEventListener("keydown", onKeyDown);
-    const unbindTooltip = bindChipTooltipRoot(editor, (chip) => chipMetaFromElement(chip));
+    const unbindTooltip = bindChipTooltipRoot(editor, (chip: HTMLElement) => chipMetaFromElement(chip));
     const unbindClipboard = bindEditorClipboard(editor);
 
     return () => {

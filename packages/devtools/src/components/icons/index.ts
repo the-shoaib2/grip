@@ -7,3 +7,5 @@ export { MousePointerClickIcon } from "./MousePointerClickIcon";
 export { MinusIcon } from "./MinusIcon";
 export { PlusIcon } from "./PlusIcon";
 export { TrashIcon } from "./TrashIcon";
+export { GitIcon } from "./GitIcon";
+

@@ -28,7 +28,8 @@
   width: 100%;
   min-width: 0;
   max-width: none;
-  min-height: 26rem;
+  height: 32rem;
+  min-height: 32rem;
   border-radius: 0;
   max-height: min(36rem, calc(100vh - 5rem));
   overflow-x: hidden;

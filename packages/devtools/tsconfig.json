@@ -5,7 +5,10 @@
     "jsxImportSource": "preact",
     "lib": ["ES2022", "DOM"],
     "types": ["chrome", "vite/client"],
-    "noEmit": true
+    "noEmit": true,
+    "paths": {
+      "@lib": ["./src/lib/index.ts"]
+    }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["node_modules", "dist"]

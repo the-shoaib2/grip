@@ -5,11 +5,12 @@ import {
   GripMcpChip,
   GripSessionToolbar,
   MinusIcon,
-  PickErrorBanner,
+  ContextErrorBanner,
   SessionHistoryList,
   SessionPickComposer,
   SessionTabBar,
   Tooltip,
+  SourceControlView,
 } from "../../components";
 import { usePickHistory } from "../../hooks/usePickHistory";
 import { usePickerActive } from "../../hooks/usePickerActive";
@@ -42,6 +43,7 @@ export function GripMainView({
   const clearLogs = useGripStore((s) => s.clearLogs);
   const [mcpOk, setMcpOk] = useState(false);
   const [historyView, setHistoryView] = useState(false);
+  const [gitView, setGitView] = useState(false);
   const {
     history,
     sessionGroups,
@@ -131,11 +133,20 @@ export function GripMainView({
         variant="popup"
         pickActive={isPickerActive}
         historyView={historyView}
+        gitView={gitView}
         onPick={handlePick}
-        onToggleHistoryView={() => setHistoryView((open) => !open)}
+        onToggleHistoryView={() => {
+          setHistoryView((open) => !open);
+          setGitView(false);
+        }}
         onNewSession={() => {
           setHistoryView(false);
+          setGitView(false);
           void newSession();
+        }}
+        onToggleGitView={() => {
+          setGitView((open) => !open);
+          setHistoryView(false);
         }}
       />
 
@@ -146,19 +157,28 @@ export function GripMainView({
         historyView={historyView}
         onSelectSession={(sessionId) => {
           setHistoryView(false);
+          setGitView(false);
           void switchSession(sessionId);
         }}
         onCloseSession={(sessionId) => void deleteSession(sessionId)}
         onNewSession={() => {
           setHistoryView(false);
+          setGitView(false);
           void newSession();
         }}
-        onToggleHistoryView={() => setHistoryView((open) => !open)}
+        onToggleHistoryView={() => {
+          setHistoryView((open) => !open);
+          setGitView(false);
+        }}
       />
 
-      {pickError ? <PickErrorBanner message={pickError} onRetry={handlePick} /> : null}
+      {pickError ? <ContextErrorBanner message={pickError} onRetry={handlePick} /> : null}
 
-      {!historyView && activePick ? (
+      {gitView ? (
+        <div className="grip-session-stack">
+          <SourceControlView />
+        </div>
+      ) : !historyView && activePick ? (
         <div className="grip-session-stack">
           <SessionPickComposer
             pick={activePick}
@@ -174,7 +194,7 @@ export function GripMainView({
       ) : null}
 
       <div className="grip-popup-history">
-        {historyView ? (
+        {!gitView && historyView ? (
           <SessionHistoryList
             groups={sessionGroups}
             activeSessionId={activeSessionId}

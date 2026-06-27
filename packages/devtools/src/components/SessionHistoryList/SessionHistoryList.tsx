@@ -1,5 +1,5 @@
 import { formatAllMcpPrompts, type SessionPickGroup } from "@grip/core";
-import { formatSessionGroupTitle } from "../../lib/sessionLabel";
+import { ElementTagBadge } from "../ElementTagBadge";
 import { CopyButton } from "../CopyButton";
 import { TrashIcon } from "../icons";
 import { Tooltip } from "../Tooltip";
@@ -29,10 +29,6 @@ export function SessionHistoryList({
       <ul className="grip-session-list">
         {groups.map((group) => {
           const isActive = group.sessionId === activeSessionId;
-          const preview = group.picks
-            .map((pick) => pick.label)
-            .slice(0, 3)
-            .join(" · ");
           const copyText = formatAllMcpPrompts(group.picks, {
             sessionId: group.sessionId,
           });
@@ -53,11 +49,25 @@ export function SessionHistoryList({
                   className="grip-session-row-main"
                   aria-current={isActive ? "true" : undefined}
                   onClick={() => onSelectSession(group.sessionId)}
+                  style={{ display: "flex", flexDirection: "column", gap: "0.375rem", width: "100%", alignItems: "stretch" }}
                 >
-                  <span className="grip-session-row-title">
-                    {formatSessionGroupTitle(group.picks, isActive)}
-                  </span>
-                  <span className="grip-session-row-meta">{preview}</span>
+                  {group.picks.length > 0 ? (
+                    group.picks.map((pick) => (
+                      <div key={pick.id} style={{ display: "flex", alignItems: "center", gap: "0.5rem", width: "100%" }}>
+                        <ElementTagBadge tagName={pick.tagName} role={pick.role} className="grip-shrink-0" />
+                        <div style={{ display: "flex", flexDirection: "column", minWidth: 0, flex: 1 }}>
+                          <span className="grip-pick-item-label" style={{ fontWeight: isActive ? "500" : "normal" }}>
+                            {pick.label}
+                          </span>
+                          {pick.comment?.trim() ? (
+                            <span className="grip-pick-item-comment">{pick.comment.trim()}</span>
+                          ) : null}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <span className="grip-session-row-title">Empty session</span>
+                  )}
                 </button>
               </Tooltip>
               <div className="grip-session-row-actions">
@@ -73,7 +83,7 @@ export function SessionHistoryList({
                     <button
                       type="button"
                       className="grip-btn-icon grip-pick-delete"
-                      aria-label={`Delete session ${formatSessionGroupTitle(group.picks, isActive)}`}
+                      aria-label="Delete this context"
                       onClick={(e) => {
                         e.stopPropagation();
                         onDeleteSession(group.sessionId);

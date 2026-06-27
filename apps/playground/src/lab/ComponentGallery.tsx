@@ -9,7 +9,7 @@ import {
   McpIcon,
   MinusIcon,
   MousePointerClickIcon,
-  PickErrorBanner,
+  ContextErrorBanner,
   PlusIcon,
   SelectDropdown,
   SessionLabel,
@@ -18,8 +18,8 @@ import {
   usePickHistory,
 } from "@grip/devtools";
 import { useState } from "preact/hooks";
-import { CommentFieldLabDemo } from "./CommentFieldLabDemo";
-import { CommentFieldSection } from "./CommentFieldSection";
+import { ContextFieldLabDemo } from "./ContextFieldLabDemo";
+import { ContextFieldSection } from "./ContextFieldSection";
 import { ContextEditorHostLabDemo } from "./ContextEditorHostLabDemo";
 import { DialogLabDemo } from "./DialogLabDemo";
 import { LogsLabDemo } from "./LogsLabDemo";
@@ -61,8 +61,8 @@ export function ComponentGallery({
       </section>
 
       <section class="lab-block">
-        <h3 class="lab-block-title">Pick error banner</h3>
-        <PickErrorBanner message="Could not reach the page picker." onRetry={() => {}} />
+        <h3 class="lab-block-title">Context error banner</h3>
+        <ContextErrorBanner message="Could not reach the context picker." onRetry={() => {}} />
       </section>
 
       <section class="lab-block">
@@ -77,12 +77,12 @@ export function ComponentGallery({
 
       <section class="lab-block lab-context-editor-block">
         <h3 class="lab-block-title">Context editor panel</h3>
-        <CommentFieldSection pick={editorPick} onClose={onCloseEditor} />
+        <ContextFieldSection pick={editorPick} onClose={onCloseEditor} />
       </section>
 
       <section class="lab-block">
-        <h3 class="lab-block-title">Comment field</h3>
-        <CommentFieldLabDemo />
+        <h3 class="lab-block-title">Context field</h3>
+        <ContextFieldLabDemo />
       </section>
 
       <section class="lab-block">

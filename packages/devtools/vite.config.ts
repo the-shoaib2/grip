@@ -8,6 +8,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@grip/core": path.resolve(rootDir, "../core/src/index.ts"),
+      "@lib": path.resolve(rootDir, "./src/lib/index.ts"),
     },
   },
   css: {

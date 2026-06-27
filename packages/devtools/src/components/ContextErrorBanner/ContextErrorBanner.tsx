@@ -1,9 +1,9 @@
-interface PickErrorBannerProps {
+interface ContextErrorBannerProps {
   message: string;
   onRetry: () => void;
 }
 
-export function PickErrorBanner({ message, onRetry }: PickErrorBannerProps) {
+export function ContextErrorBanner({ message, onRetry }: ContextErrorBannerProps) {
   return (
     <div className="grip-pick-error-banner" role="alert">
       <p className="grip-popup-error">{message}</p>

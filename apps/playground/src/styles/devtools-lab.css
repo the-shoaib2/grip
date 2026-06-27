@@ -7,13 +7,13 @@
 
 .lab-header {
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
+  flex-wrap: nowrap;
+  align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1.25rem 1.5rem;
-  background: var(--grip-shell-bg);
-  box-shadow: var(--grip-shell-shadow);
+  padding: 0.6rem 1.5rem;
+  background: transparent;
+  box-shadow: none;
 }
 
 .lab-header-brand h1 {

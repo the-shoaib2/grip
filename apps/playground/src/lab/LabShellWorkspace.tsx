@@ -1,6 +1,6 @@
 import type { ComponentChildren } from "preact";
 import type { StoredPick } from "@grip/core";
-import { CommentFieldSection } from "./CommentFieldSection";
+import { ContextFieldSection } from "./ContextFieldSection";
 
 export function LabShellWorkspace({
   children,
@@ -19,8 +19,8 @@ export function LabShellWorkspace({
       <section
         class="lab-block lab-context-editor-block"
       >
-        <h3 class="lab-block-title">Comment field</h3>
-        <CommentFieldSection pick={editorPick} onClose={onCloseEditor} />
+        <h3 class="lab-block-title">Context field</h3>
+        <ContextFieldSection pick={editorPick} onClose={onCloseEditor} />
       </section>
     </div>
   );

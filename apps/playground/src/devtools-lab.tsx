@@ -4,7 +4,10 @@ import "@grip/devtools-css";
 import "../../../packages/devtools/src/floating/floating.css";
 import { DevToolsLabContent } from "./lab/DevToolsLabContent";
 import { playgroundRuntime } from "./mockRuntime";
+import { initPlaygroundColorScheme } from "./theme";
 import "./styles/devtools-lab.css";
+
+initPlaygroundColorScheme();
 
 function DevToolsLab() {
   return (

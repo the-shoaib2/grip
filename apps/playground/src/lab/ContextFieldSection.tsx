@@ -1,7 +1,7 @@
 import type { StoredPick } from "@grip/core";
 import { ContextEditorPanel, usePickHistory } from "@grip/devtools";
 
-export function CommentFieldSection({
+export function ContextFieldSection({
   pick,
   onClose,
 }: {
