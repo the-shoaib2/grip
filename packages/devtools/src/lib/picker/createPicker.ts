@@ -1,7 +1,6 @@
 import {
   composerStateForStoredPick,
   deepElementFromPoint,
-  elementFromComposedEvent,
   elementsAtPoint,
   remapCommentChipIds,
   storedPickChipsToInlineRefs,
@@ -169,8 +168,6 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
   }
 
   function targetFromClick(e: MouseEvent): Element | null {
-    const fromEvent = elementFromComposedEvent(e, cycleIndex);
-    if (fromEvent) return fromEvent;
     return targetAt(e.clientX, e.clientY, cycleIndex);
   }
 

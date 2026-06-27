@@ -9,63 +9,6 @@ function escapeCssIdent(value: string): string {
   return value.replace(/([!"#$%&'()*+,./:;<=>?@[\\\]^`{|}~])/g, "\\$1");
 }
 
-/** Resolve the deepest element under x/y, piercing open shadow roots. */
-export function deepElementFromPoint(x: number, y: number): Element | null {
-  let root: Document | ShadowRoot = document;
-  let el: Element | null = null;
-
-  for (let depth = 0; depth < 32; depth++) {
-    const next: Element | null = root.elementFromPoint(x, y);
-    if (!next || next === el) break;
-    el = next;
-    if (next.shadowRoot) {
-      root = next.shadowRoot;
-      continue;
-    }
-    break;
-  }
-  return el;
-}
-
-/** Collect every element at x/y, piercing open shadow roots. Smallest first. */
-export function elementsAtPoint(x: number, y: number): Element[] {
-  const seen = new Set<Element>();
-  const out: Element[] = [];
-
-  function walk(root: Document | ShadowRoot): void {
-    const list =
-      typeof root.elementsFromPoint === "function"
-        ? root.elementsFromPoint(x, y)
-        : [root.elementFromPoint(x, y)];
-
-    for (const node of list) {
-      if (!(node instanceof Element) || seen.has(node)) continue;
-      if (isGripUi(node)) continue;
-      seen.add(node);
-      out.push(node);
-      if (node.shadowRoot) walk(node.shadowRoot);
-    }
-  }
-
-  walk(document);
-
-  return out
-    .filter((el) => containsPoint(el, x, y))
-    .filter((el) => isPickable(el))
-    .sort((a, b) => elementArea(a) - elementArea(b));
-}
-
-/** Pick target at point; index cycles through stacked elements (smallest first). */
-export function pickTargetAtPoint(
-  x: number,
-  y: number,
-  index = 0,
-): Element | null {
-  const stack = elementsAtPoint(x, y);
-  if (stack.length) return stack[index % stack.length] ?? null;
-  return deepElementFromPoint(x, y);
-}
-
 const GRIP_PREFIX = "__grip_";
 
 function isGripUi(el: Element): boolean {
@@ -78,34 +21,120 @@ function containsPoint(el: Element, x: number, y: number): boolean {
   return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
 }
 
-function elementArea(el: Element): number {
-  const r = el.getBoundingClientRect();
-  return Math.max(r.width, 1) * Math.max(r.height, 1);
-}
-
 function isPickable(el: Element): boolean {
   const tag = el.tagName;
   if (tag === "HTML" || tag === "BODY") return false;
   const style = getComputedStyle(el);
   if (style.display === "none" || style.visibility === "hidden") return false;
+  if (parseFloat(style.opacity) === 0) return false;
   if (style.pointerEvents === "none") return false;
+  const r = el.getBoundingClientRect();
+  if (r.width === 0 && r.height === 0) return false;
   return true;
 }
 
-/** Prefer composed path target when it is a valid pickable leaf. */
+function elementsFromPointInRoot(
+  root: Document | ShadowRoot,
+  x: number,
+  y: number,
+): Element[] {
+  if (typeof root.elementsFromPoint === "function") {
+    return root.elementsFromPoint(x, y).filter((node): node is Element => node instanceof Element);
+  }
+  const hit = root.elementFromPoint(x, y);
+  return hit instanceof Element ? [hit] : [];
+}
+
+function collectElementsAtPoint(
+  x: number,
+  y: number,
+  seen: Set<Element>,
+  out: Element[],
+): void {
+  function consider(node: Element): void {
+    if (seen.has(node) || isGripUi(node)) return;
+    seen.add(node);
+    if (!isPickable(node) || !containsPoint(node, x, y)) return;
+    out.push(node);
+  }
+
+  function walk(root: Document | ShadowRoot): void {
+    for (const node of elementsFromPointInRoot(root, x, y)) {
+      if (node.shadowRoot) {
+        walk(node.shadowRoot);
+      }
+      consider(node);
+    }
+  }
+
+  walk(document);
+}
+
+/** Resolve the deepest pickable element under x/y, piercing open shadow roots. */
+export function deepElementFromPoint(x: number, y: number): Element | null {
+  const stack = elementsAtPoint(x, y);
+  if (stack.length) return stack[0] ?? null;
+
+  let root: Document | ShadowRoot = document;
+  let el: Element | null = null;
+
+  for (let depth = 0; depth < 32; depth++) {
+    const next: Element | null = root.elementFromPoint(x, y);
+    if (!(next instanceof Element) || next === el) break;
+    if (isGripUi(next)) break;
+    el = next;
+    if (next.shadowRoot) {
+      root = next.shadowRoot;
+      continue;
+    }
+    break;
+  }
+
+  if (el && isPickable(el) && containsPoint(el, x, y)) return el;
+  return null;
+}
+
+/**
+ * Collect every pickable element at x/y in hit-test order (topmost first).
+ * Pierces open shadow roots. Use cycleIndex to walk up the stack with [ ].
+ */
+export function elementsAtPoint(x: number, y: number): Element[] {
+  const seen = new Set<Element>();
+  const out: Element[] = [];
+  collectElementsAtPoint(x, y, seen, out);
+  return out;
+}
+
+/** Pick target at point; index cycles through stacked elements (topmost first). */
+export function pickTargetAtPoint(
+  x: number,
+  y: number,
+  index = 0,
+): Element | null {
+  const stack = elementsAtPoint(x, y);
+  if (stack.length) return stack[index % stack.length] ?? null;
+  return deepElementFromPoint(x, y);
+}
+
+/** Resolve the clicked element using the same stack order as hover/cycle. */
 export function elementFromComposedEvent(
   e: MouseEvent,
   cycleIndex = 0,
 ): Element | null {
-  const path = e.composedPath();
-  for (const node of path) {
-    if (node instanceof Element && isPickable(node) && !isGripUi(node)) {
-      const stack = elementsAtPoint(e.clientX, e.clientY);
-      if (stack.length) return stack[cycleIndex % stack.length] ?? node;
-      return node;
-    }
+  const x = e.clientX;
+  const y = e.clientY;
+  const stack = elementsAtPoint(x, y);
+
+  if (stack.length) {
+    return stack[cycleIndex % stack.length] ?? null;
   }
-  return pickTargetAtPoint(e.clientX, e.clientY, cycleIndex);
+
+  const target = e.target instanceof Element ? e.target : null;
+  if (target && isPickable(target) && !isGripUi(target) && containsPoint(target, x, y)) {
+    return target;
+  }
+
+  return deepElementFromPoint(x, y);
 }
 
 export function generateXPath(el: Element): string {
