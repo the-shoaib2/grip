@@ -150,7 +150,7 @@ export function ContextField({
     const editor = editorRef.current;
     if (!editor) return;
     if (value === lastEmitted.current && !isEditorEmpty(editor)) return;
-    setEditorFromComment(editor, value, chipRefs);
+    setEditorFromComment(editor, value, chipRefs, undefined, { caretAtEnd: true });
     lastEmitted.current = value;
     registryRef.current?.loadFromChipRefs(chipRefs);
   }, [value, chipRefs]);
