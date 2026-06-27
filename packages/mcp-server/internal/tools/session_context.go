@@ -21,6 +21,17 @@ var (
 	sessionRegistry = map[string]sessionContextRecord{}
 )
 
+func StoreSessionContext(sessionID string, picks []map[string]interface{}) {
+	record := sessionContextRecord{
+		SessionID:    sessionID,
+		Picks:        picks,
+		RegisteredAt: time.Now().UnixMilli(),
+	}
+	sessionMu.Lock()
+	sessionRegistry[sessionID] = record
+	sessionMu.Unlock()
+}
+
 func RegisterRegisterSessionContext(server *mcp.Server, _ *cdp.Session) {
 	server.AddTool(&mcp.Tool{
 		Name:        "register_session_context",
@@ -33,14 +44,9 @@ func RegisterRegisterSessionContext(server *mcp.Server, _ *cdp.Session) {
 		if err := json.Unmarshal(req.Params.Arguments, &in); err != nil {
 			return nil, err
 		}
-		record := sessionContextRecord{
-			SessionID:    in.SessionID,
-			Picks:        in.Picks,
-			RegisteredAt: time.Now().UnixMilli(),
-		}
-		sessionMu.Lock()
-		sessionRegistry[in.SessionID] = record
-		sessionMu.Unlock()
+		
+		StoreSessionContext(in.SessionID, in.Picks)
+		
 		return TextResult(map[string]interface{}{
 			"ok":        true,
 			"sessionId": in.SessionID,

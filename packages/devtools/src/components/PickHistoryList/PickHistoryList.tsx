@@ -4,7 +4,7 @@ import {
   formatStoredPickCommentForDisplay,
   type StoredPick,
 } from "@grip/core";
-import { CopyButton } from "@devtools/components/CopyButton";
+import { CopyButton, SyncButton } from "@devtools/components";
 import { SessionLabel } from "@devtools/components/SessionLabel";
 import { Tooltip } from "@devtools/components/Tooltip";
 
@@ -61,13 +61,22 @@ export function PickHistoryList({
     <section className="grip-pick-section">
       <div className="grip-pick-section-header">
         <SessionLabel pickCount={history.length} current />
-        <CopyButton
-          label="Copy all"
-          text={allText}
-          tooltip="Copy all session prompts"
-          variant="ghost"
-          size="default"
-        />
+        <div className="grip-pick-section-actions" style={{ display: "flex", gap: "8px" }}>
+          <SyncButton
+            picks={history}
+            label="Sync all to IDE"
+            tooltip="Send all session prompts to IDE Agent"
+            variant="ghost"
+            size="default"
+          />
+          <CopyButton
+            label="Copy all"
+            text={allText}
+            tooltip="Copy all session prompts"
+            variant="ghost"
+            size="default"
+          />
+        </div>
       </div>
       <ul className="grip-pick-list">
         {history.map((pick) => {
@@ -100,6 +109,13 @@ export function PickHistoryList({
                 </button>
               </Tooltip>
               <div className="grip-pick-row-actions">
+                <SyncButton
+                  picks={[pick]}
+                  label="Sync"
+                  tooltip="Send to IDE"
+                  variant="ghost"
+                  size="icon"
+                />
                 <CopyButton
                   label="Copy"
                   text={formatMcpPrompt(pick)}

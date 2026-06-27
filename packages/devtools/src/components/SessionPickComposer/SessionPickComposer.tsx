@@ -7,7 +7,7 @@ import {
   type StoredPick,
 } from "@grip/core";
 import { ContextField } from "@devtools/components/ContextField";
-import { CopyButton } from "@devtools/components/CopyButton";
+import { CopyButton, SyncButton } from "@devtools/components";
 import { GripShellDialog } from "@devtools/components/GripShellDialog";
 import { Tooltip } from "@devtools/components/Tooltip";
 import { UndoIcon } from "@devtools/components/icons";
@@ -128,6 +128,13 @@ export function SessionPickComposer({
                       </button>
                     </Tooltip>
                   ) : null}
+                  <SyncButton
+                    picks={[pickWithComment]}
+                    label="Sync"
+                    tooltip="Send to IDE"
+                    variant="ghost"
+                    size="icon"
+                  />
                   <CopyButton
                     label="Copy"
                     text={copyText}

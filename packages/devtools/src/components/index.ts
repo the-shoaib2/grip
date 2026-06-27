@@ -1,6 +1,7 @@
 export { ContextField } from "@devtools/components/ContextField";
 export { ContextEditorPanel, type ContextEditorPanelProps } from "@devtools/components/ContextEditorPanel";
 export { CopyButton } from "@devtools/components/CopyButton";
+export { SyncButton } from "@devtools/components/SyncButton";
 export { ElementTagBadge } from "@devtools/components/ElementTagBadge";
 export { FieldRow } from "@devtools/components/FieldRow";
 export { GripContextEditorHost, type GripContextEditorHostProps } from "@devtools/components/GripContextEditorHost";

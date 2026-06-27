@@ -8,3 +8,5 @@ export { MinusIcon } from "@devtools/components/icons/MinusIcon";
 export { PlusIcon } from "@devtools/components/icons/PlusIcon";
 export { TrashIcon } from "@devtools/components/icons/TrashIcon";
 export { GitIcon } from "@devtools/components/icons/GitIcon";
+export { CheckIcon } from "@devtools/components/icons/CheckIcon";
+export { CopyIcon } from "@devtools/components/icons/CopyIcon";

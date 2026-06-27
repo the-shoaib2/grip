@@ -1,5 +1,5 @@
 import { formatAllMcpPrompts, formatStoredPickCommentForDisplay, type SessionPickGroup, type StoredPick } from "@grip/core";
-import { CopyButton } from "@devtools/components/CopyButton";
+import { CopyButton, SyncButton } from "@devtools/components";
 import { TrashIcon } from "@devtools/components/icons";
 import { Tooltip } from "@devtools/components/Tooltip";
 
@@ -76,6 +76,13 @@ export function SessionHistoryList({
                 </button>
               </Tooltip>
               <div className="grip-session-row-actions">
+                <SyncButton
+                  picks={group.picks}
+                  label="Sync"
+                  tooltip="Send to IDE"
+                  variant="ghost"
+                  size="icon"
+                />
                 <CopyButton
                   label="Copy"
                   text={copyText}
