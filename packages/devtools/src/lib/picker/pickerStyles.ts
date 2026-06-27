@@ -1,3 +1,4 @@
+import tokensCss from "../../styles/tokens.css?inline";
 import type { PickerFeatures } from "./types";
 import {
   COMMENT_ID,
@@ -5,8 +6,10 @@ import {
   HOVER_ID,
   SELECTED_ID,
 } from "./constants";
+import { buildScopedThemeTokens, PICKER_THEME_SCOPE } from "./pickerTheme";
 
 export function buildPickerStyleSheet(features: PickerFeatures): string {
+  const themeTokens = buildScopedThemeTokens(PICKER_THEME_SCOPE, tokensCss);
   const dragHeader = features.panelDrag
     ? `
     .grip-picker-header{
@@ -49,11 +52,11 @@ export function buildPickerStyleSheet(features: PickerFeatures): string {
       max-width:min(240px,calc(100vw - 16px));
       padding:8px 10px;
       border-radius:10px;
-      background:#18181b;
-      border:1px solid #3f3f46;
-      box-shadow:0 8px 24px rgba(0,0,0,.38);
+      background:var(--grip-tooltip-bg);
+      border:1px solid var(--grip-border);
+      box-shadow:0 8px 24px rgba(0,0,0,.28);
       font:11px/1.35 system-ui,sans-serif;
-      color:#fafafa;
+      color:var(--grip-tooltip-fg);
     }
     .grip-chip-tooltip-head{
       display:flex;
@@ -64,18 +67,18 @@ export function buildPickerStyleSheet(features: PickerFeatures): string {
     .grip-chip-tooltip-tag{
       font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
       font-size:10px;
-      color:#93c5fd;
+      color:var(--grip-accent-fg);
     }
     .grip-chip-tooltip-role{
       font-size:9px;
-      color:#a1a1aa;
+      color:var(--grip-muted);
       padding:1px 6px;
       border-radius:9999px;
-      background:#27272a;
+      background:var(--grip-surface-hover);
     }
     .grip-chip-tooltip-text{
       margin:2px 0 0;
-      color:#d4d4d8;
+      color:var(--grip-fg);
       overflow:hidden;
       text-overflow:ellipsis;
       white-space:nowrap;
@@ -84,7 +87,7 @@ export function buildPickerStyleSheet(features: PickerFeatures): string {
       margin:4px 0 0;
       font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
       font-size:9px;
-      color:#71717a;
+      color:var(--grip-muted);
       overflow-wrap:anywhere;
       word-break:break-all;
     }`
@@ -111,19 +114,31 @@ export function buildPickerStyleSheet(features: PickerFeatures): string {
     }`;
 
   return `
+    ${themeTokens}
     *{cursor:crosshair!important}
     #${HOVER_ID},#${HINT_ID}{pointer-events:none!important}
     #${COMMENT_ID}{pointer-events:auto!important}
     #${COMMENT_ID} *{cursor:auto!important}
+    #${HINT_ID}{
+      position:fixed;
+      z-index:2147483647;
+      padding:4px 8px;
+      border-radius:9999px;
+      background:var(--grip-shell-bg);
+      color:var(--grip-muted);
+      font:10px system-ui,sans-serif;
+      border:1px solid var(--grip-shell-border);
+      pointer-events:none;
+    }
     .grip-picker-panel{
       width:min(320px,calc(100vw - 16px));
       padding:10px 12px;
       border-radius:16px;
-      background:#18181b;
-      border:1px solid #3f3f46;
-      box-shadow:0 12px 40px rgba(0,0,0,.45);
+      background:var(--grip-shell-bg);
+      border:1px solid var(--grip-shell-border);
+      box-shadow:var(--grip-shell-shadow);
       font:12px system-ui,sans-serif;
-      color:#fafafa;
+      color:var(--grip-fg);
     }${panelPosition}
     .grip-picker-header{
       display:flex;
@@ -136,11 +151,11 @@ export function buildPickerStyleSheet(features: PickerFeatures): string {
       font-size:11px;
       font-weight:600;
       font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
-      color:#e4e4e7;
+      color:var(--grip-fg);
     }
     .grip-picker-hint{
       font-size:10px;
-      color:#71717a;
+      color:var(--grip-muted);
       white-space:nowrap;
     }
     .grip-context-field{
@@ -151,7 +166,7 @@ export function buildPickerStyleSheet(features: PickerFeatures): string {
       max-height:160px;
       overflow-y:auto;
       border-radius:12px;
-      background:#09090b;
+      background:var(--grip-inset-bg);
       padding:8px 10px;
       cursor:text;
       line-height:1.45;
@@ -164,12 +179,12 @@ export function buildPickerStyleSheet(features: PickerFeatures): string {
       white-space:pre-wrap;
       word-break:break-word;
       font:12px/1.45 system-ui,sans-serif;
-      color:#fafafa;
-      caret-color:#fafafa;
+      color:var(--grip-fg);
+      caret-color:var(--grip-fg);
     }
     .grip-inline-editor:empty::before{
       content:attr(data-placeholder);
-      color:#71717a;
+      color:var(--grip-muted);
       pointer-events:none;
     }
     .grip-inline-chip{
@@ -180,8 +195,8 @@ export function buildPickerStyleSheet(features: PickerFeatures): string {
       padding:1px 8px;
       border-radius:9999px;
       border:none;
-      background:#2d3748;
-      color:#cbd5e1;
+      background:var(--grip-chip-bg);
+      color:var(--grip-chip-fg);
       font-size:10px;
       font-weight:500;
       font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
@@ -191,8 +206,8 @@ export function buildPickerStyleSheet(features: PickerFeatures): string {
       white-space:nowrap;
     }
     .grip-inline-chip-active{
-      background:rgba(37,99,235,0.22);
-      color:#f8fafc;
+      background:var(--grip-chip-active-bg);
+      color:var(--grip-chip-active-fg);
     }${chipTooltip}
     .grip-picker-actions{
       display:flex;
@@ -207,8 +222,8 @@ export function buildPickerStyleSheet(features: PickerFeatures): string {
       font-size:11px;
       cursor:pointer;
     }
-    #__grip_comment_cancel__{background:#27272a;color:#d4d4d8}
-    #__grip_comment_save__{background:#2563eb;color:#fff}
+    #__grip_comment_cancel__{background:var(--grip-surface-hover);color:var(--grip-fg)}
+    #__grip_comment_save__{background:var(--grip-accent);color:var(--grip-on-accent)}
     ${selectedLayer}
     #${HOVER_ID}{
       position:fixed;

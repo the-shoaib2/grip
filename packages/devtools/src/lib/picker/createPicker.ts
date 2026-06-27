@@ -43,6 +43,7 @@ import {
   VIEWPORT_PAD,
 } from "./constants";
 import { buildPickerStyleSheet } from "./pickerStyles";
+import { syncAllPickerThemeElements, syncPickerColorScheme } from "./pickerTheme";
 import type {
   OpenContextEditorOptions,
   PendingPick,
@@ -95,8 +96,9 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
       hint = document.createElement("div");
       hint.id = HINT_ID;
       hint.style.cssText =
-        "position:fixed;z-index:2147483647;padding:4px 8px;border-radius:9999px;background:#18181b;color:#a1a1aa;font:10px system-ui,sans-serif;border:1px solid #3f3f46;pointer-events:none;";
+        "position:fixed;z-index:2147483647;pointer-events:none;";
       document.documentElement.appendChild(hint);
+      syncPickerColorScheme(hint);
     }
     return hint;
   }
@@ -428,6 +430,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     </div>
   `;
     document.documentElement.appendChild(panel);
+    syncPickerColorScheme(panel);
     setupPanelDrag(panel);
     return panel;
   }
@@ -736,6 +739,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
 
   function showCommentPrompt(el: Element): void {
     const panel = document.getElementById(COMMENT_ID) ?? ensureCommentPanel();
+    syncAllPickerThemeElements();
     const isNewPanel = features.panelDrag ? phase !== "comment" : true;
 
     if (isNewPanel) {
@@ -928,6 +932,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     phase = "hover";
     cycleIndex = 0;
     ensureStyle();
+    syncAllPickerThemeElements();
     document.addEventListener("mousemove", onMove, true);
     document.addEventListener("click", onClick, true);
     document.addEventListener("keydown", onKey, true);
@@ -951,6 +956,7 @@ export function createPicker(host: PickerHost, features: PickerFeatures): Picker
     onEditSaveCallback = options?.onEditSave ?? null;
     onEditEndCallback = options?.onEditEnd ?? null;
     ensureStyle();
+    syncAllPickerThemeElements();
     const panel = ensureCommentPanel();
     panelManuallyPlaced = false;
     panelDrag = null;
