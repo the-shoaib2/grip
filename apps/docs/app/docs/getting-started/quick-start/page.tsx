@@ -38,12 +38,29 @@ export default function QuickStartPage() {
       </ul>
 
       <DocH2 id="install">Install &amp; build</DocH2>
-      <p>Clone the repo and build all packages plus the MCP server:</p>
+      <p>Clone the repo and install dependencies using your preferred package manager (pnpm is recommended):</p>
       <CodeBlock>{`git clone <repo-url> grip
 cd grip
+
+# Using pnpm (recommended)
 pnpm install
 pnpm turbo build
-pnpm run build:mcp`}</CodeBlock>
+pnpm run build:mcp
+
+# Using npm
+npm install
+npm run build
+npm run build:mcp
+
+# Using yarn
+yarn install
+yarn build
+yarn build:mcp
+
+# Using bun
+bun install
+bun run build
+bun run build:mcp`}</CodeBlock>
       <p>
         When this finishes, you should have <code>bin/grip-mcp</code> ready and the extension build
         in <code>packages/extension/dist</code>.
@@ -75,7 +92,17 @@ pnpm run build:mcp`}</CodeBlock>
         </li>
       </ol>
       <p>For day-to-day development with reload on save:</p>
-      <CodeBlock>{`pnpm --filter @grip/extension dev`}</CodeBlock>
+      <CodeBlock>{`# Using pnpm
+pnpm --filter @grip/extension dev
+
+# Using npm
+npm run dev --workspace=packages/extension
+
+# Using yarn
+yarn workspace @grip/extension dev
+
+# Using bun
+bun --filter @grip/extension dev`}</CodeBlock>
 
       <DocH2 id="mcp">Connect MCP</DocH2>
       <p>

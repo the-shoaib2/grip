@@ -8,6 +8,7 @@ const toc = [
   { id: "overview", title: "What you get", level: 2 as const },
   { id: "build", title: "Install the extension", level: 2 as const },
   { id: "surfaces", title: "Three ways to open Grip", level: 2 as const },
+  { id: "context-retrieval", title: "How context is fetched", level: 2 as const },
   { id: "components", title: "How it's built", level: 2 as const },
   { id: "mcp", title: "Connect MCP", level: 2 as const },
 ];
@@ -70,6 +71,36 @@ export default function ExtensionPage() {
         <li>
           <strong>Floating tray</strong> — a button on the page itself (bottom-right). Opens the
           full panel without leaving the tab.
+        </li>
+      </ul>
+
+      <DocH2 id="context-retrieval">How context is fetched</DocH2>
+      <DocH3 id="frontend-retrieval">Frontend &amp; Extension Picker</DocH3>
+      <p>
+        When running as a standard Chrome extension, Grip relies on content scripts injected directly into the tab&apos;s frontend environment.
+      </p>
+      <ul>
+        <li>
+          <strong>Live DOM Interaction:</strong> The element picker (<code>picker.ts</code>) overlays a visual target canvas. Hovering and clicking targets elements directly via the browser&apos;s Pointer Events API.
+        </li>
+        <li>
+          <strong>Framework Detection:</strong> The frontend script inspects DOM nodes to find internal keys (such as React&apos;s <code>__reactFiber$</code> or Vue&apos;s <code>__vnode</code>). This allows it to extract real-time component <code>props</code>, parent state, and original template details directly from the running app context.
+        </li>
+        <li>
+          <strong>Isolated Sandbox:</strong> Because it operates in the page context, it is fast and has zero overhead, but is restricted to elements present in the active DOM tree.
+        </li>
+      </ul>
+
+      <DocH3 id="devtools-retrieval">DevTools Panel &amp; DOM Inspection</DocH3>
+      <p>
+        When running inside the Chrome DevTools panel, Grip benefits from elevated privileges through Chrome&apos;s DevTools Extension APIs.
+      </p>
+      <ul>
+        <li>
+          <strong>Inspected Window Access:</strong> It utilizes <code>chrome.devtools.inspectedWindow.eval()</code> to run expression queries in the main frame, bridging DOM nodes directly to the DevTools console scope.
+        </li>
+        <li>
+          <strong>Source Maps &amp; Exact Code:</strong> DevTools has access to active JS source maps loaded by the browser. When an element is selected, Grip can trace the compiled code back to the exact source file path, component class, and line number on your filesystem.
         </li>
       </ul>
 

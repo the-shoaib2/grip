@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { CodeBlock } from "@components/docs/CodeBlock";
 import { DocH2, DocH3 } from "@components/docs/DocHeading";
 import { DocPage } from "@components/docs/DocPage";
@@ -12,6 +11,7 @@ const toc = [
   { id: "build-mcp", title: "Step 2 — Build grip-mcp", level: 2 as const },
   { id: "reference", title: "Step 3 — Server config", level: 2 as const },
   { id: "clients", title: "Pick your client", level: 2 as const },
+  { id: "cli-agents", title: "CLI Agents & Daemon Mode", level: 2 as const },
   { id: "env", title: "Environment variables", level: 2 as const },
   { id: "ui-badge", title: "MCP badge in Grip UI", level: 2 as const },
   { id: "troubleshooting", title: "Troubleshooting", level: 2 as const },
@@ -72,6 +72,26 @@ export default function McpConfigurationPage() {
         select your app to see the exact config file, root key, and copy-paste snippet.
       </p>
       <McpClientTabs />
+
+      <DocH2 id="cli-agents">CLI Agents &amp; Daemon Mode</DocH2>
+      <p>
+        For command-line execution (e.g., using <code>Claude Code</code> or <code>Gemini CLI</code>), <code>grip-mcp</code> runs as a headless background subprocess rather than a visual application.
+      </p>
+      <ul>
+        <li>
+          <strong>Daemon Lifecycle:</strong> The host CLI agent starts <code>grip-mcp</code> automatically and communicates with it over standard input/output (stdio).
+        </li>
+        <li>
+          <strong>CDP Connection:</strong> The background daemon hooks directly into Chrome via the remote debugging port (configured by <code>GRIP_CHROME_PORT</code>) using the Chrome DevTools Protocol.
+        </li>
+        <li>
+          <strong>Global CLI Installation:</strong> If you use CLI tools globally, you can link the executable to your path:
+          <CodeBlock>{`# Link globally for easy access
+npm link
+# Or run direct from local path
+claude mcp add grip -- $(pwd)/bin/grip-mcp`}</CodeBlock>
+        </li>
+      </ul>
 
       <DocH2 id="env">Environment variables</DocH2>
       <table className="doc-table">
