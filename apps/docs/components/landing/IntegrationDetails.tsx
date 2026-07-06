@@ -2,50 +2,63 @@ import Link from "next/link";
 
 export function IntegrationDetails() {
   return (
-    <section className="landing-terminal-section" style={{ paddingTop: "0", paddingBottom: "6rem" }}>
-      <div className="landing-section-header" style={{ marginBottom: "4rem" }}>
-        <h2 className="landing-section-title">Integration Architecture</h2>
-        <p className="landing-section-desc">
-          How Grip bridges the gap between active browser windows and LLM workspaces.
-        </p>
-      </div>
-
-      <div className="landing-features-grid" style={{ width: "100%" }}>
-        <div className="landing-feature-card">
-          <h3 className="landing-feature-title" style={{ fontSize: "1rem" }}>
-            1. Front-End Content Scripts
-          </h3>
-          <p className="landing-feature-desc" style={{ marginTop: "0.5rem" }}>
-            Injects active listeners into target webpages. Detects React components by reading internal fiber pointers, allowing extraction of component props and visual states.
+    <section className="w-full py-16 px-6 bg-zinc-950/10">
+      <div className="max-w-6xl mx-auto flex flex-col items-center">
+        {/* Header */}
+        <div className="w-full mb-12 text-left">
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+            Architecture Layout
+          </h2>
+          <p className="mt-2 text-sm text-zinc-400 max-w-xl">
+            Bridges target browser environments to host IDE workspaces safely and efficiently.
           </p>
         </div>
 
-        <div className="landing-feature-card">
-          <h3 className="landing-feature-title" style={{ fontSize: "1rem" }}>
-            2. Chrome DevTools APIs
-          </h3>
-          <p className="landing-feature-desc" style={{ marginTop: "0.5rem" }}>
-            Leverages elevated browser privileges inside DevTools panels. Resolves JS source maps on-the-fly to trace DOM coordinates back to original local repository files and line numbers.
-          </p>
+        {/* 3 Columns */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+          {/* Card 1 */}
+          <div className="rounded-xl border border-zinc-900 bg-zinc-950/40 p-6 transition-all hover:border-zinc-800 hover:bg-zinc-950/60">
+            <h3 className="text-sm font-semibold text-white uppercase tracking-wider font-mono">
+              1. Content Scripts
+            </h3>
+            <p className="mt-3 text-sm text-zinc-400 leading-relaxed">
+              Injects target page observers. Parses internal React fiber nodes to extract structured component props, states, and coordinates.
+            </p>
+          </div>
+
+          {/* Card 2 */}
+          <div className="rounded-xl border border-zinc-900 bg-zinc-950/40 p-6 transition-all hover:border-zinc-800 hover:bg-zinc-950/60">
+            <h3 className="text-sm font-semibold text-white uppercase tracking-wider font-mono">
+              2. Chrome DevTools API
+            </h3>
+            <p className="mt-3 text-sm text-zinc-400 leading-relaxed">
+              Elevated extension context. Resolves source mappings on the fly to match target selectors back to original local files and line numbers.
+            </p>
+          </div>
+
+          {/* Card 3 */}
+          <div className="rounded-xl border border-zinc-900 bg-zinc-950/40 p-6 transition-all hover:border-zinc-800 hover:bg-zinc-950/60">
+            <h3 className="text-sm font-semibold text-white uppercase tracking-wider font-mono">
+              3. Go Daemon
+            </h3>
+            <p className="mt-3 text-sm text-zinc-400 leading-relaxed">
+              Background MCP server. Forwards agent tool calls (snapshots, element interactions, keyboard input) directly to connected debug tabs.
+            </p>
+          </div>
         </div>
 
-        <div className="landing-feature-card">
-          <h3 className="landing-feature-title" style={{ fontSize: "1rem" }}>
-            3. Go Background Daemon
-          </h3>
-          <p className="landing-feature-desc" style={{ marginTop: "0.5rem" }}>
-            Communicates with host IDE agents via standard input/output (`stdio`) or HTTP endpoints. Safely forwards LLM actions (clicks, keypresses, screenshot requests) directly to target tabs.
+        {/* Footer CTA */}
+        <div className="mt-12 text-center">
+          <p className="text-sm text-zinc-400">
+            Ready to integrate? Review the setup guidelines.
           </p>
+          <Link
+            href="/docs/mcp/configuration"
+            className="mt-4 inline-flex h-10 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900/50 px-6 text-sm font-semibold text-zinc-200 transition-all hover:bg-zinc-900 hover:border-zinc-700"
+          >
+            Read Configuration Docs
+          </Link>
         </div>
-      </div>
-
-      <div style={{ marginTop: "3.5rem", textAlign: "center" }}>
-        <p style={{ color: "var(--doc-muted)", fontSize: "0.875rem" }}>
-          Ready to plug it in? Check out the complete config reference.
-        </p>
-        <Link href="/docs/mcp/configuration" className="landing-cta landing-cta-secondary" style={{ marginTop: "1rem" }}>
-          Read MCP Docs
-        </Link>
       </div>
     </section>
   );

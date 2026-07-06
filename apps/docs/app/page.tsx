@@ -7,17 +7,19 @@ import { IntegrationDetails } from "@components/landing/IntegrationDetails";
 
 export default function Home() {
   return (
-    <>
-      <SiteHeader />
-      <main className="landing-main">
-        <Hero />
-        <WorkflowCanvas />
-        <TerminalDemo />
-        <FeaturesShowcase />
-        <IntegrationDetails />
-      </main>
+    <div className="min-h-screen bg-[#09090b] text-[#fafafa] flex flex-col justify-between">
+      <div>
+        <SiteHeader />
+        <main className="max-w-6xl mx-auto border-x border-zinc-900/80 bg-zinc-950/10 min-h-screen">
+          <Hero />
+          <WorkflowCanvas />
+          <TerminalDemo />
+          <FeaturesShowcase />
+          <IntegrationDetails />
+        </main>
+      </div>
       <SiteFooter />
-    </>
+    </div>
   );
 }
 

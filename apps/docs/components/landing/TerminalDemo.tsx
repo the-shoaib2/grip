@@ -5,31 +5,27 @@ import { useState } from "react";
 const TABS = [
   {
     id: "install",
-    label: "1. Install & Build",
-    title: "Bootstrap the monorepo dependencies and CLI tools",
+    label: "1. Install",
+    title: "Configure local packages and server bin",
     command: "pnpm install && pnpm run build:mcp",
-    output: `> grip@ dev /Users/ratulhasan/Desktop/grip
-> pnpm install
-✔ dependencies updated in 2.3s
+    output: `> grip-dev@0.1.0 build
+> tsup && tsc -p tsconfig.dts.json
 
-> pnpm run build:mcp
-✔ bootstrapping Go toolchain...
-✔ grip-mcp server compiled successfully to: bin/grip-mcp`
+CLI Building entry: src/index.ts, src/mcp/index.ts
+✔ compiled successfully to bin/grip-mcp`
   },
   {
     id: "chrome",
     label: "2. Launch Chrome",
-    title: "Start Google Chrome with remote debugging protocol active",
+    title: "Expose CDP debug port",
     command: "./scripts/launch-chrome.sh 9222",
     output: `> starting debug instance...
-> port: 9222
-> profile: user-data-dir=chrome-debug-profile
 > DevTools listening on ws://127.0.0.1:9222/devtools/browser/9cf96b5b...`
   },
   {
     id: "mcp",
-    label: "3. Configure IDE Client",
-    title: "Connect grip-mcp in your Model Context Protocol configuration",
+    label: "3. Bind MCP",
+    title: "Bind grip-mcp to developer clients",
     command: "cat .cursor/mcp.json",
     output: `{
   "mcpServers": {
@@ -42,14 +38,13 @@ const TABS = [
   },
   {
     id: "tools",
-    label: "4. Run MCP Tools",
-    title: "AI agents invoke grip-mcp tools to inspect & act on the page",
+    label: "4. Run Tools",
+    title: "AI agents invoke tools via CDP",
     command: "grip-mcp --log-level debug",
-    output: `[info] MCP server started listening on stdio
-[debug] tool call received: "snapshot" (args: { tabId: 1 })
-[debug] fetched 142 DOM nodes, serializing to a11y JSON tree
-[debug] tool call received: "highlight" (args: { selector: "#submit-btn" })
-[debug] tool call received: "click" (args: { selector: "#submit-btn" })`
+    output: `[info] MCP server active
+[debug] call received: "snapshot" (tabId: 1)
+[debug] fetched 142 DOM nodes, serializing tree
+[debug] call received: "click" (selector: "#submit-btn")`
   }
 ];
 
@@ -58,51 +53,61 @@ export function TerminalDemo() {
   const tabData = TABS.find((t) => t.id === activeTab) || TABS[0];
 
   return (
-    <section className="landing-terminal-section">
-      <div className="landing-section-header">
-        <h2 className="landing-section-title">Development Workflow</h2>
-        <p className="landing-section-desc">
-          From workspace bootstrap to MCP tools running, manage your browser environment easily.
-        </p>
-      </div>
-
-      <div className="landing-terminal-tabs" role="tablist" aria-label="Terminal Workflow Steps">
-        {TABS.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            role="tab"
-            aria-selected={activeTab === tab.id}
-            aria-controls={`panel-${tab.id}`}
-            id={`tab-${tab.id}`}
-            className={`landing-terminal-tab-btn ${
-              activeTab === tab.id ? "landing-terminal-tab-btn-active" : ""
-            }`}
-            onClick={() => setActiveTab(tab.id)}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      <div
-        id={`panel-${tabData.id}`}
-        role="tabpanel"
-        aria-labelledby={`tab-${tabData.id}`}
-        className="landing-terminal-mockup"
-      >
-        <div className="landing-terminal-header">
-          <div className="landing-terminal-dots">
-            <span className="landing-terminal-dot landing-terminal-dot-red" />
-            <span className="landing-terminal-dot landing-terminal-dot-yellow" />
-            <span className="landing-terminal-dot landing-terminal-dot-green" />
-          </div>
-          <span className="landing-terminal-title">{tabData.title}</span>
+    <section className="w-full py-16 px-6 border-b border-zinc-900 bg-zinc-950/10">
+      <div className="max-w-6xl mx-auto flex flex-col items-center">
+        {/* Header */}
+        <div className="w-full mb-10 text-left">
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+            Quick Start Workflow
+          </h2>
+          <p className="mt-2 text-sm text-zinc-400 max-w-xl">
+            Expose standard Chrome DevTools debugger ports, connect your MCP server, and trigger browser queries.
+          </p>
         </div>
-        <div className="landing-terminal-body">
-          <span className="text-zinc-500" aria-hidden="true">$ </span>
-          <span className="text-emerald-400 font-bold">{tabData.command}</span>
-          <pre className="mt-2 text-zinc-300 font-mono whitespace-pre-wrap">{tabData.output}</pre>
+
+        {/* Tab Buttons bar with crisp border */}
+        <div className="w-full max-w-4xl flex border border-zinc-800 bg-zinc-900/10 rounded-lg p-1.5 gap-1 mb-6">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              className={`flex-1 text-center py-2 text-xs font-semibold rounded-md transition-all ${
+                activeTab === tab.id
+                  ? "bg-zinc-800 text-white shadow-sm"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Terminal Card */}
+        <div className="w-full max-w-4xl border border-zinc-800 rounded-lg overflow-hidden bg-zinc-950/80 shadow-2xl">
+          <div className="flex items-center justify-between px-4 py-3 bg-zinc-900/40 border-b border-zinc-800/80">
+            {/* Terminal Dots */}
+            <div className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
+              <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
+              <span className="w-2.5 h-2.5 rounded-full bg-green-500/80" />
+            </div>
+            {/* Title / Description */}
+            <span className="text-[10px] text-zinc-500 font-mono tracking-wider uppercase">
+              {tabData.title}
+            </span>
+            <div className="w-10" />
+          </div>
+          {/* Terminal Code Body */}
+          <div className="p-5 font-mono text-[13px] leading-relaxed text-zinc-300 overflow-x-auto min-h-[160px]">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-zinc-500 select-none">$</span>
+              <span className="text-emerald-400 font-semibold">{tabData.command}</span>
+            </div>
+            <pre className="text-zinc-400 whitespace-pre-wrap">{tabData.output}</pre>
+          </div>
         </div>
       </div>
     </section>

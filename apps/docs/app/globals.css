@@ -121,8 +121,13 @@ button {
 /* ── Site (landing) ── */
 
 .site-header {
-  background: color-mix(in srgb, var(--doc-bg) 92%, transparent);
+  position: sticky;
+  top: 0;
+  width: 100%;
+  border-b: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(9, 9, 11, 0.8);
   backdrop-filter: blur(8px);
+  z-index: 50;
 }
 
 .site-header-inner {
@@ -130,9 +135,9 @@ button {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  max-width: var(--doc-layout-max);
+  max-width: 72rem;
   margin: 0 auto;
-  padding: 0 var(--doc-layout-pad);
+  padding: 0 1.5rem;
   height: var(--doc-header-h);
 }
 
