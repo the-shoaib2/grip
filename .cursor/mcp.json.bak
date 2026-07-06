@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "grip": {
-      "command": "/Users/ratulhasan/Desktop/grip/bin/grip-mcp",
+      "command": "./bin/grip-mcp",
       "args": [
         "--port",
         "9222"
