@@ -6,11 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "typecheck": "pnpm --filter @grip/core build && tsc --noEmit",
+    "typecheck": "pnpm --filter grip-dev build && tsc --noEmit",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@grip/core": "workspace:*",
+    "grip-dev": "workspace:*",
     "@grip/devtools": "workspace:*",
     "preact": "^10.22.0",
     "zustand": "^4.5.5"

@@ -1,4 +1,4 @@
-import type { GripMessage } from "@grip/core";
+import type { GripMessage } from "grip-dev";
 import { routeMessage } from "./messageRouter";
 import { registerTabLifecycleListeners } from "./tabLifecycle";
 

@@ -1,4 +1,4 @@
-import { describeElement, newChipId, type StoredPickChipRef } from "@grip/core";
+import { describeElement, newChipId, type StoredPickChipRef } from "grip-dev";
 import type { PendingPick } from "@devtools/lib/picker/types";
 
 export function toPendingPick(el: Element): PendingPick {

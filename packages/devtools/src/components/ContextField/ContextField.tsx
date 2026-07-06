@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from "preact/hooks";
 import type { ComponentChildren } from "preact";
-import { ContextBadgeRegistry, type ContextBadge } from "@grip/core";
+import { ContextBadgeRegistry, type ContextBadge } from "grip-dev";
 import {
   bindBadgeEditor,
   bindChipTooltipRoot,

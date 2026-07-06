@@ -1,4 +1,4 @@
-import type { GripMessage, PatchAppliedPayload, RegisterSessionContextPayload } from "@grip/core";
+import type { GripMessage, PatchAppliedPayload, RegisterSessionContextPayload } from "grip-dev";
 import { recordPatchApplied } from "../storage/patchHistoryStorage";
 
 const SESSION_REGISTRY_KEY = "gripSessionRegistry";

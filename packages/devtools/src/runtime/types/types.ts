@@ -1,4 +1,4 @@
-import type { GripMessageType } from "@grip/core";
+import type { GripMessageType } from "grip-dev";
 
 export type RuntimeMessage = {
   type: GripMessageType | string;

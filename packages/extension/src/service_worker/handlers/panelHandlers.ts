@@ -1,4 +1,4 @@
-import type { GripMessage, LogMessagePayload, PickerElementPayload } from "@grip/core";
+import type { GripMessage, LogMessagePayload, PickerElementPayload } from "grip-dev";
 import { sendToTabWhenReady } from "@/lib/tab-bridge";
 import { bootstrapErrors, logs, MAX_LOGS, resolveTargetTab } from "../handlerContext";
 

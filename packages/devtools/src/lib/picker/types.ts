@@ -1,4 +1,4 @@
-import type { FrameworkContext, OpenContextEditorPayload } from "@grip/core";
+import type { FrameworkContext, OpenContextEditorPayload } from "grip-dev";
 
 export type PickerPhase = "idle" | "hover" | "context" | "edit";
 

@@ -109,7 +109,7 @@ pnpm run build:mcp
       </DocTip>
       <p>
         Want package-level detail? See{" "}
-        <Link href="/docs/packages/core">@grip/core</Link>,{" "}
+        <Link href="/docs/packages/core">grip-dev</Link>,{" "}
         <Link href="/docs/packages/devtools">@grip/devtools</Link>, and{" "}
         <Link href="/docs/packages/mcp-server">grip-mcp</Link>.
       </p>

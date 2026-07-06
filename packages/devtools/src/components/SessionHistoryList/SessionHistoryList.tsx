@@ -1,4 +1,4 @@
-import { formatAllMcpPrompts, formatStoredPickCommentForDisplay, type SessionPickGroup, type StoredPick } from "@grip/core";
+import { formatAllMcpPrompts, formatStoredPickCommentForDisplay, type SessionPickGroup, type StoredPick } from "grip-dev";
 import { CopyButton, SyncButton } from "@devtools/components";
 import { TrashIcon } from "@devtools/components/icons";
 import { Tooltip } from "@devtools/components/Tooltip";

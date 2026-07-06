@@ -9,7 +9,7 @@ import {
   ContextBadgeRegistry,
   type ContextBadge,
   type ContextBadgeGroup,
-} from "@grip/core";
+} from "grip-dev";
 import type { InlineChipRef } from "@devtools/lib/inlineComposerDom/chips";
 
 export type BadgeAction =

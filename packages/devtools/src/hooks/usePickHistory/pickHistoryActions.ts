@@ -2,7 +2,7 @@ import {
   groupPicksBySession,
   reconcileSessionOrderAfterPickDelete,
   type StoredPick,
-} from "@grip/core";
+} from "grip-dev";
 import type { Dispatch, StateUpdater } from "preact/hooks";
 import type { GripRuntime } from "@devtools/runtime/types";
 import type { HistoryResponse } from "@devtools/hooks/usePickHistory/types";
@@ -16,7 +16,7 @@ export interface PickHistoryActionDeps {
   setAllHistory: Dispatch<StateUpdater<StoredPick[]>>;
   setSessionOrder: Dispatch<StateUpdater<string[]>>;
   setSessionGroups: Dispatch<
-    StateUpdater<import("@grip/core").SessionPickGroup[]>
+    StateUpdater<import("grip-dev").SessionPickGroup[]>
   >;
   pageUrl: string;
   sessionOrder: string[];

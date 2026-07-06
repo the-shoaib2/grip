@@ -1,5 +1,5 @@
 import type { ComponentChildren } from "preact";
-import type { StoredPick } from "@grip/core";
+import type { StoredPick } from "grip-dev";
 import { ContextFieldSection } from "./ContextFieldSection";
 
 export function LabShellWorkspace({

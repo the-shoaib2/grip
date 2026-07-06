@@ -1,5 +1,5 @@
 {
-  "name": "@grip/core",
+  "name": "grip-dev",
   "version": "0.1.0",
   "description": "Grip core — selectors, accessibility snapshots, ref maps",
   "license": "MIT",

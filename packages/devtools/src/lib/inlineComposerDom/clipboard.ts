@@ -1,4 +1,4 @@
-import { formatChipForClipboard } from "@grip/core";
+import { formatChipForClipboard } from "grip-dev";
 import { chipMetaFromElement, INLINE_CHIP_CLASS, ZWSP, type InlineChipRef } from "@devtools/lib/inlineComposerDom/chips";
 import { selectionRangeInEditor } from "@devtools/lib/inlineComposerDom/selection";
 

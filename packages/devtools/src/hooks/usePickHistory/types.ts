@@ -1,4 +1,4 @@
-import type { SessionPickGroup, StoredPick } from "@grip/core";
+import type { SessionPickGroup, StoredPick } from "grip-dev";
 
 export interface HistoryResponse {
   history?: StoredPick[];

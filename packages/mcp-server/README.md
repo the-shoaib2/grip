@@ -14,7 +14,7 @@ Or from repo root: `pnpm run build:mcp`
 
 ## Tools
 
-Registered in [`internal/tools/register.go`](internal/tools/register.go) — mirrored in `@grip/core/mcp` as `GRIP_MCP_TOOLS`:
+Registered in [`internal/tools/register.go`](internal/tools/register.go) — mirrored in `grip-dev/mcp` as `GRIP_MCP_TOOLS`:
 
 - `snapshot`, `highlight`, `click`, `fill`
 - `read_logs`, `read_network`, `screenshot`, `pick_element`
@@ -34,7 +34,7 @@ CLI: `grip-mcp --port 9222` (also sets CDP port; env var is read at session conn
 TypeScript helpers for IDE config JSON live in the published npm package:
 
 ```ts
-import { createCursorGripMcpConfig } from "@grip/core/mcp";
+import { createCursorGripMcpConfig } from "grip-dev/mcp";
 ```
 
 See [packages/core/README.md](../core/README.md).

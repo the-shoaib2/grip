@@ -26,14 +26,14 @@ flowchart LR
 
   Ext -->|"content scripts"| Page
   MCP -->|"chromedp"| CDP
-  Core["@grip/core TypeScript"] -.->|"prompts + config"| Tray
+  Core["grip-dev TypeScript"] -.->|"prompts + config"| Tray
   Core -.->|"client config helpers"| IDE
 ```
 
 | Layer | Package | Role |
 |-------|---------|------|
 | **MCP server** | `packages/mcp-server` (Go) | stdio MCP server; 10 tools over CDP |
-| **MCP client utilities** | `@grip/core/mcp` (npm) | Config snippets, port check, pick → prompt formatting |
+| **MCP client utilities** | `grip-dev/mcp` (npm) | Config snippets, port check, pick → prompt formatting |
 | **Extension UI** | `@grip/devtools` | MCP badge, copy prompts, Chrome debug status |
 | **Docs** | `apps/docs` | Per-IDE setup guides |
 
@@ -89,7 +89,7 @@ google-chrome --remote-debugging-port=9222
 # .cursor/mcp.json → "${workspaceFolder}/bin/grip-mcp"
 ```
 
-## MCP client (@grip/core)
+## MCP client (grip-dev)
 
 Published npm package with a dedicated subpath:
 
@@ -99,7 +99,7 @@ import {
   createGripMcpClientConfig,
   formatMcpPrompt,
   checkChromeDebugPort,
-} from "@grip/core/mcp";
+} from "grip-dev/mcp";
 ```
 
 ### Responsibilities
@@ -145,7 +145,7 @@ The extension does **not** speak MCP. It prepares context for external agents th
 
 - Repo: `.cursor/mcp.json`
 - Docs app: `apps/docs/lib/mcp-clients.ts` (per-IDE snippets)
-- Programmatic: `@grip/core/mcp` `formatGripMcpClientConfig()`
+- Programmatic: `grip-dev/mcp` `formatGripMcpClientConfig()`
 
 ## Related files
 

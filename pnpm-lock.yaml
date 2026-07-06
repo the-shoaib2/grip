@@ -41,7 +41,7 @@ importers:
 
   apps/docs:
     dependencies:
-      '@grip/core':
+      grip-dev:
         specifier: workspace:*
         version: link:../../packages/core
       next:
@@ -81,12 +81,12 @@ importers:
 
   apps/playground:
     dependencies:
-      '@grip/core':
-        specifier: workspace:*
-        version: link:../../packages/core
       '@grip/devtools':
         specifier: workspace:*
         version: link:../../packages/devtools
+      grip-dev:
+        specifier: workspace:*
+        version: link:../../packages/core
       preact:
         specifier: ^10.22.0
         version: 10.29.2
@@ -140,7 +140,7 @@ importers:
 
   packages/devtools:
     dependencies:
-      '@grip/core':
+      grip-dev:
         specifier: workspace:*
         version: link:../core
       preact:
@@ -174,12 +174,12 @@ importers:
 
   packages/extension:
     dependencies:
-      '@grip/core':
-        specifier: workspace:*
-        version: link:../core
       '@grip/devtools':
         specifier: workspace:*
         version: link:../devtools
+      grip-dev:
+        specifier: workspace:*
+        version: link:../core
       preact:
         specifier: ^10.22.0
         version: 10.29.2

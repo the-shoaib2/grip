@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "preact/hooks";
-import type { LogMessagePayload, PickerElementPayload, StoredPick } from "@grip/core";
+import type { LogMessagePayload, PickerElementPayload, StoredPick } from "grip-dev";
 import {
   GripBrand,
   GripMcpChip,

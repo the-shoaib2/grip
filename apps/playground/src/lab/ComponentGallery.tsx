@@ -1,4 +1,4 @@
-import type { StoredPick } from "@grip/core";
+import type { StoredPick } from "grip-dev";
 import {
   CopyButton,
   ElementTagBadge,

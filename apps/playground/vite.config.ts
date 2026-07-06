@@ -66,7 +66,7 @@ export default defineConfig({
   plugins: [gripDevBanner(), gripSourceMiddleware()],
   resolve: {
     alias: {
-      "@grip/core": path.resolve(rootDir, "../../packages/core/src/index.ts"),
+      "grip-dev": path.resolve(rootDir, "../../packages/core/src/index.ts"),
       "@grip/devtools": path.resolve(devtoolsDir, "src/index.ts"),
       "@grip/devtools-lib": path.resolve(devtoolsDir, "src/lib/index.ts"),
       "@grip/devtools-floating": path.resolve(devtoolsDir, "src/floating/index.ts"),

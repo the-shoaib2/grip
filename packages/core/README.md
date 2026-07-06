@@ -1,84 +1,92 @@
-# @grip/core
+# grip-dev
 
-Shared Grip primitives: accessibility snapshots, selectors, pick history, inline composer tokens, and **MCP client helpers** for wiring Grip into AI coding agents.
+Grip Core Primitives & MCP Client Utilities.
 
-Grip pairs a browser extension (human element picking) with **grip-mcp** (agent browser automation over Chrome DevTools Protocol). This package is the TypeScript side of that bridge.
+`grip-dev` provides framework-agnostic utilities for browser automation, accessibility snapshots, DOM selectors, pick history management, and Model Context Protocol (MCP) integrations.
 
-## Install
+---
+
+## Installation
 
 ```bash
-npm install @grip/core
+npm install grip-dev
 ```
 
-Requires Node 20+.
+*Requires Node.js 20+.*
 
-## MCP client (`@grip/core/mcp`)
+---
 
-Use this subpath when building docs, IDE setup wizards, or copy-to-clipboard flows.
+## Features & Usage
 
-```ts
+### 1. MCP Client Utilities (`grip-dev/mcp`)
+Use this subpath to generate client configurations, format picked elements into prompt messages, and preflight browser connections:
+
+```typescript
 import {
-  GRIP_MCP_TOOLS,
-  GRIP_MCP_DEFAULT_PORT,
   checkChromeDebugPort,
-  formatMcpPrompt,
-  createGripMcpClientConfig,
   createCursorGripMcpConfig,
   formatGripMcpClientConfig,
-} from "@grip/core/mcp";
+  formatMcpPrompt
+} from "grip-dev/mcp";
 
-// Generate Cursor / Claude Desktop style config
-const config = createCursorGripMcpConfig();
-// { mcpServers: { grip: { command: "${workspaceFolder}/bin/grip-mcp", ... } } }
-
-// Or any supported root key: mcpServers | servers | context_servers | mcp
-const vscode = formatGripMcpClientConfig("servers", {
-  command: "/path/to/grip/bin/grip-mcp",
+// 1. Generate IDE configs (e.g. Cursor, VS Code, Zed)
+const cursorConfig = createCursorGripMcpConfig();
+const vscodeConfig = formatGripMcpClientConfig("servers", {
+  command: "/path/to/grip-mcp",
 });
 
-// Verify Chrome remote debugging before starting grip-mcp
-const { ok, browser } = await checkChromeDebugPort(9222);
+// 2. Preflight Chrome remote debugging connection
+const connection = await checkChromeDebugPort(9222);
+if (connection.ok) {
+  console.log(`Connected to: ${connection.browser}`);
+}
 
-// Format a human pick for pasting into an agent chat
+// 3. Format picked element context into agent prompts
 const prompt = formatMcpPrompt({
   tagName: "BUTTON",
   role: "button",
-  innerText: "Submit",
-  css: "button.primary",
-  xpath: "//button[1]",
-  rect: { top: 0, left: 0, width: 100, height: 40 },
-  name: "Submit",
+  innerText: "Submit Request",
+  css: "button.primary-btn",
+  xpath: "//button[@id='submit']",
+  rect: { top: 120, left: 450, width: 120, height: 36 },
+  name: "Submit Request",
   shadowDOM: false,
   iframe: "top",
 });
 ```
 
-### grip-mcp server
+### 2. Main Core APIs (`grip-dev`)
+Import primary primitives for DOM picking, DOM selectors, and accessibility tree parsing:
 
-The MCP **server** is a separate Go binary (`grip-mcp`), not published to npm. Build from the [Grip monorepo](https://github.com/the-shoaib2/grip):
+```typescript
+import { buildSnapshotForLLM, generateSelector } from "grip-dev";
+
+// Generate unique DOM selectors
+const cssSelector = generateSelector(domElement);
+
+// Build accessibility tree snapshots for LLM context
+const snapshot = buildSnapshotForLLM(document);
+```
+
+#### Core Modules Reference
+
+| Module | Core Exports | Description |
+|---|---|---|
+| **Selectors** | `generateSelector`, `generateXPath`, `pickTargetAtPoint` | Robust unique path generation for elements. |
+| **Snapshots** | `buildSnapshot`, `buildSnapshotForLLM`, `serializeForLLM` | Generates semantic accessibility trees for AI agents. |
+| **Composer** | `parseInlineComment`, `gripChipToken`, `formatInlineCommentForMcp` | Tokenizes user instructions and context chips. |
+| **History** | `appendPickHistory`, `mergeSessionOrder`, `toStoredPick` | Handles session picking timelines and ordering. |
+
+---
+
+## MCP Server (`grip-mcp`)
+The Go-based MCP automation server is published separately. To build and execute the server binary locally, refer to the [Grip Monorepo GitHub repository](https://github.com/the-shoaib2/grip).
 
 ```bash
-pnpm run build:mcp   # → bin/grip-mcp
+pnpm run build:mcp # Compiles the binary to bin/grip-mcp
 ```
 
-Point your MCP client at `bin/grip-mcp` with `GRIP_CHROME_PORT=9222` (Chrome must be launched with `--remote-debugging-port=9222`).
-
-See [docs/MCP.md](../../docs/MCP.md) in the repo for full architecture.
-
-## Main exports
-
-| Area | Examples |
-|------|----------|
-| Selectors | `generateSelector`, `generateXPath`, `pickTargetAtPoint` |
-| Snapshots | `buildSnapshot`, `buildSnapshotForLLM`, `serializeForLLM` |
-| Pick history | `appendPickHistory`, `pickLabel`, `toStoredPick` |
-| Composer | `parseInlineComment`, `gripChipToken`, `formatInlineCommentForMcp` |
-| Sessions | `mergeSessionOrder`, `reconcileSessionOrderAfterPickDelete` |
-
-```ts
-import { buildSnapshotForLLM, generateSelector } from "@grip/core";
-```
+---
 
 ## License
-
 MIT

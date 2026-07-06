@@ -8,7 +8,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@devtools": path.resolve(rootDir, "./src"),
-      "@grip/core": path.resolve(rootDir, "../core/src/index.ts"),
+      "grip-dev": path.resolve(rootDir, "../core/src/index.ts"),
       "@lib": path.resolve(rootDir, "./src/lib/index.ts"),
     },
   },
@@ -28,7 +28,7 @@ export default defineConfig({
       fileName: (format, entryName) => `${entryName}.js`,
     },
     rollupOptions: {
-      external: ["preact", "preact/hooks", "preact/jsx-runtime", "zustand", "@grip/core"],
+      external: ["preact", "preact/hooks", "preact/jsx-runtime", "zustand", "grip-dev"],
       output: {
         assetFileNames: "devtools.[ext]",
       },

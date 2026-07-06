@@ -5,7 +5,7 @@ import {
   type ContextBadge,
   type FrameworkContext,
   type StoredPickChipRef,
-} from "@grip/core";
+} from "grip-dev";
 
 export const INLINE_CHIP_CLASS = "grip-inline-chip";
 export const INLINE_CHIP_GROUP_CLASS = "grip-inline-chip-group";

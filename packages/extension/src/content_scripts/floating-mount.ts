@@ -1,5 +1,5 @@
 import { chromeRuntime, mountFloatingGrip, TRAY_ID } from "@grip/devtools-floating";
-import type { ShowTrayPayload } from "@grip/core";
+import type { ShowTrayPayload } from "grip-dev";
 import { navigateToSelector } from "@/content_scripts/navigator";
 import {
   hideFloatingTray,

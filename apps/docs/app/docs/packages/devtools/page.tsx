@@ -59,7 +59,7 @@ export default function DevtoolsPackagePage() {
         </li>
       </ul>
       <p>
-        Data layer: <Link href="/docs/packages/core">@grip/core</Link>. Browser automation:{" "}
+        Data layer: <Link href="/docs/packages/core">grip-dev</Link>. Browser automation:{" "}
         <Link href="/docs/packages/mcp-server">grip-mcp</Link>.
       </p>
     </DocPage>

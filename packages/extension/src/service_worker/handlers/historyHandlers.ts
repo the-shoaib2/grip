@@ -1,9 +1,9 @@
-import type { GripMessage, StoredPick } from "@grip/core";
+import type { GripMessage, StoredPick } from "grip-dev";
 import {
   lastPickInSession,
   removePickFromHistory,
   updatePickInHistory,
-} from "@grip/core";
+} from "grip-dev";
 import { sendToTabWhenReady } from "@/lib/tab-bridge";
 import { resolveTargetTab } from "../handlerContext";
 import {

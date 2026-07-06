@@ -13,13 +13,13 @@ const toc = [
 export default function CorePackagePage() {
   return (
     <DocPage
-      title="@grip/core"
+      title="grip-dev"
       description="The shared library behind Grip — selectors, accessibility snapshots, pick history, and types used by the extension and MCP stack."
       toc={toc}
     >
       <DocH2 id="overview">What it is</DocH2>
       <p>
-        <code>@grip/core</code> is the foundation of the monorepo. It has no UI — just the logic
+        <code>grip-dev</code> is the foundation of the monorepo. It has no UI — just the logic
         other packages import: generating selectors, building accessibility snapshots, storing picks,
         and defining message types between extension parts.
       </p>
@@ -51,7 +51,7 @@ export default function CorePackagePage() {
 
       <DocH2 id="usage">Run tests</DocH2>
       <p>Core has unit tests for selectors, snapshots, and history helpers:</p>
-      <CodeBlock>{`pnpm --filter @grip/core test`}</CodeBlock>
+      <CodeBlock>{`pnpm --filter grip-dev test`}</CodeBlock>
     </DocPage>
   );
 }

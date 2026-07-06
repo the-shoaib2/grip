@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { LogMessagePayload, PickerElementPayload } from "@grip/core";
+import type { LogMessagePayload, PickerElementPayload } from "grip-dev";
 
 interface GripState {
   lastPick: PickerElementPayload | null;

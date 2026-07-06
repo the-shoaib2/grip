@@ -1,4 +1,4 @@
-import type { SessionPickGroup } from "@grip/core";
+import type { SessionPickGroup } from "grip-dev";
 import { formatSessionTabTitle } from "@devtools/lib/sessionLabel";
 import { CloseIcon, HistoryIcon, PlusIcon } from "@devtools/components/icons";
 import { Tooltip } from "@devtools/components/Tooltip";

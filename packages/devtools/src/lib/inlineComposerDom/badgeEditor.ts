@@ -4,7 +4,7 @@ import {
   GRIP_CHIP_TOKEN_RE,
   newChipId,
   parseInlineComment,
-} from "@grip/core";
+} from "grip-dev";
 import {
   badgeFromChipRef,
   chipRefFromBadge,

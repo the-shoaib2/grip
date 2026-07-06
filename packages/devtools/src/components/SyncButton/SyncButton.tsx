@@ -1,5 +1,5 @@
 import { useState } from "preact/hooks";
-import type { StoredPick } from "@grip/core";
+import type { StoredPick } from "grip-dev";
 import { CheckIcon, CopyIcon } from "@devtools/components/icons";
 
 interface SyncButtonProps {

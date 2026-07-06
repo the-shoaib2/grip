@@ -1,4 +1,4 @@
-import type { GripMessage, LogMessagePayload } from "@grip/core";
+import type { GripMessage, LogMessagePayload } from "grip-dev";
 
 export const MAX_LOGS = 500;
 export const logs: LogMessagePayload[] = [];

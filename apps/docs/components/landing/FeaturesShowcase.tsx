@@ -10,7 +10,7 @@ export function FeaturesShowcase() {
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             </svg>
           </div>
-          <h3 className="landing-feature-title">@grip/core</h3>
+          <h3 className="landing-feature-title">grip-dev</h3>
           <p className="landing-feature-desc">
             The zero-dependency selector generation & accessibility snapshot library. 
             Guarantees fast, robust, and unambiguous element identifiers.

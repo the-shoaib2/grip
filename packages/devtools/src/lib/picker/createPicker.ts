@@ -5,7 +5,7 @@ import {
   remapCommentChipIds,
   storedPickChipsToInlineRefs,
   type OpenContextEditorPayload,
-} from "@grip/core";
+} from "grip-dev";
 import {
   bindChipTooltipRoot,
 } from "@devtools/lib/chipTooltip";

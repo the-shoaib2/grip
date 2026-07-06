@@ -1,4 +1,4 @@
-import type { StoredPick } from "@grip/core";
+import type { StoredPick } from "grip-dev";
 import type { StorageChangeHandler } from "@grip/devtools";
 
 const STATE_KEY = "__gripPlaygroundState__";

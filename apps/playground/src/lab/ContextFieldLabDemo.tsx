@@ -1,4 +1,4 @@
-import { composerStateForStoredPick } from "@grip/core";
+import { composerStateForStoredPick } from "grip-dev";
 import { ContextField, usePickHistory } from "@grip/devtools";
 import { useEffect, useState } from "preact/hooks";
 

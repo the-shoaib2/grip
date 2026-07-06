@@ -3,7 +3,7 @@ import {
   formatMcpPrompt,
   formatStoredPickCommentForDisplay,
   type StoredPick,
-} from "@grip/core";
+} from "grip-dev";
 import { CopyButton, SyncButton } from "@devtools/components";
 import { SessionLabel } from "@devtools/components/SessionLabel";
 import { Tooltip } from "@devtools/components/Tooltip";

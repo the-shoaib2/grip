@@ -8,7 +8,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@grip/core": ["../core/src/index.ts"],
+      "grip-dev": ["../core/src/index.ts"],
       "@grip/devtools": ["../devtools/src/index.ts"],
       "@devtools/*": ["../devtools/src/*"],
       "@grip/devtools-lib": ["../devtools/src/lib/index.ts"],

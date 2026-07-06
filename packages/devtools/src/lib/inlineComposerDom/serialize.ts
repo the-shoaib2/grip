@@ -1,4 +1,4 @@
-import { gripChipToken, parseInlineComment } from "@grip/core";
+import { gripChipToken, parseInlineComment } from "grip-dev";
 import {
   createChipElement,
   INLINE_CHIP_CLASS,

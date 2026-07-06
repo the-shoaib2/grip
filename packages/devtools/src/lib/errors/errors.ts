@@ -1,1 +1,1 @@
-export { GRIP_ERROR, gripUserError, type GripErrorCode } from "@grip/core";
+export { GRIP_ERROR, gripUserError, type GripErrorCode } from "grip-dev";

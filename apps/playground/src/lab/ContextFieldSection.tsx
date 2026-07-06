@@ -1,4 +1,4 @@
-import type { StoredPick } from "@grip/core";
+import type { StoredPick } from "grip-dev";
 import { ContextEditorPanel, usePickHistory } from "@grip/devtools";
 
 export function ContextFieldSection({

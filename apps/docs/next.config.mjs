@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ["@grip/core"],
+  transpilePackages: ["grip-dev"],
 };
 
 export default nextConfig;

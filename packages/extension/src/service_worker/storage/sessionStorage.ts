@@ -1,4 +1,4 @@
-import { appendSessionToOrder, newSessionId } from "@grip/core";
+import { appendSessionToOrder, newSessionId } from "grip-dev";
 
 export const TAB_SESSIONS_KEY = "tabSessionIds";
 export const TAB_SESSION_ORDER_KEY = "tabSessionOrderIds";

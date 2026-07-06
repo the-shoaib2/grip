@@ -1,6 +1,6 @@
 import { useState } from "preact/hooks";
 import type { ComponentChildren } from "preact";
-import type { StoredPick } from "@grip/core";
+import type { StoredPick } from "grip-dev";
 import { usePickHistory } from "@devtools/hooks/usePickHistory";
 import type { PageContextEditorMeta } from "@devtools/hooks/usePageContextEditor";
 import { ContextEditorPanel } from "@devtools/components/ContextEditorPanel";

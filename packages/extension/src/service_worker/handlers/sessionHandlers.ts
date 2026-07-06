@@ -1,4 +1,4 @@
-import type { GripMessage } from "@grip/core";
+import type { GripMessage } from "grip-dev";
 import {
   appendSessionToOrder,
   clearPicksForSession,
@@ -6,7 +6,7 @@ import {
   nextSessionIdAfterDelete,
   picksForSession,
   removeSessionFromOrder,
-} from "@grip/core";
+} from "grip-dev";
 import { resolveTargetTab } from "../handlerContext";
 import {
   getPickHistory,

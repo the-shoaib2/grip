@@ -1,4 +1,4 @@
-import type { PatchAppliedPayload } from "@grip/core";
+import type { PatchAppliedPayload } from "grip-dev";
 
 const STORAGE_KEY = "gripPatchHistory";
 const MAX_ENTRIES = 50;

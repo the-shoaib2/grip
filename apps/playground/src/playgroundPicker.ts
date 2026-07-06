@@ -3,7 +3,7 @@ import {
   logPickedElementWithSource,
   type OpenContextEditorPayload,
   type PickerElementPayload,
-} from "@grip/core";
+} from "grip-dev";
 import {
   createPicker,
   type PickerFeatures,

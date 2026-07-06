@@ -1,4 +1,4 @@
-import { badgeDisplayLabel, badgeStateIndicator, chipDisplayLabel } from "@grip/core";
+import { badgeDisplayLabel, badgeStateIndicator, chipDisplayLabel } from "grip-dev";
 
 const TOOLTIP_ID = "__grip_chip_tooltip__";
 const SHOW_MS = 220;

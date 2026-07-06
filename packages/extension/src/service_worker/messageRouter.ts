@@ -1,4 +1,4 @@
-import type { GripMessage } from "@grip/core";
+import type { GripMessage } from "grip-dev";
 import {
   handleDeletePick,
   handleGetPickHistory,
@@ -74,11 +74,11 @@ export function routeMessage(
     case "GRIP_BOOTSTRAP_ERROR":
       return handleGripBootstrapError(msg, sender, sendResponse);
     case "REGISTER_SESSION_CONTEXT":
-      return handleRegisterSessionContext(msg, sender, sendResponse);
+      return handleRegisterSessionContext(msg as any, sender, sendResponse);
     case "PATCH_APPLIED":
-      return handlePatchApplied(msg, sender, sendResponse);
+      return handlePatchApplied(msg as any, sender, sendResponse);
     case "PATCH_FAILED":
-      return handlePatchFailed(msg, sender, sendResponse);
+      return handlePatchFailed(msg as any, sender, sendResponse);
     default:
       return undefined;
   }

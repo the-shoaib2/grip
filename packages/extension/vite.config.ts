@@ -11,7 +11,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(rootDir, "src"),
-      "@grip/core": path.resolve(rootDir, "../core/src/index.ts"),
+      "grip-dev": path.resolve(rootDir, "../core/src/index.ts"),
       "@grip/devtools-lib": path.resolve(rootDir, "../devtools/src/lib/index.ts"),
       "@grip/devtools-floating": path.resolve(
         rootDir,

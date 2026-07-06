@@ -5,7 +5,7 @@ import {
   formatPickIndexLabel,
   formatPickPrompt,
   type StoredPick,
-} from "@grip/core";
+} from "grip-dev";
 import { ContextField } from "@devtools/components/ContextField";
 import { CopyButton, SyncButton } from "@devtools/components";
 import { GripShellDialog } from "@devtools/components/GripShellDialog";

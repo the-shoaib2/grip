@@ -6,7 +6,7 @@ Grip is a Turborepo monorepo shipping three products:
 
 | Package | Description |
 |---------|-------------|
-| [`@grip/core`](packages/core) | Zero-dep selector + a11y snapshot library (`@medv/finder`) |
+| [`grip-dev`](packages/core) | Zero-dep selector + a11y snapshot library (`@medv/finder`) |
 | [`@grip/extension`](packages/extension) | Chrome MV3 extension — picker, DevTools panel, log injector |
 | [`grip-mcp`](packages/mcp-server) | Go MCP server — browser automation for AI agents |
 
@@ -50,7 +50,7 @@ pnpm turbo dev --filter=@grip/docs
 ```
 grip/
 ├── packages/
-│   ├── core/           @grip/core
+│   ├── core/           grip-dev
 │   ├── extension/      @grip/extension
 │   └── mcp-server/     grip-mcp (Go)
 ├── apps/

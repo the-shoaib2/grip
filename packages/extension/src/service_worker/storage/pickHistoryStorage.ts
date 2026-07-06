@@ -1,5 +1,5 @@
-import type { PickerElementPayload, StoredPick } from "@grip/core";
-import { appendPickHistory, picksForSession, toStoredPick, normalizePickCommentForStorage } from "@grip/core";
+import type { PickerElementPayload, StoredPick } from "grip-dev";
+import { appendPickHistory, picksForSession, toStoredPick, normalizePickCommentForStorage } from "grip-dev";
 import { sendToTabWhenReady } from "@/lib/tab-bridge";
 import { getOrCreateSessionIdForTab } from "./sessionStorage";
 

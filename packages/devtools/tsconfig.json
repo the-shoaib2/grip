@@ -4,11 +4,11 @@
     "jsx": "react-jsx",
     "jsxImportSource": "preact",
     "lib": ["ES2022", "DOM"],
-    "types": ["chrome", "vite/client"],
+    "types": ["chrome", "vite/client", "node"],
     "noEmit": true,
     "paths": {
       "@devtools/*": ["./src/*"],
-      "@grip/core": ["../../packages/core/src/index.ts"],
+      "grip-dev": ["../../packages/core/src/index.ts"],
       "@lib": ["./src/lib/index.ts"]
     }
   },

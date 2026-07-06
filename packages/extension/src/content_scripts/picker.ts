@@ -1,5 +1,5 @@
-import type { OpenContextEditorPayload, PickerStartPayload } from "@grip/core";
-import { describeElement, logPickedElement } from "@grip/core";
+import type { OpenContextEditorPayload, PickerStartPayload } from "grip-dev";
+import { describeElement, logPickedElement } from "grip-dev";
 import {
   createPicker,
   type PickerFeatures,

@@ -1,5 +1,5 @@
 import { useGripStore } from "@devtools/store/gripStore";
-import type { LogMessagePayload } from "@grip/core";
+import type { LogMessagePayload } from "grip-dev";
 import { Tooltip } from "@devtools/components";
 
 export function LogPanel() {

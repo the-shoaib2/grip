@@ -1,4 +1,4 @@
-import type { GripMessage, PickerElementPayload, StoredPick } from "@grip/core";
+import type { GripMessage, PickerElementPayload, StoredPick } from "grip-dev";
 import {
   ensureTabReady,
   sendToTab,

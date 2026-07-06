@@ -16,7 +16,7 @@ import {
   type ShowTrayPayload,
   type StoredPick,
   GRIP_MCP_DOCS_URL,
-} from "@grip/core";
+} from "grip-dev";
 import type { GripRuntime, RuntimeMessage, StorageChangeHandler } from "@grip/devtools";
 import {
   startPlaygroundPicker,

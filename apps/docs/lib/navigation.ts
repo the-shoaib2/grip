@@ -31,7 +31,7 @@ export const docsNavigation: NavGroup[] = [
   {
     title: "Packages",
     items: [
-      { title: "@grip/core", href: "/docs/packages/core" },
+      { title: "grip-dev", href: "/docs/packages/core" },
       { title: "@grip/devtools", href: "/docs/packages/devtools" },
       { title: "grip-mcp", href: "/docs/packages/mcp-server" },
     ],

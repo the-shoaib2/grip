@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
-import { composerStateForStoredPick, type StoredPick } from "@grip/core";
+import { composerStateForStoredPick, type StoredPick } from "grip-dev";
 import { ContextField } from "@devtools/components/ContextField";
 
 export interface ContextEditorPanelProps {
