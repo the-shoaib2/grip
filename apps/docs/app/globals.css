@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Bitcount+Prop+Single:wght,ELSH@100..900,50&family=Bitcount+Single:wght@100..900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -1121,7 +1123,6 @@ button {
 
 .landing-cta-primary:hover {
   background: #e4e4e7;
-  transform: translateY(-1px);
 }
 
 .landing-cta-secondary {
@@ -1133,7 +1134,6 @@ button {
 .landing-cta-secondary:hover {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.15);
-  transform: translateY(-1px);
 }
 
 /* ── n8n-Style Workflow Canvas ── */
@@ -1256,7 +1256,6 @@ button {
 .landing-node:hover .landing-node-card {
   border-color: var(--node-color);
   box-shadow: 0 0 20px var(--node-glow);
-  transform: translateY(-2px);
 }
 
 .landing-node-icon {
@@ -1269,11 +1268,10 @@ button {
   background: var(--node-bg-light);
   color: var(--node-color);
   margin-bottom: 0.875rem;
-  transition: transform 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .landing-node:hover .landing-node-icon {
-  transform: scale(1.05);
 }
 
 .landing-node-title {
@@ -1466,7 +1464,6 @@ button {
 .landing-feature-card:hover {
   background: rgba(255, 255, 255, 0.03);
   border-color: rgba(255, 255, 255, 0.08);
-  transform: translateY(-2px);
 }
 
 .landing-feature-icon {
@@ -1505,7 +1502,7 @@ button {
 
 /* ── Google Dotted Font Logo & Central Icon Helpers ── */
 .logo-font {
-  font-family: var(--font-dotted), system-ui, sans-serif;
+  font-family: 'Bitcount Prop Single', 'Bitcount Single', system-ui, sans-serif;
   letter-spacing: 0.05em;
 }
 

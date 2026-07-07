@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { headerLinks } from "@lib/navigation";
 import { DocsSidebar } from "@components/docs/DocsSidebar";
+import { Logo } from "@components/landing/Logo";
 
 export function DocsHeader() {
   const pathname = usePathname();
@@ -25,9 +26,8 @@ export function DocsHeader() {
             <span />
             <span />
           </button>
-          <Link href="/" className="docs-logo">
-            <span className="docs-logo-mark" aria-hidden />
-            Grip
+          <Link href="/" className="docs-logo" style={{ textDecoration: "none" }}>
+            <Logo />
           </Link>
         </div>
 

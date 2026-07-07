@@ -63,6 +63,7 @@
 }
 
 .grip-brand-title {
+  font-family: 'Bitcount Prop Single', 'Bitcount Single', system-ui, sans-serif;
   font-size: 0.875rem;
   font-weight: 700;
   line-height: 1.25;

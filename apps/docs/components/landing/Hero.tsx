@@ -16,13 +16,13 @@ export function Hero() {
       <div className="relative z-10 mt-10 flex flex-wrap justify-center gap-4">
         <Link
           href="/docs/getting-started/intro"
-          className="inline-flex h-11 items-center justify-center rounded-full bg-white px-6 text-sm font-semibold text-zinc-950 transition-all hover:bg-zinc-200 hover:scale-[1.02]"
+          className="inline-flex h-11 items-center justify-center rounded-full bg-white px-6 text-sm font-semibold text-zinc-950 transition-all hover:bg-zinc-200"
         >
           Get Started
         </Link>
         <Link
           href="/docs/mcp/configuration"
-          className="inline-flex h-11 items-center justify-center rounded-full border border-zinc-800 bg-zinc-900/50 px-6 text-sm font-semibold text-zinc-200 transition-all hover:bg-zinc-900 hover:border-zinc-700 hover:scale-[1.02]"
+          className="inline-flex h-11 items-center justify-center rounded-full border border-zinc-800 bg-zinc-900/50 px-6 text-sm font-semibold text-zinc-200 transition-all hover:bg-zinc-900 hover:border-zinc-700"
         >
           Configure MCP
         </Link>
