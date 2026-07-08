@@ -92,3 +92,5 @@ packages/mcp-server/bin/
 # Misc
 *.local
 .cache/
+.grip/
+*.pid
