@@ -12,6 +12,14 @@ func RegisterSnapshot(server *mcp.Server, s *cdp.Session) {
 	server.AddTool(&mcp.Tool{
 		Name:        "snapshot",
 		Description: "Get the full accessibility tree + ref map of the current page.",
+		InputSchema: map[string]interface{}{
+			"type": "object",
+			"properties": map[string]interface{}{
+				"frameId": map[string]interface{}{
+					"type": "string",
+				},
+			},
+		},
 	}, func(_ context.Context, req *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		var in struct {
 			FrameID string `json:"frameId"`

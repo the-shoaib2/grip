@@ -113,6 +113,18 @@ importers:
         specifier: ^5.4.10
         version: 5.4.21(@types/node@20.19.43)
 
+  packages/cli:
+    devDependencies:
+      '@types/node':
+        specifier: ^20.14.0
+        version: 20.19.43
+      tsup:
+        specifier: ^8.1.0
+        version: 8.5.1(jiti@1.21.7)(postcss@8.5.15)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.4.5
+        version: 5.9.3
+
   packages/core:
     dependencies:
       '@medv/finder':

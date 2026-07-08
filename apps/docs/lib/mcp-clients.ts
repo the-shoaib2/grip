@@ -11,12 +11,13 @@ export interface McpClientGuide {
   config: string;
 }
 
-const GRIP_BIN = "/path/to/grip/bin/grip-mcp";
+const GRIP_BIN = "grip-cli";
 
 const gripStdio = (rootKey = "mcpServers", indent = 2) => {
   const pad = " ".repeat(indent);
   const inner = `${pad}"grip": {
 ${pad}  "command": "${GRIP_BIN}",
+${pad}  "args": ["mcp"],
 ${pad}  "env": {
 ${pad}    "GRIP_CHROME_PORT": "9222",
 ${pad}    "GRIP_LOG_LEVEL": "info"
@@ -41,7 +42,7 @@ ${inner}
   "mcp": {
     "grip": {
       "type": "local",
-      "command": ["${GRIP_BIN}"],
+      "command": ["${GRIP_BIN}", "mcp"],
       "enabled": true,
       "environment": {
         "GRIP_CHROME_PORT": "9222",
@@ -72,7 +73,8 @@ export const mcpClientGuides: McpClientGuide[] = [
     config: `{
   "mcpServers": {
     "grip": {
-      "command": "\${workspaceFolder}/bin/grip-mcp",
+      "command": "grip-cli",
+      "args": ["mcp"],
       "env": {
         "GRIP_CHROME_PORT": "9222",
         "GRIP_LOG_LEVEL": "info"
@@ -154,7 +156,7 @@ export const mcpClientGuides: McpClientGuide[] = [
     rootKey: "mcpServers",
     docsUrl: "https://docs.anthropic.com/en/docs/claude-code/mcp",
     notes: [
-      "CLI: claude mcp add grip -- /path/to/grip/bin/grip-mcp",
+      "CLI: claude mcp add grip -- grip-cli mcp",
       "Set GRIP_CHROME_PORT via env in settings or export before running.",
     ],
     config: gripStdio(),
@@ -187,7 +189,7 @@ export const mcpClientGuides: McpClientGuide[] = [
     docsUrl: "https://developers.openai.com/codex/mcp/",
     notes: ["TOML format — add an [mcp_servers.grip] section with command and env."],
     config: `[mcp_servers.grip]
-command = "${GRIP_BIN}"
+command = "${GRIP_BIN} mcp"
 env = { GRIP_CHROME_PORT = "9222", GRIP_LOG_LEVEL = "info" }`,
   },
   {
@@ -211,6 +213,8 @@ env = { GRIP_CHROME_PORT = "9222", GRIP_LOG_LEVEL = "info" }`,
     config: `mcpServers:
   - name: grip
     command: ${GRIP_BIN}
+    args:
+      - mcp
     env:
       GRIP_CHROME_PORT: "9222"
       GRIP_LOG_LEVEL: info`,

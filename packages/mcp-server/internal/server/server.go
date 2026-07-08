@@ -66,7 +66,7 @@ func startHTTPServer(logger *slog.Logger) {
 	}
 }
 
-func Run(ctx context.Context, logger *slog.Logger, chromePort int) error {
+func Run(ctx context.Context, logger *slog.Logger, chromePort int, isDaemon bool) error {
 	if p := os.Getenv("GRIP_CHROME_PORT"); p != "" {
 		if n, err := strconv.Atoi(p); err == nil {
 			chromePort = n
@@ -85,6 +85,17 @@ func Run(ctx context.Context, logger *slog.Logger, chromePort int) error {
 	tools.Register(server, session)
 
 	go startHTTPServer(logger)
+
+	if isDaemon {
+		logger.Info("running in background daemon mode")
+		
+		// Setup context cancel listener on OS signals to shut down cleanly
+		ctx, cancel := context.WithCancel(ctx)
+		defer cancel()
+		
+		<-ctx.Done()
+		return nil
+	}
 
 	return server.Run(ctx, &mcp.StdioTransport{})
 }

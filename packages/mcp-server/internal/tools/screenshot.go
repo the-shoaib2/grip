@@ -13,6 +13,14 @@ func RegisterScreenshot(server *mcp.Server, s *cdp.Session) {
 	server.AddTool(&mcp.Tool{
 		Name:        "screenshot",
 		Description: "Capture a screenshot of the full page or a specific element.",
+		InputSchema: map[string]interface{}{
+			"type": "object",
+			"properties": map[string]interface{}{
+				"selector": map[string]interface{}{
+					"type": "string",
+				},
+			},
+		},
 	}, func(_ context.Context, req *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		var in struct {
 			Selector string `json:"selector"`

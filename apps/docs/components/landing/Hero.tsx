@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { InstallCommand } from "./InstallCommand";
 
 export function Hero() {
   return (
@@ -27,6 +28,8 @@ export function Hero() {
           Configure MCP
         </Link>
       </div>
+
+      <InstallCommand />
     </section>
   );
 }

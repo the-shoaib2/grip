@@ -12,6 +12,15 @@ func RegisterEval(server *mcp.Server, s *cdp.Session) {
 	server.AddTool(&mcp.Tool{
 		Name:        "eval",
 		Description: "Runtime.evaluate in page context.",
+		InputSchema: map[string]interface{}{
+			"type": "object",
+			"properties": map[string]interface{}{
+				"js": map[string]interface{}{
+					"type": "string",
+				},
+			},
+			"required": []string{"js"},
+		},
 	}, func(_ context.Context, req *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		var in struct {
 			JS string `json:"js"`

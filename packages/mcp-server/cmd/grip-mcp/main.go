@@ -11,6 +11,7 @@ import (
 
 func main() {
 	port := flag.Int("port", 9222, "Chrome remote debugging port")
+	isDaemon := flag.Bool("background", false, "Run in background mode (HTTP bridge only, no stdio)")
 	flag.Parse()
 
 	level := slog.LevelInfo
@@ -25,7 +26,7 @@ func main() {
 
 	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: level}))
 
-	if err := server.Run(context.Background(), logger, *port); err != nil {
+	if err := server.Run(context.Background(), logger, *port, *isDaemon); err != nil {
 		logger.Error("grip-mcp failed", "error", err)
 		os.Exit(1)
 	}

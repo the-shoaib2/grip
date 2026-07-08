@@ -12,6 +12,18 @@ func RegisterApplyContextPatch(server *mcp.Server, _ *cdp.Session) {
 	server.AddTool(&mcp.Tool{
 		Name:        "apply_context_patch",
 		Description: "Apply a line-range Context Engine patch to a source file (requires GRIP_WORKSPACE_ROOT).",
+		InputSchema: map[string]interface{}{
+			"type": "object",
+			"properties": map[string]interface{}{
+				"file":            map[string]interface{}{"type": "string"},
+				"startLine":       map[string]interface{}{"type": "integer"},
+				"endLine":         map[string]interface{}{"type": "integer"},
+				"replacementCode": map[string]interface{}{"type": "string"},
+				"context":         map[string]interface{}{"type": "string"},
+				"summary":         map[string]interface{}{"type": "string"},
+			},
+			"required": []string{"file", "startLine", "endLine", "replacementCode"},
+		},
 	}, func(_ context.Context, req *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		var in struct {
 			File              string `json:"file"`

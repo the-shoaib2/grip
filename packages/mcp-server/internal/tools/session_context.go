@@ -36,6 +36,19 @@ func RegisterRegisterSessionContext(server *mcp.Server, _ *cdp.Session) {
 	server.AddTool(&mcp.Tool{
 		Name:        "register_session_context",
 		Description: "Register Grip session picks for agent handshake (in-memory for this MCP process).",
+		InputSchema: map[string]interface{}{
+			"type": "object",
+			"properties": map[string]interface{}{
+				"sessionId": map[string]interface{}{"type": "string"},
+				"picks": map[string]interface{}{
+					"type": "array",
+					"items": map[string]interface{}{
+						"type": "object",
+					},
+				},
+			},
+			"required": []string{"sessionId", "picks"},
+		},
 	}, func(_ context.Context, req *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		var in struct {
 			SessionID string                   `json:"sessionId"`
@@ -59,6 +72,13 @@ func RegisterGetSessionContext(server *mcp.Server, _ *cdp.Session) {
 	server.AddTool(&mcp.Tool{
 		Name:        "get_session_context",
 		Description: "Retrieve registered Grip session picks by sessionId.",
+		InputSchema: map[string]interface{}{
+			"type": "object",
+			"properties": map[string]interface{}{
+				"sessionId": map[string]interface{}{"type": "string"},
+			},
+			"required": []string{"sessionId"},
+		},
 	}, func(_ context.Context, req *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		var in struct {
 			SessionID string `json:"sessionId"`

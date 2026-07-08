@@ -12,6 +12,19 @@ func RegisterReadNetwork(server *mcp.Server, s *cdp.Session) {
 	server.AddTool(&mcp.Tool{
 		Name:        "read_network",
 		Description: "Returns recent network requests as HAR entries.",
+		InputSchema: map[string]interface{}{
+			"type": "object",
+			"properties": map[string]interface{}{
+				"filter": map[string]interface{}{
+					"type": "object",
+					"properties": map[string]interface{}{
+						"url":    map[string]interface{}{"type": "string"},
+						"method": map[string]interface{}{"type": "string"},
+						"status": map[string]interface{}{"type": "integer"},
+					},
+				},
+			},
+		},
 	}, func(_ context.Context, req *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		var in struct {
 			Filter *struct {

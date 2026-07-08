@@ -1,0 +1,26 @@
+{
+  "name": "@grip/cli",
+  "version": "0.1.0",
+  "description": "Grip unified CLI — configure MCP, launch Chrome, run servers",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "bin": {
+    "grip": "./dist/index.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup",
+    "build:bin": "npx pkg --targets node18-macos-arm64 --output bin/grip-macos-arm64 dist/index.cjs && npx pkg --targets node18-macos-x64 --output bin/grip-macos-x64 dist/index.cjs && npx pkg --targets node18-linux-x64 --output bin/grip-linux-x64 dist/index.cjs && npx pkg --targets node18-win-x64 --output bin/grip-win-x64.exe dist/index.cjs",
+    "dev": "tsup --watch",
+    "start": "node ./dist/index.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "tsup": "^8.1.0",
+    "typescript": "^5.4.5"
+  }
+}

@@ -12,6 +12,15 @@ func RegisterHighlight(server *mcp.Server, s *cdp.Session) {
 	server.AddTool(&mcp.Tool{
 		Name:        "highlight",
 		Description: "Draw a visible blue overlay on the element for confirmation.",
+		InputSchema: map[string]interface{}{
+			"type": "object",
+			"properties": map[string]interface{}{
+				"ref": map[string]interface{}{
+					"type": "string",
+				},
+			},
+			"required": []string{"ref"},
+		},
 	}, func(_ context.Context, req *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		var in struct {
 			Ref string `json:"ref"`
