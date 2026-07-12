@@ -1,11 +1,9 @@
-import Link from "next/link";
 import { DocH2 } from "@components/docs/DocHeading";
 import { DocPage } from "@components/docs/DocPage";
 import { DocTip } from "@components/docs/DocTip";
 
 const toc = [
-  { id: "overview", title: "What it is", level: 2 as const },
-  { id: "views", title: "UI building blocks", level: 2 as const },
+  { id: "overview", title: "Overview", level: 2 as const },
   { id: "surfaces", title: "Where it runs", level: 2 as const },
 ];
 
@@ -13,55 +11,32 @@ export default function DevtoolsPackagePage() {
   return (
     <DocPage
       title="@grip/devtools"
-      description="All Grip UI in one place — popup, panel, floating tray, shared components, and runtime hooks."
+      description="The universal UI layer for Grip. Provides shared components for the extension popup, DevTools panel, and floating tray."
       toc={toc}
     >
-      <DocH2 id="overview">What it is</DocH2>
+      <DocH2 id="overview">Overview</DocH2>
       <p>
-        <code>@grip/devtools</code> is the Preact UI layer for Grip. Pick history, comments, MCP
-        chip, session toolbar, and store all live here. One layout (<code>GripRootLayout</code> +{" "}
-        <code>GripView</code>) powers popup, DevTools panel, and floating variants — so the UI
-        looks and behaves the same everywhere.
+        <code>@grip/devtools</code> houses the Preact-based UI layer for the entire Grip ecosystem. It ensures that features like pick history, comments, and the MCP status badge look and behave identically no matter how you open Grip.
       </p>
-
-      <DocH2 id="views">UI building blocks</DocH2>
-      <ul>
-        <li>
-          <code>GripView</code> — single entry point; pass <code>variant: popup | panel | floating</code>
-        </li>
-        <li>
-          <code>GripPopupView</code> / <code>GripPanelView</code> — thin wrappers the extension mounts
-        </li>
-        <li>
-          <code>mountFloatingGrip</code> — shadow DOM FAB + panel for in-page use
-        </li>
-        <li>
-          Shared components — pick list, comment field, MCP chip, toolbars
-        </li>
-      </ul>
-      <DocTip>
-        Preview all variants locally: <code>pnpm dev:playground</code> → DevTools UI Lab.
-      </DocTip>
+      <p>
+        It exposes a single universal entry point (<code>GripView</code>) which seamlessly adapts to run as a popup window, a Chrome DevTools panel, or a floating shadow DOM tray injected directly into a live page.
+      </p>
 
       <DocH2 id="surfaces">Where it runs</DocH2>
       <ul>
         <li>
-          Extension popup — <code>packages/extension/src/popup</code>
+          <strong>Extension Popup</strong> — The compact view opened by clicking the Grip icon in the Chrome toolbar.
         </li>
         <li>
-          DevTools panel — <code>packages/extension/src/devtools/panel</code>
+          <strong>DevTools Panel</strong> — The persistent panel integrated directly into Chrome Developer Tools.
         </li>
         <li>
-          Floating tray — content script via <code>mountFloatingGrip</code>
-        </li>
-        <li>
-          Playground — <code>apps/playground/src/devtools-lab.tsx</code>
+          <strong>Floating Tray</strong> — A shadow DOM widget that overlays on the active web page, mounted via <code>mountFloatingGrip</code>.
         </li>
       </ul>
-      <p>
-        Data layer: <Link href="/docs/packages/core">grip-dev</Link>. Browser automation:{" "}
-        <Link href="/docs/packages/mcp-server">grip-mcp</Link>.
-      </p>
+      <DocTip>
+        Want to preview all the UI variants locally? Run <code>pnpm dev:playground</code> to access the dedicated DevTools UI Lab.
+      </DocTip>
     </DocPage>
   );
 }

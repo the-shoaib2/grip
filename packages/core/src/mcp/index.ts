@@ -12,6 +12,7 @@ export {
   createGripMcpClientConfig,
   createGripMcpStdioEntry,
   formatGripMcpClientConfig,
+  ensureProjectGripConfig,
   type GripMcpClientRootKey,
   type GripMcpServerEntry,
   type GripMcpStdioConfigOptions,

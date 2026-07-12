@@ -1,45 +1,48 @@
 import Link from "next/link";
 import { CodeBlock } from "@components/docs/CodeBlock";
-import { DocH2, DocH3 } from "@components/docs/DocHeading";
+import { DocH2 } from "@components/docs/DocHeading";
 import { DocPage } from "@components/docs/DocPage";
 import { DocTip } from "@components/docs/DocTip";
 
 const toc = [
-  { id: "overview", title: "What you get", level: 2 as const },
-  { id: "build", title: "Install the extension", level: 2 as const },
-  { id: "surfaces", title: "Three ways to open Grip", level: 2 as const },
-  { id: "context-retrieval", title: "How context is fetched", level: 2 as const },
-  { id: "components", title: "How it's built", level: 2 as const },
-  { id: "mcp", title: "Connect MCP", level: 2 as const },
+  { id: "overview", title: "Overview", level: 2 as const },
+  { id: "install", title: "Installation", level: 2 as const },
+  { id: "surfaces", title: "Usage Modes", level: 2 as const },
 ];
 
 export default function ExtensionPage() {
   return (
     <DocPage
       title="Chrome extension"
-      description="Pick elements on any page, view history, and use the same UI from the toolbar, DevTools, or a floating panel."
+      description="Visually pick elements, view your history, and share exact UI context directly with your AI assistant."
       toc={toc}
     >
-      <DocH2 id="overview">What you get</DocH2>
+      <div className="my-8 rounded-xl overflow-hidden border border-zinc-800 shadow-2xl bg-zinc-900/50 aspect-video flex flex-col items-center justify-center relative">
+        <div className="absolute inset-0 bg-gradient-to-br from-zinc-800/20 to-transparent"></div>
+        <svg className="w-16 h-16 text-zinc-700 mb-4 z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <span className="text-zinc-500 font-medium z-10">Extension Screenshot Placeholder</span>
+      </div>
+
+      <DocH2 id="overview">Overview</DocH2>
       <p>
-        The Grip extension adds element picking, session history, and console log capture to Chrome.
-        All surfaces — popup, DevTools panel, and in-page floating tray — share one UI from{" "}
-        <code>@grip/devtools</code>, so you get the same experience everywhere.
+        The Grip extension enhances your Chrome browser with a visual element picker, session history, and an MCP status badge. It acts as the visual frontend for the Grip CLI, allowing you to seamlessly share exactly what you are seeing with your AI IDE.
       </p>
       <ul>
         <li>
-          <strong>Pick</strong> any element and copy selectors or MCP context
+          <strong>Visual Picking</strong>: Click any element to automatically extract robust CSS selectors and copy its context.
         </li>
         <li>
-          <strong>History</strong> of picks for the current session
+          <strong>Session History</strong>: View a running log of everything you and your AI have interacted with during the session.
         </li>
         <li>
-          <strong>MCP badge</strong> showing whether Chrome debugging is connected
+          <strong>Status Badge</strong>: Instantly know when your browser is actively connected to an MCP tool.
         </li>
       </ul>
 
-      <DocH2 id="build">Install the extension</DocH2>
-      <p>Build the extension bundle:</p>
+      <DocH2 id="install">Installation</DocH2>
+      <p>Build the extension bundle locally:</p>
       <CodeBlock>{`pnpm --filter @grip/extension build`}</CodeBlock>
       <p>Load it in Chrome:</p>
       <ol>
@@ -50,94 +53,26 @@ export default function ExtensionPage() {
           Enable <strong>Developer mode</strong> (top right)
         </li>
         <li>
-          Click <strong>Load unpacked</strong> → select <code>packages/extension/dist</code>
+          Click <strong>Load unpacked</strong> → select the <code>packages/extension/dist</code> directory
         </li>
       </ol>
       <DocTip>
-        For active development, run <code>pnpm --filter @grip/extension dev</code> and reload the
-        extension after changes.
+        For active development, run <code>pnpm --filter @grip/extension dev</code> and click the reload icon on the extension card when you make changes.
       </DocTip>
 
-      <DocH2 id="surfaces">Three ways to open Grip</DocH2>
+      <DocH2 id="surfaces">Usage Modes</DocH2>
+      <p>Grip provides three distinct ways to interact with the extension UI, depending on your workflow:</p>
       <ul>
         <li>
-          <strong>Popup</strong> — click the Grip icon in the toolbar. Compact and quick; can close
-          after a successful pick.
+          <strong>Popup</strong> — Click the Grip icon in the Chrome toolbar. Compact and quick; ideal for a single quick interaction.
         </li>
         <li>
-          <strong>DevTools panel</strong> — open Chrome DevTools and switch to the Grip panel. Stays
-          open while you debug; syncs session with the background worker.
+          <strong>DevTools Panel</strong> — Open Chrome DevTools and switch to the Grip panel. Best for persistent debugging, as it stays open alongside your console and network tabs.
         </li>
         <li>
-          <strong>Floating tray</strong> — a button on the page itself (bottom-right). Opens the
-          full panel without leaving the tab.
+          <strong>Floating Tray</strong> — A small, unobtrusive button injected directly into the bottom-right of the web page. Expands into a full panel without needing to open DevTools.
         </li>
       </ul>
-
-      <DocH2 id="context-retrieval">How context is fetched</DocH2>
-      <DocH3 id="frontend-retrieval">Frontend &amp; Extension Picker</DocH3>
-      <p>
-        When running as a standard Chrome extension, Grip relies on content scripts injected directly into the tab&apos;s frontend environment.
-      </p>
-      <ul>
-        <li>
-          <strong>Live DOM Interaction:</strong> The element picker (<code>picker.ts</code>) overlays a visual target canvas. Hovering and clicking targets elements directly via the browser&apos;s Pointer Events API.
-        </li>
-        <li>
-          <strong>Framework Detection:</strong> The frontend script inspects DOM nodes to find internal keys (such as React&apos;s <code>__reactFiber$</code> or Vue&apos;s <code>__vnode</code>). This allows it to extract real-time component <code>props</code>, parent state, and original template details directly from the running app context.
-        </li>
-        <li>
-          <strong>Isolated Sandbox:</strong> Because it operates in the page context, it is fast and has zero overhead, but is restricted to elements present in the active DOM tree.
-        </li>
-      </ul>
-
-      <DocH3 id="devtools-retrieval">DevTools Panel &amp; DOM Inspection</DocH3>
-      <p>
-        When running inside the Chrome DevTools panel, Grip benefits from elevated privileges through Chrome&apos;s DevTools Extension APIs.
-      </p>
-      <ul>
-        <li>
-          <strong>Inspected Window Access:</strong> It utilizes <code>chrome.devtools.inspectedWindow.eval()</code> to run expression queries in the main frame, bridging DOM nodes directly to the DevTools console scope.
-        </li>
-        <li>
-          <strong>Source Maps &amp; Exact Code:</strong> DevTools has access to active JS source maps loaded by the browser. When an element is selected, Grip can trace the compiled code back to the exact source file path, component class, and line number on your filesystem.
-        </li>
-      </ul>
-
-      <DocH2 id="components">How it&apos;s built</DocH2>
-      <DocH3 id="content-scripts">Content scripts</DocH3>
-      <ul>
-        <li>
-          <code>picker.ts</code> — overlay, multi-pick, inline comments
-        </li>
-        <li>
-          <code>log-injector.ts</code> — captures <code>console.*</code> early
-        </li>
-        <li>
-          <code>floating-mount.ts</code> — in-page floating UI
-        </li>
-      </ul>
-      <DocH3 id="background">Background</DocH3>
-      <p>
-        <code>background.ts</code> handles messaging between tabs, pick history, and session storage.
-      </p>
-      <DocH3 id="devtools-panel">DevTools</DocH3>
-      <p>
-        <code>devtools/panel</code> mounts the shared <code>GripPanelView</code> inside Chrome
-        DevTools.
-      </p>
-
-      <DocH2 id="mcp">Connect MCP</DocH2>
-      <p>
-        To let AI tools control the same browser, set up <code>grip-mcp</code> and launch Chrome
-        with debugging:
-      </p>
-      <CodeBlock>{`pnpm run build:mcp
-./scripts/launch-chrome.sh 9222`}</CodeBlock>
-      <p>
-        Full setup for every IDE and CLI:{" "}
-        <Link href="/docs/mcp/configuration">MCP configuration</Link>.
-      </p>
     </DocPage>
   );
 }

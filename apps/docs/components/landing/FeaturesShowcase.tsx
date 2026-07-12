@@ -9,9 +9,6 @@ export function FeaturesShowcase() {
           <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
             Ecosystem Architecture
           </h2>
-          <p className="mt-2 text-sm text-zinc-400 max-w-xl">
-            Grip consists of modular layers designed to work together, bridging the gap between web applications and AI agent workspaces.
-          </p>
         </div>
 
         {/* Bento Grid Layout */}
@@ -22,24 +19,21 @@ export function FeaturesShowcase() {
             className="group relative md:col-span-2 flex flex-col justify-between overflow-hidden rounded-xl border border-zinc-900 bg-zinc-950/40 p-6 transition-all hover:border-zinc-800 hover:bg-zinc-950/60"
           >
             <div>
-              <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-blue-500/20 bg-blue-500/5 text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-colors duration-300">
+              <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-500/20 bg-zinc-500/5 text-zinc-400 group-hover:bg-zinc-500 group-hover:text-white transition-colors duration-300">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                 </svg>
               </div>
-              <h3 className="mt-4 text-lg font-bold text-white font-mono tracking-tight">grip-dev</h3>
-              <p className="mt-2 text-sm text-zinc-400 max-w-md">
-                Zero-dependency TypeScript package. Generates robust selectors and packages clean, semantic accessibility tree snapshots tailored for LLM reasoning.
-              </p>
+              <h3 className="mt-4 text-lg font-bold text-white font-mono tracking-tight">@grip/core</h3>
             </div>
             {/* Live code mockup inside Bento card */}
             <div className="mt-6 overflow-hidden rounded-lg border border-zinc-900 bg-zinc-950 p-4 font-mono text-[11px] leading-relaxed text-zinc-300">
               <span className="text-zinc-500">// Generate selector and accessibility snapshots</span>
               <div className="mt-1">
-                <span className="text-indigo-400">const</span> selector = <span className="text-emerald-400">generateSelector</span>(element);
+                <span className="text-zinc-400">const</span> selector = <span className="text-zinc-300">generateSelector</span>(element);
               </div>
               <div>
-                <span className="text-indigo-400">const</span> snapshot = <span className="text-emerald-400">buildSnapshotForLLM</span>(document);
+                <span className="text-zinc-400">const</span> snapshot = <span className="text-zinc-300">buildSnapshotForLLM</span>(document);
               </div>
             </div>
           </Link>
@@ -50,7 +44,7 @@ export function FeaturesShowcase() {
             className="group flex flex-col justify-between rounded-xl border border-zinc-900 bg-zinc-950/40 p-6 transition-all hover:border-zinc-800 hover:bg-zinc-950/60"
           >
             <div>
-              <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-emerald-500/20 bg-emerald-500/5 text-emerald-400 group-hover:bg-emerald-500 group-hover:text-white transition-colors duration-300">
+              <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-500/20 bg-zinc-500/5 text-zinc-400 group-hover:bg-zinc-500 group-hover:text-white transition-colors duration-300">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10" />
                   <path d="M8 12h8" />
@@ -58,9 +52,6 @@ export function FeaturesShowcase() {
                 </svg>
               </div>
               <h3 className="mt-4 text-lg font-bold text-white font-mono tracking-tight">@grip/extension</h3>
-              <p className="mt-2 text-sm text-zinc-400">
-                Chrome MV3 developer extension featuring interactive selection canvas overlays, DevTools inspector panel integrations, and session sync capabilities.
-              </p>
             </div>
             <div className="mt-6 border-t border-zinc-900/60 pt-4 flex items-center justify-between text-xs text-zinc-500 group-hover:text-zinc-400 transition-colors">
               <span>View extension guide</span>
@@ -74,17 +65,14 @@ export function FeaturesShowcase() {
             className="group flex flex-col justify-between rounded-xl border border-zinc-900 bg-zinc-950/40 p-6 transition-all hover:border-zinc-800 hover:bg-zinc-950/60"
           >
             <div>
-              <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-purple-500/20 bg-purple-500/5 text-purple-400 group-hover:bg-purple-500 group-hover:text-white transition-colors duration-300">
+              <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-500/20 bg-zinc-500/5 text-zinc-400 group-hover:bg-zinc-500 group-hover:text-white transition-colors duration-300">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M4 17h16" />
                   <path d="M4 12h16" />
                   <path d="M4 7h16" />
                 </svg>
               </div>
-              <h3 className="mt-4 text-lg font-bold text-white font-mono tracking-tight">grip-mcp</h3>
-              <p className="mt-2 text-sm text-zinc-400">
-                Go background daemon implementing the Model Context Protocol. Connects standard command-line tools to target browser sessions using remote debugging protocol ports.
-              </p>
+              <h3 className="mt-4 text-lg font-bold text-white font-mono tracking-tight">grip-mcp (Go Legacy)</h3>
             </div>
             <div className="mt-6 border-t border-zinc-900/60 pt-4 flex items-center justify-between text-xs text-zinc-500 group-hover:text-zinc-400 transition-colors">
               <span>View server reference</span>
@@ -95,7 +83,7 @@ export function FeaturesShowcase() {
           {/* Card 4: AI Agents & Clients - 2/3 width on desktop */}
           <div className="group md:col-span-2 flex flex-col justify-between rounded-xl border border-zinc-900 bg-zinc-950/40 p-6 transition-all hover:border-zinc-800 hover:bg-zinc-950/60">
             <div>
-              <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-amber-500/20 bg-amber-500/5 text-amber-400">
+              <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-500/20 bg-zinc-500/5 text-zinc-400">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polygon points="12 2 2 7 12 12 22 7 12 2" />
                   <polyline points="2 17 12 22 22 17" />
@@ -103,9 +91,6 @@ export function FeaturesShowcase() {
                 </svg>
               </div>
               <h3 className="mt-4 text-lg font-bold text-white font-mono tracking-tight">AI Agent Integrations</h3>
-              <p className="mt-2 text-sm text-zinc-400 max-w-lg">
-                Seamless connection with leading AI coding tools. Feeds precise elements directly into context windows, enabling agents to execute code-aware edits and verification steps.
-              </p>
             </div>
             {/* Display list of badges in bento card */}
             <div className="mt-6 flex flex-wrap gap-2">

@@ -87,3 +87,31 @@ export function createCursorGripMcpConfig(
     ...options,
   });
 }
+
+import fs from "node:fs";
+import path from "node:path";
+
+/**
+ * Ensures that a grip.config.json file exists in the project directory,
+ * creating it with default values if not present.
+ */
+export function ensureProjectGripConfig(projectDir: string = process.cwd()): string {
+  const configPath = path.join(projectDir, "grip.config.json");
+  if (!fs.existsSync(configPath)) {
+    const defaultConfig = {
+      mcpServers: {
+        grip: {
+          port: 9222,
+          bridgePort: 9223,
+          logLevel: "info",
+        },
+      },
+    };
+    const dir = path.dirname(configPath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(configPath, JSON.stringify(defaultConfig, null, 2), "utf8");
+  }
+  return configPath;
+}

@@ -14,6 +14,9 @@ npm install grip-dev
 
 *Requires Node.js 20+.*
 
+> [!WARNING]  
+> **Network Access**: This module accesses the network to connect to browser DevTools protocol ports (e.g., CDP on port 9222).
+
 ---
 
 ## Features & Usage

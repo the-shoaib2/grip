@@ -1,7 +1,7 @@
-import { SiteFooter, SiteHeader } from "@components/site/SiteChrome";
+import { SiteHeader } from "@components/site/SiteChrome";
+import { DocsFooter } from "@components/docs/DocsFooter";
 import { Hero } from "@components/landing/Hero";
 import { WorkflowCanvas } from "@components/landing/WorkflowCanvas";
-import { TerminalDemo } from "@components/landing/TerminalDemo";
 import { FeaturesShowcase } from "@components/landing/FeaturesShowcase";
 import { IntegrationDetails } from "@components/landing/IntegrationDetails";
 
@@ -13,12 +13,10 @@ export default function Home() {
         <main className="max-w-6xl mx-auto border-x border-zinc-900/80 bg-zinc-950/10 min-h-screen">
           <Hero />
           <WorkflowCanvas />
-          <TerminalDemo />
           <FeaturesShowcase />
-          <IntegrationDetails />
         </main>
       </div>
-      <SiteFooter />
+      <DocsFooter />
     </div>
   );
 }

@@ -18,7 +18,7 @@ function askQuestion(query: string): Promise<string> {
   );
 }
 
-export async function setup() {
+export async function setup(args: string[] = []) {
   console.log("=========================================");
   console.log("       Grip MCP Configurator Tool");
   console.log("=========================================");
@@ -26,7 +26,28 @@ export async function setup() {
   console.log(`Binary Location: ${binaryPath}`);
   console.log("-----------------------------------------");
 
-  if (!fs.existsSync(binaryPath)) {
+  let selectedOption: string | null = null;
+  let silent = false;
+
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (arg === "--cursor") selectedOption = "1";
+    else if (arg === "--claude") selectedOption = "2";
+    else if (arg === "--cline") selectedOption = "3";
+    else if (arg === "--antigravity") selectedOption = "4";
+    else if (arg === "--all") selectedOption = "5";
+    else if (arg === "--silent") silent = true;
+    else if (arg === "--ide" && i + 1 < args.length) {
+      const ide = args[++i].toLowerCase();
+      if (ide === "cursor") selectedOption = "1";
+      else if (ide === "claude") selectedOption = "2";
+      else if (ide === "cline") selectedOption = "3";
+      else if (ide === "antigravity") selectedOption = "4";
+      else if (ide === "all") selectedOption = "5";
+    }
+  }
+
+  if (!fs.existsSync(binaryPath) && !silent) {
     console.warn(`[warning] grip-mcp binary was not found at '${binaryPath}'.`);
     const buildAns = await askQuestion("Would you like to compile it now? (y/n): ");
     if (buildAns.toLowerCase() === "y") {
@@ -43,34 +64,36 @@ export async function setup() {
 
   const { cursorPath, claudePath, clinePath, antigravityPath } = getIDEPaths();
 
-  console.log("\nPlease select which IDEs or agents to configure:");
-  console.log("1) Cursor IDE (project-level .cursor/mcp.json)");
-  console.log("2) Claude Desktop (global configuration)");
-  console.log("3) VS Code - Cline Extension");
-  console.log("4) Antigravity IDE (Gemini Code Assist config)");
-  console.log("5) All of the above");
-  console.log("6) Exit");
+  if (selectedOption === null) {
+    console.log("\nPlease select which IDEs or agents to configure:");
+    console.log("1) Cursor IDE (project-level .cursor/mcp.json)");
+    console.log("2) Claude Desktop (global configuration)");
+    console.log("3) VS Code - Cline Extension");
+    console.log("4) Antigravity IDE (Gemini Code Assist config)");
+    console.log("5) All of the above");
+    console.log("6) Exit");
 
-  const option = await askQuestion("\nSelect option (1-6): ");
+    selectedOption = await askQuestion("\nSelect option (1-6): ");
+  }
 
-  switch (option) {
+  switch (selectedOption) {
     case "1":
-      mergeMcpConfig(cursorPath, binaryPath, false);
+      mergeMcpConfig(cursorPath, binaryPath, silent);
       break;
     case "2":
-      mergeMcpConfig(claudePath, binaryPath, false);
+      mergeMcpConfig(claudePath, binaryPath, silent);
       break;
     case "3":
-      mergeMcpConfig(clinePath, binaryPath, false);
+      mergeMcpConfig(clinePath, binaryPath, silent);
       break;
     case "4":
-      mergeMcpConfig(antigravityPath, binaryPath, false);
+      mergeMcpConfig(antigravityPath, binaryPath, silent);
       break;
     case "5":
-      mergeMcpConfig(cursorPath, binaryPath, false);
-      mergeMcpConfig(claudePath, binaryPath, false);
-      mergeMcpConfig(clinePath, binaryPath, false);
-      mergeMcpConfig(antigravityPath, binaryPath, false);
+      mergeMcpConfig(cursorPath, binaryPath, silent);
+      mergeMcpConfig(claudePath, binaryPath, silent);
+      mergeMcpConfig(clinePath, binaryPath, silent);
+      mergeMcpConfig(antigravityPath, binaryPath, silent);
       break;
     case "6":
       console.log("Exiting configurator.");

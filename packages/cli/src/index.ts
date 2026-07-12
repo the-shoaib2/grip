@@ -38,7 +38,7 @@ async function executeCommand(cmd: string, args: string[]): Promise<boolean> {
   switch (cleanCmd.toLowerCase()) {
     case "setup":
     case "configure":
-      await setup();
+      await setup(args);
       break;
     case "up":
     case "start":

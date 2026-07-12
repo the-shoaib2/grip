@@ -1,46 +1,31 @@
 import Link from "next/link";
-import { CodeBlock } from "@components/docs/CodeBlock";
 import { DocH2 } from "@components/docs/DocHeading";
 import { DocPage } from "@components/docs/DocPage";
 import { DocTip } from "@components/docs/DocTip";
 
 const toc = [
-  { id: "overview", title: "What it is", level: 2 as const },
-  { id: "build", title: "Build the server", level: 2 as const },
-  { id: "tools", title: "Tools it exposes", level: 2 as const },
+  { id: "overview", title: "Overview", level: 2 as const },
+  { id: "tools", title: "Tools exposed", level: 2 as const },
 ];
 
 export default function McpServerPackagePage() {
   return (
     <DocPage
-      title="grip-mcp"
-      description="The Go MCP server that connects AI clients to Chrome — snapshot, click, fill, logs, and more."
+      title="grip-mcp (Go Legacy)"
+      description="The original Go-based MCP server for connecting AI clients to Chrome."
       toc={toc}
     >
-      <DocH2 id="overview">What it is</DocH2>
+      <DocH2 id="overview">Overview</DocH2>
       <p>
-        <code>grip-mcp</code> lives in <code>packages/mcp-server</code>. It uses the official MCP Go
-        SDK and <code>chromedp</code> to attach to Chrome and expose browser tools your IDE or CLI
-        can call.
+        <code>grip-mcp</code> is the original Go-based implementation of the Grip MCP server, utilizing the official MCP Go SDK and <code>chromedp</code> to attach to Chrome and expose browser tools.
       </p>
-      <p>
-        You don&apos;t run it by hand in normal use — your MCP client (Cursor, Claude Code, etc.)
-        starts it as a subprocess when you open a session.
-      </p>
-
-      <DocH2 id="build">Build the server</DocH2>
-      <CodeBlock>{`pnpm run build:mcp
-# Output: bin/grip-mcp`}</CodeBlock>
       <DocTip>
-        Point your MCP config at the absolute path of <code>bin/grip-mcp</code>. See{" "}
-        <Link href="/docs/mcp/configuration">MCP configuration</Link> for your specific editor or
-        CLI.
+        <strong>Note:</strong> <code>grip-mcp</code> is largely considered a legacy implementation. The recommended path for all modern deployments is the standalone TypeScript daemon, <code>@grip/cli</code>. See the <Link href="/docs/packages/cli">CLI documentation</Link> for the modern approach.
       </DocTip>
 
-      <DocH2 id="tools">Tools it exposes</DocH2>
+      <DocH2 id="tools">Tools exposed</DocH2>
       <p>
-        Ten tools for page inspection and interaction. Each one is documented with when to use it in
-        the <Link href="/docs/mcp/tools">tools reference</Link>:
+        Like the modern CLI, this server exposes standard tools for page inspection and interaction via the Model Context Protocol. You can find detailed usage for these tools in the <Link href="/docs/mcp/tools">tools reference guide</Link>:
       </p>
       <ul>
         <li>

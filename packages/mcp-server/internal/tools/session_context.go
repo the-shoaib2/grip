@@ -22,13 +22,22 @@ var (
 )
 
 func StoreSessionContext(sessionID string, picks []map[string]interface{}) {
+	now := time.Now().UnixMilli()
 	record := sessionContextRecord{
 		SessionID:    sessionID,
 		Picks:        picks,
-		RegisteredAt: time.Now().UnixMilli(),
+		RegisteredAt: now,
 	}
 	sessionMu.Lock()
 	sessionRegistry[sessionID] = record
+
+	// Clean up stale sessions (older than 24 hours)
+	const staleDuration = 24 * 60 * 60 * 1000 // 24 hours in milliseconds
+	for id, rec := range sessionRegistry {
+		if now-rec.RegisteredAt > staleDuration {
+			delete(sessionRegistry, id)
+		}
+	}
 	sessionMu.Unlock()
 }
 

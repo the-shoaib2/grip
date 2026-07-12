@@ -1,6 +1,6 @@
 {
   "name": "grip-dev",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Grip core — selectors, accessibility snapshots, ref maps",
   "license": "MIT",
   "type": "module",

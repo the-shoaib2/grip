@@ -13,12 +13,22 @@ export function registerSessionContext(
   sessionId: string,
   picks: StoredPick[],
 ): SessionContextRecord {
+  const now = Date.now();
   const record: SessionContextRecord = {
     sessionId,
     picks,
-    registeredAt: Date.now(),
+    registeredAt: now,
   };
   inMemorySessions.set(sessionId, record);
+
+  // Prune sessions older than 24 hours
+  const staleDuration = 24 * 60 * 60 * 1000;
+  for (const [id, rec] of inMemorySessions.entries()) {
+    if (now - rec.registeredAt > staleDuration) {
+      inMemorySessions.delete(id);
+    }
+  }
+
   return record;
 }
 
