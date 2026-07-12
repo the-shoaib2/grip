@@ -1,9 +1,11 @@
 import { DocH2 } from "@components/docs/DocHeading";
 import { DocPage } from "@components/docs/DocPage";
 import { DocTip } from "@components/docs/DocTip";
+import { GripDevInstallTabs } from "@components/docs/GripDevInstallTabs";
 
 const toc = [
   { id: "overview", title: "What it is", level: 2 as const },
+  { id: "installation", title: "Installation", level: 2 as const },
   { id: "exports", title: "Main APIs", level: 2 as const },
 ];
 
@@ -22,6 +24,9 @@ export default function CorePackagePage() {
       <DocTip>
         If you are building custom AI tools or extending Grip's functionality, import utilities directly from this package to ensure compatibility.
       </DocTip>
+
+      <DocH2 id="installation">Installation</DocH2>
+      <GripDevInstallTabs />
 
       <DocH2 id="exports">Main APIs</DocH2>
       <ul>

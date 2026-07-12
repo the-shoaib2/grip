@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+
+# Grip Standalone CLI Installer
+# Fetches the latest pre-compiled binary of grip from GitHub Releases
+
+set -euo pipefail
+
+REPO="the-shoaib2/grip"
+GITHUB_RELEASES_URL="https://github.com/${REPO}/releases/latest/download"
+
+# 1. Detect OS and Architecture
+OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
+ARCH="$(uname -m)"
+
+BINARY_NAME=""
+case "${OS}" in
+  darwin)
+    case "${ARCH}" in
+      arm64)
+        BINARY_NAME="grip-macos-arm64"
+        ;;
+      x86_64)
+        BINARY_NAME="grip-macos-x64"
+        ;;
+      *)
+        echo "❌ Unsupported macOS architecture: ${ARCH}"
+        exit 1
+        ;;
+    esac
+    ;;
+  linux)
+    case "${ARCH}" in
+      x86_64)
+        BINARY_NAME="grip-linux-x64"
+        ;;
+      *)
+        echo "❌ Unsupported Linux architecture: ${ARCH}"
+        exit 1
+        ;;
+    esac
+    ;;
+  *)
+    echo "❌ Unsupported operating system: ${OS}"
+    exit 1
+    ;;
+esac
+
+DOWNLOAD_URL="${GITHUB_RELEASES_URL}/${BINARY_NAME}"
+INSTALL_DIR="/usr/local/bin"
+INSTALL_PATH="${INSTALL_DIR}/grip"
+
+echo "Downloading Grip CLI for ${OS} (${ARCH})..."
+echo "URL: ${DOWNLOAD_URL}"
+
+# Create temporary file
+TMP_BIN="$(mktemp)"
+trap 'rm -f "${TMP_BIN}"' EXIT
+
+# Download binary
+if curl -fsSL -o "${TMP_BIN}" "${DOWNLOAD_URL}"; then
+  chmod +x "${TMP_BIN}"
+else
+  echo "❌ Failed to download binary. Please make sure a release exists on GitHub: ${DOWNLOAD_URL}"
+  exit 1
+fi
+
+# Install to /usr/local/bin
+echo "Installing Grip CLI to ${INSTALL_PATH}..."
+if [ -w "${INSTALL_DIR}" ]; then
+  mv "${TMP_BIN}" "${INSTALL_PATH}"
+else
+  echo "🔑 Root permissions required to write to ${INSTALL_DIR}"
+  sudo mv "${TMP_BIN}" "${INSTALL_PATH}"
+fi
+
+echo "✅ Grip CLI installed successfully! Run 'grip --help' to verify."
