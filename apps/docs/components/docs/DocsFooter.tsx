@@ -37,7 +37,7 @@ export function DocsFooter() {
                 <Link href="/docs/mcp/tools">mcp tools</Link>
               </li>
               <li>
-                <Link href="/docs/packages/core">@grip/core</Link>
+                <Link href="/docs/packages/core">grip-dev</Link>
               </li>
               <li>
                 <Link href="/docs/packages/cli">@grip/cli</Link>

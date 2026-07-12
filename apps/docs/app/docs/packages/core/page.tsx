@@ -10,13 +10,13 @@ const toc = [
 export default function CorePackagePage() {
   return (
     <DocPage
-      title="@grip/core"
+      title="grip-dev"
       description="The shared logic foundation for Grip — providing selectors, accessibility snapshots, pick history, and universal types."
       toc={toc}
     >
       <DocH2 id="overview">Overview</DocH2>
       <p>
-        <code>@grip/core</code> contains the fundamental algorithms and types used across the Grip ecosystem. 
+        <code>grip-dev</code> contains the fundamental algorithms and types used across the Grip ecosystem. 
         It has no user interface; it acts as the centralized logic hub for generating element selectors, mapping DOM nodes to accessibility trees, and storing interaction history.
       </p>
       <DocTip>

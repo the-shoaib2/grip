@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "build": "turbo build",
-    "dev": "turbo dev --filter=@grip/playground --filter=@grip/extension",
+    "dev": "turbo dev --ui=tui --filter=@grip/playground --filter=@grip/extension",
     "dev:playground": "turbo dev --filter=@grip/playground --filter=@grip/devtools",
     "dev:extension": "pnpm --filter @grip/extension dev",
     "dev:grip": "pnpm --filter @grip/cli start dev",

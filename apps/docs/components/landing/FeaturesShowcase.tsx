@@ -24,7 +24,7 @@ export function FeaturesShowcase() {
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                 </svg>
               </div>
-              <h3 className="mt-4 text-lg font-bold text-white font-mono tracking-tight">@grip/core</h3>
+              <h3 className="mt-4 text-lg font-bold text-white font-mono tracking-tight">grip-dev</h3>
             </div>
             {/* Live code mockup inside Bento card */}
             <div className="mt-6 overflow-hidden rounded-lg border border-zinc-900 bg-zinc-950 p-4 font-mono text-[11px] leading-relaxed text-zinc-300">
